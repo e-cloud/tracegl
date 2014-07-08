@@ -190,7 +190,7 @@ define(function(require){
 		var trc = tracehub.toString().match(/\/\/TRACE[\s\S]*\/\/TRACE/)[0]
 		// fetch io channel
 		for(var k in define.factory) if(k.indexOf('core/io_channel') != -1)break
-		var chn = define.factory[k].toString().match(/\/\/CHANNEL\n([\s\S]*)\/\/CHANNEL/)[1]
+		var chn = define.factory[k].toString().match(/\/\/CHANNEL(?:\n|\r)([\s\S]*)\/\/CHANNEL/)[1].trim()
 
 		return strip(trc.replace('//CHANNEL', chn)+"\n")
 	};
