@@ -402,9 +402,11 @@ define(function(require){
 		var buf = []
 		var total = 0
 
-		function flush(){
+		function flush(end){
 			if(buf.length){
 				gz.write(buf.join(''))
+				gz.flush();
+				if (end) gz.end();
 				buf = []
 				total = 0
 			}
@@ -427,18 +429,18 @@ define(function(require){
 
 		process.on('exit', function(){
 			console.log('exit!')
-			//gz.end()
 		})
 
 
 		return function(m){
-			if(!terminated){
-				// we should buffer atleast a megabyte
-				var data = '\x1f'+JSON.stringify(m)+'\x17'
-				buf.push(data)
-				total += data.length
-				if(total > 1024*1024) flush()
-			}
+		    if (!m) flush(true);
+		    else {
+    			// we should buffer atleast a megabyte
+    			var data = '\x1f'+JSON.stringify(m)+'\x17'
+    			buf.push(data)
+    			total += data.length
+    			if(total > 1024*1024) flush()
+		    }
 		}
 	}
 
@@ -525,6 +527,10 @@ define(function(require){
 		// ipc datapath
 		child.on('message', function(m){
 			sender(m)
+		})
+		
+		child.on('exit', function () {
+		    sender(false);
 		})
 	}
 
