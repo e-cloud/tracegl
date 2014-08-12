@@ -1,9 +1,13 @@
-TraceGL
-=======
+# TraceGL
 
-TraceGL MPL release (C) Mozilla Corp
 
-Running traceGL unpackaged:
+traceGL is a [JavaScript codeflow visualization and debugging tool built using WebGL](http://badassjs.com/post/48702496345/tracegl-a-javascript-codeflow-visualization-and). It was originally a commercial offering developed by Rik Arends, who has later [open sourced](https://github.com/codegl/tracegl/issues/120) it under the [Mozilla Public License](https://www.mozilla.org/MPL/) (MPL).
+
+traceGL transforms your JavaScript, injecting monitoring code that produces a log of everything that happens. This log is streamed from the target (node or browser), via the traceGL node.js process to the UI for visualisation. The UI tries to display the resulting huge amount of information fast, and uses webGL to render everything.
+
+## Running traceGL
+
+Upackaged:
 ```
 git clone git@github.com:/traceglMPL/tracegl.git
 cd tracegl
@@ -14,35 +18,32 @@ Packaging tracegl into a single JS file you can copy everywhere (like your home 
 node tools/packer.js trace/trace_server tracegl.js
 cp tracegl.js ~/
 ````
-How it works
-==
-traceGL transforms your JavaScript, injecting monitoring code that produces a log of everything that happens. This log is streamed from the target (node or browser), via the traceGL node.js process to the UI for visualisation. The UI tries to display the resulting huge amount of information fast, and uses webGL to render everything.
 
-Node.js programs
---
+## Node.js programs
+
 ````
 node ~/tracegl [options] yourprogram.js [arguments]
 ````
 The visualisation UI is available on http://localhost:2000.
 
-Browser JS via static fileserver
---
+## Browser JS via static fileserver
+
 The built in static fileserver allows traceGL to instrument all the JavaScript files it serves to the browser and gather information. It auto-reloads the site when a file changes so you can live-code with it.
 
 node tracegl [options] ../path/to/wwwroot
 
-Browser JS via proxy
---
+## Browser JS via proxy
+
 Sometimes your JavaScript is delivered by your Rails or Java backend to the browser. In this case you need a man-in-the-middle approach via traceGL's proxy mode. For a Ruby backend on port 3000:
 
 node tracegl [options] http://localhost:3000
 
-Editor integration
---
+## Editor integration
+
 By doubleclicking on a line in the visualisation UI you can open it in your favorite editor. See the settings for information how to configure this
 
-Commandline options
---
+## Command line options
+
 ```
 node ~/tracegl [options] target [args]
 ```
@@ -71,8 +72,8 @@ Filtering can be useful to lower the amount of incoming tracedata. Use -do and -
 
 -update Update tracegl.js to the latest version, uses your token to fetch update
 
-Settings file
---
+## Settings file
+
 For other settings and commandline defaults traceGL supports a tracegl.json file which it tries to read from the current directory, your home dir, or the directory you store the tracegl.js file (in that order).
 
 Create a template tracegl.json using the -settings command, and then modify these fields:
@@ -97,6 +98,7 @@ Editor integration uses a commandline call to your editor, and uses $file and $l
 "bin":"/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl"
 "args":["$file:$line"]
 ```
-Issues
---
+
+## Issues
+
 traceGL cannot instrument JavaScript coming from outside of its reach. For instance if you load jQuery from the google CDN, it cannot visualise that codeflow because it is not delivered by the traceGL proxy or static fileserver. If you keep your JS served through traceGL it should be no problem.
