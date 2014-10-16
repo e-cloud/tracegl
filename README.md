@@ -62,7 +62,7 @@ Filtering can be useful to lower the amount of incoming tracedata. Use -do and -
 
 -no[/:]match Don't trace files where filename names contains match.
 
--nolib Only see your own code. Short for: -no/jquery.* -no:require.js -no/node\\_modules
+-nolib Only see your own code. Short for: -no/jquery.* -no:require.js -no/node\\_modules -no/bower\\_components
 
 -noopen Don't try to open the visualisation UI with your default browser
 
