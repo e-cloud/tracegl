@@ -53,7 +53,7 @@ options can be:
 
 -gz[:trace.gz] Record a trace to gzip file, defaults to trace.gz, doesn't start the UI.
 
-Filtering can be useful to lower the amount of incoming tracedata. Use -do and -no with either a -do:string or a 
+Filtering can be useful to lower the amount of incoming tracedata. Use -do and -no with either a -do:string or a
 -do/regex match. Use double escaped backslashes in regexps (see -nolib).
 
 -do[/:]match Only trace files where filename contains match.
@@ -61,6 +61,8 @@ Filtering can be useful to lower the amount of incoming tracedata. Use -do and -
 -no[/:]match Don't trace files where filename names contains match.
 
 -nolib Only see your own code. Short for: -no/jquery.* -no:require.js -no/node\\_modules
+
+-meteor Only see your own code (Meteor apps only - use this instead of -nolib). Short for: -no/jquery.* -no/packages
 
 -noopen Don't try to open the visualisation UI with your default browser
 
@@ -79,7 +81,7 @@ For other settings and commandline defaults traceGL supports a tracegl.json file
 Create a template tracegl.json using the -settings command, and then modify these fields:
 
 ```
-"ui":2000 Set the UI port, -ui:port commandline 
+"ui":2000 Set the UI port, -ui:port commandline
 ```
 ```
 "tgt":2080 Set the browser JS port, -tgt:port commandline
@@ -102,3 +104,6 @@ Editor integration uses a commandline call to your editor, and uses $file and $l
 ## Issues
 
 traceGL cannot instrument JavaScript coming from outside of its reach. For instance if you load jQuery from the google CDN, it cannot visualise that codeflow because it is not delivered by the traceGL proxy or static fileserver. If you keep your JS served through traceGL it should be no problem.
+
+##### Meteor issues
+Websocket connection currently not working due to traceGL proxy "Connection closed before receiving a handshake response". This means that you'll be able to trace events on the client, but all server calls will be rejected.
