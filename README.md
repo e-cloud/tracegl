@@ -51,28 +51,25 @@ target can be 1. a node.js program, 2. a static folder, 3. a proxy target or 4. 
 
 options can be:
 
--gz[:trace.gz] Record a trace to gzip file, defaults to trace.gz, doesn't start the UI.
+**-gz[:trace.gz]** Record a trace to gzip file, defaults to trace.gz, doesn't start the UI. Filtering can be useful to lower the amount of incoming tracedata. Use -do and -no with either a -do:string or a -do/regex match. Use double escaped backslashes in regexps (see -nolib).
 
-Filtering can be useful to lower the amount of incoming tracedata. Use -do and -no with either a -do:string or a
--do/regex match. Use double escaped backslashes in regexps (see -nolib).
+**-do[/:]match** Only trace files where filename contains match.
 
--do[/:]match Only trace files where filename contains match.
+**-no[/:]match** Don't trace files where filename names contains match.
 
--no[/:]match Don't trace files where filename names contains match.
+**-nolib** Only see your own code. Short for: -no/jquery.* -no:require.js -no/node\\_modules
 
--nolib Only see your own code. Short for: -no/jquery.* -no:require.js -no/node\\_modules
+**-meteor** Only see your own code (Meteor apps only - use this instead of -nolib). Short for: -no/jquery.* -no/packages
 
--meteor Only see your own code (Meteor apps only - use this instead of -nolib). Short for: -no/jquery.* -no/packages
+**-noopen** Don't try to open the visualisation UI with your default browser
 
--noopen Don't try to open the visualisation UI with your default browser
+**-ui:port** Explicitly set the visualisation UI port, default is 2000
 
--ui:port Explicitly set the visualisation UI port, default is 2000
+**-tgt:port** Explicitly set the browser JS port, defaults to 2080
 
--tgt:port Explicitly set the browser JS port, defaults to 2080
+**-settings** Write a settings tracegl.json template in current dir, see settings file
 
--settings Write a settings tracegl.json template in current dir, see settings file
-
--update Update tracegl.js to the latest version, uses your token to fetch update
+**-update** Update tracegl.js to the latest version, uses your token to fetch update
 
 ## Settings file
 
