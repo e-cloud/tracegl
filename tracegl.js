@@ -3,7 +3,7 @@
 // |
 // | (C) Mozilla Corp
 // | licensed under MPL 2.0 http://www.mozilla.org/MPL/
-// \____________________________________________/   
+// \____________________________________________/
 
 
 define('/trace/trace_server',function(require){
@@ -26,8 +26,8 @@ define('/trace/trace_server',function(require){
 
 	// the nodejs loader
 	if(process.argv[2] && process.argv[2].indexOf('-l')==0) return nodeLoader()
-	
-	function nodeLoader(){ 
+
+	function nodeLoader(){
 		var filter = makeFilter(process.argv[2].slice(2))
 
 		var m = require('module').Module.prototype;
@@ -35,9 +35,9 @@ define('/trace/trace_server',function(require){
 		var did = 1
 		m._compile = function(content, filename){
 
-			if(filter.active && filter(filename)) 
+			if(filter.active && filter(filename))
 				return oldCompile.call(this, content, filename)
-			// lets instrument 
+			// lets instrument
 			var t = instrument(filename, content, did, filter.opt)
 			did = t.id
 			// send the dictionary out
@@ -81,7 +81,7 @@ define('/trace/trace_server',function(require){
 		function init(a){
 			var d = []
 			for(var i = 0;i<a.length;i++){
-				if(a[i].charAt(0)==':') d[i] = a[i].slice(1) 
+				if(a[i].charAt(0)==':') d[i] = a[i].slice(1)
 				else d[i] = new RegExp(a[i].slice(1),"i")
 			}
 			return d
@@ -105,7 +105,7 @@ define('/trace/trace_server',function(require){
 
 		f.opt = fspec._opt
 		f.active = _do.length || _no.length
-	
+
 		f.stringify = function(){
 			return JSON.stringify(fspec)
 		}
@@ -123,13 +123,13 @@ define('/trace/trace_server',function(require){
 			define.settingsData = data
 			define.settingsFile = file
 		}
-		catch(e){	
+		catch(e){
 			console.log("Error reading settings file ("+file+") ",e)
 		}
 	}
 
-	if(!loadSettings(path.resolve(process.cwd(),"tracegl.json")) && 
-		!loadSettings("~/tracegl.json") && 
+	if(!loadSettings(path.resolve(process.cwd(),"tracegl.json")) &&
+		!loadSettings("~/tracegl.json") &&
 		!loadSettings(path.resolve(path.dirname(__filename),"tracegl.json")) &&
 		!define.settings)
 		loadSettings(path.resolve(path.dirname(__filename),"tracegl.json"))
@@ -153,7 +153,8 @@ define('/trace/trace_server',function(require){
 			out('  ~c~-gz[:trace.gz] ~w~Record trace to gzip file. No trace UI started\n')
 			out('  ~c~-do[/:]match ~w~Only trace filenames containing match. Filters -do set first, then -no\n')
 			out('  ~c~-no[/:]match ~w~Ignore filenames containing match. Replace : with / for a regexp, use double escaped \\\\ \n')
-			out('  ~c~-nolib ~w~Short for -no/jquery.* -no:require.js -no/node\\\\_modules \n')
+			out('  ~c~-nolib ~w~Short for -no/jquery.* -no:require.js -no/node\\\\_modules -no/bower\\\\_components \n')
+			out('  ~c~-meteor ~w~Short for -no/jquery.* -no:/packages \n')
 			out('  ~c~-nocatch ~w~Don\'t create exception catching\n')
 			out('  ~c~-bind:0.0.0.0 ~w~Set the hostname to bind our external ports to, default 0.0.0.0\n')
 			out('  ~c~-ui:port ~w~Set trace UI port. default: 2000\n')
@@ -188,10 +189,14 @@ define('/trace/trace_server',function(require){
 						fspec._no.push("/jquery.*")
 						fspec._no.push(":require.js")
 						fspec._no.push("/node\\_modules")
+						fspec._no.push("/bower\\_components")
 					} else {
 						fspec._no.push(a.slice(3))
 					}
-				} else if(a.indexOf('-do') == 0){
+				} else if (a == '-meteor') {
+					fspec._no.push("/jquery.*")
+					fspec._no.push("/packages")
+				}else if(a.indexOf('-do') == 0){
 					fspec._do.push(a.slice(3))
 				} else if(a.indexOf('-settings') == 0){
 					if(fs.existsSync('tracegl.json')){
@@ -272,7 +277,7 @@ define('/trace/trace_server',function(require){
 							console.log("Building file find search db from "+root+" ..")
 							scanHash = {}
 							scan(root, find)
-						} 
+						}
 						else find()
 					} else {
 						var sf = path.resolve(root, sp.join('/'))
@@ -290,7 +295,7 @@ define('/trace/trace_server',function(require){
 	function openEditor(file, line){
 		var ed
 		var s = define.settings
-		if(!s.editors || 
+		if(!s.editors ||
 			!(ed = s.editors[process.platform]))
 			return console.log("No editor settings available for your platform")
 		// lets try all editors
@@ -331,7 +336,7 @@ define('/trace/trace_server',function(require){
 
 		var dict = []
 		var queue = []
-		var joined = false 
+		var joined = false
 
 		var finder = fileFinder(process.cwd())
 
@@ -393,19 +398,21 @@ define('/trace/trace_server',function(require){
 		fstr.on('error', function(err){
 			console.log("Error writing "+file+" "+err)
 		})
-		
+
 		gz.on('error', function(err){
 			console.log("Error zipping "+file+" "+err)
 		})
 
 		gz.pipe(fstr)
-		
+
 		var buf = []
 		var total = 0
 
-		function flush(){
+		function flush(end){
 			if(buf.length){
 				gz.write(buf.join(''))
+				gz.flush();
+				if (end) gz.end();
 				buf = []
 				total = 0
 			}
@@ -428,18 +435,18 @@ define('/trace/trace_server',function(require){
 
 		process.on('exit', function(){
 			console.log('exit!')
-			//gz.end()
 		})
 
 
 		return function(m){
-			if(!terminated){
-				// we should buffer atleast a megabyte
-				var data = '\x1f'+JSON.stringify(m)+'\x17'
-				buf.push(data)
-				total += data.length
-				if(total > 1024*1024) flush()
-			}
+		    if (!m) flush(true);
+		    else {
+    			// we should buffer atleast a megabyte
+    			var data = '\x1f'+JSON.stringify(m)+'\x17'
+    			buf.push(data)
+    			total += data.length
+    			if(total > 1024*1024) flush()
+		    }
 		}
 	}
 
@@ -457,10 +464,10 @@ define('/trace/trace_server',function(require){
 		tgt.data = function(m, c){
 			sender(m)
 		}
-		
-		var fileCache= {}		
+
+		var fileCache= {}
 		var did = 1 // count instrument offset id
-		
+
 		tgt.fileChange = function(f){
 			// lets flush everything
 			fileCache = {}
@@ -509,7 +516,7 @@ define('/trace/trace_server',function(require){
 		args.unshift(file)
 		args.unshift('-l' + filter.stringify())
 		args.unshift(process.argv[1])
- 		
+
  		var stdio = [process.stdin, process.stdout,'pipe']
  		//if(process.version.indexOf('v0.8') != -1)	stdio.push('ipc')
 
@@ -527,6 +534,10 @@ define('/trace/trace_server',function(require){
 		child.on('message', function(m){
 			sender(m)
 		})
+
+		child.on('exit', function () {
+		    sender(false);
+		})
 	}
 
 	function proxyMode(filter, port, bind, proxy, sender){
@@ -543,8 +554,8 @@ define('/trace/trace_server',function(require){
 		tgt.data = function(m, c){
 			sender(m)
 		}
-		
-		var fileCache= {}		
+
+		var fileCache= {}
 		var did = 1 // count instrument offset id
 		tgt.process = function(file, data, type){
 			if(type != "application/javascript") return data
@@ -579,6 +590,7 @@ define('/trace/trace_server',function(require){
 		})
 	}
 })
+
 function define(id,fac){
 //PACKSTART
 	// | returns path of file
@@ -4018,7 +4030,7 @@ define('/trace/instrument',function(require){
 		var trc = tracehub.toString().match(/\/\/TRACE[\s\S]*\/\/TRACE/)[0]
 		// fetch io channel
 		for(var k in define.factory) if(k.indexOf('core/io_channel') != -1)break
-		var chn = define.factory[k].toString().match(/\/\/CHANNEL\n([\s\S]*)\/\/CHANNEL/)[1]
+		var chn = define.factory[k].toString().match(/\/\/CHANNEL(?:\n|\r)([\s\S]*)\/\/CHANNEL/)[1].trim()
 
 		return strip(trc.replace('//CHANNEL', chn)+"\n")
 	};
@@ -13443,14 +13455,14 @@ define('/trace/trace_client',function(require){
 		ui.drawer()
 	})
 })
-define.settingsData = "{\n\t\"theme\" : \"dark\", // other theme: light\n\t\"ui\":2000, // UI port\n\t\"tgt\":2080, // browser JS port\n\t\"do\":[], // only trace files matching\n\t\"no\":[], // ignore files matching \":match\" for string or \"/match\" for regexp\n\t\"editors\" : { // editor paths per platform, modify these to set up your editor\n\t\t\"darwin\":{\n\t\t\t\"sublime3\":{\n\t\t\t\t\"bin\":\"/Applications/Sublime Text 3.app/Contents/SharedSupport/bin/subl\",\n\t\t\t\t\"args\":[\"$file:$line\"]\n\t\t\t},\n\t\t\t\"sublime2\":{\n\t\t\t\t\"bin\":\"/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl\",\n\t\t\t\t\"args\":[\"$file:$line\"]\n\t\t\t},\n\t\t\t\"textmate\":{\n\t\t\t\t\"bin\":\"/Applications/TextMate.app/Contents/Resources/mate\",\n\t\t\t\t\"args\":[\"$file\",\"--line\",\"$line\"]\n\t\t\t}\n\t\t},\n\t\t\"win32\":{},\n\t\t\"sunos\":{},\n\t\t\"linux\":{},\n\t\t\"freebsd\":{}\n\t}\n}";
+define.settingsData = "{\r\n\t\"theme\" : \"dark\",\r\n\t\"ui\":2000,\r\n\t\"tgt\":2080,\r\n\t\"do\":[],\r\n\t\"no\":[],\r\n\t\"editors\" : {\r\n\t\t\"darwin\":{\r\n\t\t\t\"sublime3\":{\r\n\t\t\t\t\"bin\":\"/Applications/Sublime Text 3.app/Contents/SharedSupport/bin/subl\",\r\n\t\t\t\t\"args\":[\"$file:$line\"]\r\n\t\t\t},\r\n\t\t\t\"sublime2\":{\r\n\t\t\t\t\"bin\":\"/Applications/Sublime Text 2.app/Contents/SharedSupport/bin/subl\",\r\n\t\t\t\t\"args\":[\"$file:$line\"]\r\n\t\t\t},\r\n\t\t\t\"textmate\":{\r\n\t\t\t\t\"bin\":\"/Applications/TextMate.app/Contents/Resources/mate\",\r\n\t\t\t\t\"args\":[\"$file\",\"--line\",\"$line\"]\r\n\t\t\t}\r\n\t\t},\r\n\t\t\"win32\":{},\r\n\t\t\"sunos\":{},\r\n\t\t\"linux\":{},\r\n\t\t\"freebsd\":{}\r\n\t}\r\n}\r\n";
 define.settings = {
-	"theme" : "dark", // other theme: light
-	"ui":2000, // UI port
-	"tgt":2080, // browser JS port
-	"do":[], // only trace files matching
-	"no":[], // ignore files matching ":match" for string or "/match" for regexp
-	"editors" : { // editor paths per platform, modify these to set up your editor
+	"theme" : "dark",
+	"ui":2000,
+	"tgt":2080,
+	"do":[],
+	"no":[],
+	"editors" : {
 		"darwin":{
 			"sublime3":{
 				"bin":"/Applications/Sublime Text 3.app/Contents/SharedSupport/bin/subl",
@@ -13471,4 +13483,5 @@ define.settings = {
 		"freebsd":{}
 	}
 }
+
 define.factory["/trace/trace_server"](define.mkreq("/trace/trace_server"))
