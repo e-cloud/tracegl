@@ -153,7 +153,7 @@ define('/trace/trace_server',function(require){
 			out('  ~c~-gz[:trace.gz] ~w~Record trace to gzip file. No trace UI started\n')
 			out('  ~c~-do[/:]match ~w~Only trace filenames containing match. Filters -do set first, then -no\n')
 			out('  ~c~-no[/:]match ~w~Ignore filenames containing match. Replace : with / for a regexp, use double escaped \\\\ \n')
-			out('  ~c~-nolib ~w~Short for -no/jquery.* -no:require.js -no/node\\\\_modules \n')
+			out('  ~c~-nolib ~w~Short for -no/jquery.* -no:require.js -no/node\\\\_modules -no/bower\\\\_components \n')
 			out('  ~c~-meteor ~w~Short for -no/jquery.* -no:/packages \n')
 			out('  ~c~-nocatch ~w~Don\'t create exception catching\n')
 			out('  ~c~-bind:0.0.0.0 ~w~Set the hostname to bind our external ports to, default 0.0.0.0\n')
@@ -189,6 +189,7 @@ define('/trace/trace_server',function(require){
 						fspec._no.push("/jquery.*")
 						fspec._no.push(":require.js")
 						fspec._no.push("/node\\_modules")
+						fspec._no.push("/bower\\_components")
 					} else {
 						fspec._no.push(a.slice(3))
 					}

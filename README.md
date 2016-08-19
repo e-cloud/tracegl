@@ -1,9 +1,11 @@
 # TraceGL
 
-
-traceGL is a [JavaScript codeflow visualization and debugging tool built using WebGL](http://badassjs.com/post/48702496345/tracegl-a-javascript-codeflow-visualization-and). It was originally a commercial offering developed by Rik Arends, who has later [open sourced](https://github.com/codegl/tracegl/issues/120) it under the [Mozilla Public License](https://www.mozilla.org/MPL/) (MPL).
+TraceGL is a [JavaScript codeflow visualization and debugging tool built using WebGL](http://badassjs.com/post/48702496345/tracegl-a-javascript-codeflow-visualization-and). It was originally a commercial offering developed by Rik Arends, who has later [open sourced](https://github.com/codegl/tracegl/issues/120) it under the [Mozilla Public License](https://www.mozilla.org/MPL/) (MPL).
 
 traceGL transforms your JavaScript, injecting monitoring code that produces a log of everything that happens. This log is streamed from the target (node or browser), via the traceGL node.js process to the UI for visualisation. The UI tries to display the resulting huge amount of information fast, and uses webGL to render everything.
+
+## About this fork
+The original project seems to be abandoned, and [the fork this fork is based on](https://github.com/alessioalex/tracegl) is also not very active anymore. I intend to maintain this fork actively, as well as release TraceGL on NPM.
 
 ## Running traceGL
 
@@ -53,11 +55,14 @@ options can be:
 
 **-gz[:trace.gz]** Record a trace to gzip file, defaults to trace.gz, doesn't start the UI. Filtering can be useful to lower the amount of incoming tracedata. Use -do and -no with either a -do:string or a -do/regex match. Use double escaped backslashes in regexps (see -nolib).
 
+Filtering can be useful to lower the amount of incoming tracedata. Use -do and -no with either a -do:string or a
+-do/regex match. Use double escaped backslashes in regexps (see -nolib).
+
 **-do[/:]match** Only trace files where filename contains match.
 
 **-no[/:]match** Don't trace files where filename names contains match.
 
-**-nolib** Only see your own code. Short for: -no/jquery.* -no:require.js -no/node\\_modules
+**-nolib** Only see your own code. Short for: -no/jquery.* -no:require.js -no/node\\_modules -no/bower\\_components
 
 **-meteor** Only see your own code (Meteor apps only - use this instead of -nolib). Short for: -no/jquery.* -no/packages
 
