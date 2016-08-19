@@ -1,32 +1,72 @@
 {
   "name": "tracegl",
-  "version": "0.0.1",
+  "author": "Rik Arends",
   "description": "TraceGL is a JavaScript codeflow visualization and debugging tool built using WebGL.",
-  "main": "tracegl.js",
-  "bin": {
-    "tracegl": "./tracegl.js"
-  },
+  "version": "0.0.1",
+  "license": "MPL 2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/tiddolangerak/tracegl.git"
   },
-  "scripts": {
-    "prepublish": "node tools/packer.js trace/trace_server tracegl.js",
-    "test": "node tracegl.js"
-  },
+  "maintainers": [
+    "Tiddo Langerak <tiddolangerak@gmail.com>"
+  ],
   "keywords": [
     "tracegl",
     "debug",
     "visualization"
   ],
-  "author": "Rik Arends",
-  "maintainers": [
-    "Tiddo Langerak <tiddolangerak@gmail.com>"
-  ],
-  "license": "MPL 2.0",
   "bugs": {
     "url": "https://github.com/tiddolangerak/tracegl/issues"
   },
   "homepage": "https://github.com/tiddolangerak/tracegl",
-  "preferGlobal": true
+  "bin": {
+    "tracegl": "./tracegl.js"
+  },
+  "preferGlobal": true,
+  "main": "tracegl.js",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "eslint": "^3.0.0",
+    "eslint-config-airbnb-base": "^4.0.0",
+    "eslint-plugin-import": "^1.5.0",
+    "ghooks": "^1.2.1",
+    "standard-version": "^2.4.0",
+    "validate-commit-msg": "^2.6.1"
+  },
+  "scripts": {
+    "lint": "eslint src/**/*",
+    "prepublish": "node tools/packer.js trace/trace_server tracegl.js",
+    "test": "echo 'no test!\n'",
+    "release": "standard-version"
+  },
+  "config": {
+    "validate-commit-msg": {
+      "types": [
+        "feat",
+        "fix",
+        "perf",
+        "docs",
+        "style",
+        "refactor",
+        "example",
+        "test",
+        "chore",
+        "revert"
+      ],
+      "warnOnFail": false,
+      "maxSubjectLength": 72,
+      "subjectPattern": ".+",
+      "subjectPatternErrorMsg": "subject does not match subject pattern!",
+      "helpMessage": "\n# allowed type: feat, fix, perf, docs, style, refactor, example, test, chore, revert\n# subject no more than 50 chars\n# a body line no more than 72 chars"
+    },
+    "ghooks": {
+      "pre-commit": "npm run lint",
+      "commit-msg": "validate-commit-msg",
+      "post-commit": "git log -1 HEAD",
+      "post-checkout": "npm install",
+      "post-merge": "npm install"
+    }
+  }
 }

@@ -1,0 +1,19 @@
+{
+	"extends": "airbnb-base",
+	"rules": {
+		"comma-dangle": 1,
+		"prefer-const": 1,
+		"indent": [2, 4, {"SwitchCase": 1}],
+		"consistent-return": 1,
+		"max-len": [1, 120, 2],
+		"no-use-before-define": 1,
+		"no-labels": 1,
+		"no-param-reassign": [2, { "props": false }],
+		"no-loop-func": 1,
+		"strict": 0
+	},
+    "env": {
+        "node": true,
+        "mocha": true
+    }
+}
