@@ -59,8 +59,8 @@ define(function(require){
 	function out() {
 		for (var v = Array.prototype.slice.call(arguments), i = 0, c = out.colors; i < v.length; i++) {
 			v[i] = String(v[i]).replace(/~(\w*)~/g, function(m, a) {
-				return "\033[" + (c[a] || 0) + "m";
-			}) + "\033[0m";
+				return "\x1b[" + (c[a] || 0) + "m";
+			}) + "\x1b[0m";
 			process.stderr.write(v[i]);
 		}
 	}
