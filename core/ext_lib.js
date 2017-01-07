@@ -6,7 +6,6 @@
 
 define(function (require, exports) {
     "no tracegl"
-    var fn = require("./fn")
 
     var e = exports
 

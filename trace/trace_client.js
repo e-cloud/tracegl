@@ -31,8 +31,6 @@ define(function (require) {
     var sess = fn.rndhex(8)
     var chan = ioChannel("/io_" + sess + "_" + pass)
 
-    var instrument = require('./instrument')
-
     window.ui = ui
 
     // theme reloading when file change

@@ -6,7 +6,6 @@
 
 define(function (require) {
 
-    var fn = require("../../core/fn")
     var ui = require("../../core/ui/ui")
 
 

@@ -17,9 +17,6 @@ define(function (require) {
     var fs = require('fs')
     var url = require('url')
     var zlib = require('zlib')
-    var http = require('http')
-    var https = require('https')
-    var crypto = require('crypto')
     var instrument = require('./instrument')
     var childproc = require('child_process')
 

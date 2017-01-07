@@ -206,35 +206,16 @@ define(function (require) {
 
 
     function mkHead() {
-        // imperfect newline stripper
-        function strip(input) {
-            var program = acorn_tools.parse(input)
-            var output = ''
-
-            program.tokens.walk(function (n) {
-                output += n.t
-                if (n.w.indexOf('\n') != -1 && !n._c) {
-                    if (!(n.t === '}' && n._p._d && n._p._d.t === '}')) {
-                        output += ';'
-                    }
-                } else if (n.w.indexOf(' ') != -1) {
-                    output += ' '
-                }
-            })
-            return output
-        }
-
         // trace impl
         var trc = tracehub.toString().match(/\/\/TRACE[\s\S]*\/\/TRACE/)[0]
         // fetch io channel
         for (var k in define.factory) {
-            if (k.indexOf('core/io_channel') != -1) {
+            if (k.indexOf('core/io_channel') != -1)
                 break
-            }
         }
         var chn = define.factory[k].toString().match(/\/\/CHANNEL(?:\n|\r)([\s\S]*)\/\/CHANNEL/)[1].trim()
 
-        return strip(trc.replace('//CHANNEL', chn) + "\n")
+        return trc.replace('//CHANNEL', chn) + "\n"
     }
 
     function instrument(file, src, iid, opt) {
@@ -383,9 +364,9 @@ define(function (require) {
                     if (cc == '(') return false
                 }
                 return p.node.type == 'ExpressionStatement' &&
-                  (p.up.node.type == 'BlockStatement' ||
-                  p.up.node.type == 'Program' ||
-                  p.up.node.type == 'SwitchCase')
+                    (p.up.node.type == 'BlockStatement' ||
+                        p.up.node.type == 'Program' ||
+                        p.up.node.type == 'SwitchCase')
             }
 
             acorn_tools.walkDown(isRoot ? n : n.body, {

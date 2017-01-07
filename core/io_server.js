@@ -11,7 +11,6 @@ define(function (require) {
     var url = require("url")
     var path = require("path")
     var fs = require("fs")
-    var fn = require('./fn')
     var ioChannel = require('./io_channel')
 
     function ioServer(ssl) {
