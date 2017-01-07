@@ -371,6 +371,7 @@ define(function (require, exports, module) {
         // compile switchable fragment shaders
         const ssf = sd.s || { _: 0 };
         const sf = {};
+
         for (var i in ssf) {
             sf[i] = expr(ssf[i], [oe], 0, ns)
         }
@@ -463,7 +464,7 @@ define(function (require, exports, module) {
           '}\n'
 
         if (sd.dbg || (dn && dn.dbg)) {
-            let o = '';
+            var o = ''
             for (var i in sf) {
                 o += '---- fragment shader ' + i + ' ----\n' + sf[i]
             }
@@ -546,6 +547,10 @@ define(function (require, exports, module) {
             return s
         }
 
+        function tryFixFunc(src) {
+            return src.replace(/function\s*\((.*?)\)\s*\{/, "function f($1) {")
+        }
+
         // GLSL expresion compiler
         function expr(f, a, lv, ns) { // function, args, local variables, nodestruct
             if (!f) return a[0]
@@ -559,7 +564,7 @@ define(function (require, exports, module) {
             const tc = fnid_tc[id] || (fnid_tc[id] = {});// trace cache
             fnid_rc[id] = f
 
-            let p = acorn_tools.parse(c, { noclose: 1, compact: 1 }).tokens._c;
+            var p = acorn_tools.parse(tryFixFunc(c), { noclose: 1, compact: 1 }).tokens._c
 
             const ma = {}; // macro args
 
@@ -651,7 +656,7 @@ define(function (require, exports, module) {
             function subfn(f, t, ns) {
                 let ce = f._ce;
                 if (!ce) f._ce = ce = f.toString()
-                let p = acorn_tools.parse(ce, { noclose: 1, compact: 1, tokens: 1 }).tokens._c;
+                var p = acorn_tools.parse(tryFixFunc(ce), { noclose: 1, compact: 1, tokens: 1 }).tokens._c
                 //var p = ep(ce)._c // parse code and fetch first child
 
                 let i; // iterator
@@ -930,9 +935,9 @@ define(function (require, exports, module) {
         if (!c) f._c = c = f.toString()
         if (!id) f._i = id = fnid_o[c] || (fnid_o[c] = fnid_c++)
 
-        let p = acorn_tools.parse(c, { noclose: 1, compact: 1, tokens: 1 }).tokens._c;
-        let i; // iterator
-        const m = {}; // macro args
+        var p = acorn_tools.parse(tryFixFunc(c), { noclose: 1, compact: 1, tokens: 1 }).tokens._c
+        var i // iterator
+        var m = {} // macro args
 
         if (p.t.match(/^function/)) {
             if (a) { // we have args, build up macro args
