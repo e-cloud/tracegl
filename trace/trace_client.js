@@ -9,12 +9,12 @@ define(function (require) {
     document.title = "traceGL"
 
     var fn = require("../core/fn")
-    var ui = require("../core/ui")
+    var ui = require("../core/ui/ui")
     if (!ui.gl) return
 
-    var ct = require("../core/controls")
+    var ct = require("../core/ui/controls")
 
-    var themes = require("../core/themes")
+    var themes = require("../core/ui/themes")
 
     var theme_type = define.settings.theme || 'dark'
     ui.theme(themes[define.settings.theme] || themes.dark)// set theme
@@ -22,10 +22,10 @@ define(function (require) {
     var ioChannel = require("../core/io_channel")
 
     var traceDb = require('./trace_db')
-    var codeDb = require('./code_db')
-    var listView = require('./list_view')
-    var hoverText = require("./hover_text")
-    var codeBubble = require("./code_bubble")
+    var codeDb = require('./ui/code_db')
+    var listView = require('./ui/list_view')
+    var hoverText = require("./ui/hover_text")
+    var codeBubble = require("./ui/code_bubble")
 
     var pass = fn.sha1hex("p4ssw0rd")
     var sess = fn.rndhex(8)

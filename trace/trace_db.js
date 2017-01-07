@@ -7,8 +7,8 @@
 define(function (require, exports, module) {
 
     var fn = require("../core/fn")
-    var ui = require("../core/ui")
-    var tm = require("../core/text_mix")
+    var ui = require("../core/ui/ui")
+    var tm = require("../core/ui/text_mix")
 
     function traceDb(o) {
         // we store the trace list and databases

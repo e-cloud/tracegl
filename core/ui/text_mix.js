@@ -6,7 +6,7 @@
 define(function (require, exports) {
 
     var ui = require("./ui")
-    var fn = require("./fn")
+    var fn = require("./../fn")
 
     // |  textview with zoom/scroll
     // \____________________________________________/

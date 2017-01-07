@@ -6,7 +6,7 @@
 
 define(function (require, exports, module) {
 
-    var fn = require("./fn")
+    var fn = require("./../fn")
 
     module.exports = function (ui) {
 

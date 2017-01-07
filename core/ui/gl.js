@@ -5,10 +5,10 @@
 // \____________________________________________/
 
 define(function (require, exports, module) {
-    var fn = require("./fn")
+    var fn = require("./../fn")
     var gl = require("./gl_browser")
-    var acorn = require("./acorn")
-    var acorn_tools = require("./acorn_tools")
+    var acorn = require("./../acorn")
+    var acorn_tools = require("./../acorn_tools")
 
     if (!gl) {
         module.exports = null

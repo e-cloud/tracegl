@@ -6,12 +6,12 @@
 
 define(function (require) {
 
-    var fn = require("../core/fn")
-    var ui = require("../core/ui")
+    var fn = require("../../core/fn")
+    var ui = require("../../core/ui/ui")
 
-    var acorn_tools = require("../core/acorn_tools")
+    var acorn_tools = require("../../core/acorn_tools")
 
-    var tm = require("../core/text_mix")
+    var tm = require("../../core/ui/text_mix")
 
     //|  Styling
     //\____________________________________________/

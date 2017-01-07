@@ -6,8 +6,8 @@
 define(function (require) {
 
     var gl = require("./gl")
-    var fn = require("./fn")
-    var el = require("./ext_lib")
+    var fn = require("./../fn")
+    var el = require("./../ext_lib")
 
     if (!gl) {
         return {

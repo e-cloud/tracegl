@@ -6,11 +6,11 @@
 
 define(function (require, exports, module) {
 
-    var fn = require("../core/fn")
-    var ui = require("../core/ui")
-    var ct = require("../core/controls")
-    var tm = require("../core/text_mix")
-    var ts = require("../core/text_shaders")
+    var fn = require("../../core/fn")
+    var ui = require("../../core/ui/ui")
+    var ct = require("../../core/ui/controls")
+    var tm = require("../../core/ui/text_mix")
+    var ts = require("../../core/ui/text_shaders")
 
     //|  Styling
     //\____________________________________________/
