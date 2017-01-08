@@ -534,9 +534,9 @@ define(function(require){
 			sender(m)
 		})
 
-		child.on('exit', function () {
+		/*child.on('exit', function () {
 		    sender(false);
-		})
+		})*/
 	}
 
 	function proxyMode(filter, port, bind, proxy, sender){

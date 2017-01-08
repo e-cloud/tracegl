@@ -34,6 +34,7 @@ function define(id, fac){
 		var fs = require("fs")
 		var cp = require("child_process")
 		var Module = require("module")
+        var path = require("path")
 
 		var modules = []
 		var _compile = module.constructor.prototype._compile
@@ -57,8 +58,9 @@ function define(id, fac){
 			var m = modules[modules.length-1] || require.main
 
 			// store module and factory just like in the other envs
-			global.define.module[m.filename] = m
-			global.define.factory[m.filename] = fac
+            var moduleId = path.posix.format(path.parse(m.filename))
+			global.define.module[moduleId] = m
+			global.define.factory[moduleId] = fac
 
 			var req = function(m, id) {
 				if(id instanceof Array || arguments.length != 2 || id.indexOf('!') != -1)
