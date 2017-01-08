@@ -955,6 +955,8 @@ define(function (require, exports, module) {
                     sawDefault = true
                     cur.test = null
                 }
+                // hack
+                cur.colon = this.pos
                 this$1.expect(tt.colon)
             } else {
                 if (!cur) this$1.unexpected()
@@ -1162,7 +1164,7 @@ define(function (require, exports, module) {
             node.async = !!isAsync
         }
 
-        if (isStatement && this.type.label !== 'c') {
+        if (isStatement) {
             node.id = this.parseIdent()
         }
 
@@ -1172,7 +1174,7 @@ define(function (require, exports, module) {
         this.yieldPos = 0
         this.awaitPos = 0
 
-        if (!isStatement) {
+        if (!isStatement && this.type === tt.name) {
             node.id = this.parseIdent()
         }
 
