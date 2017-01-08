@@ -240,13 +240,13 @@ define(function (require) {
         // verify parse
         var dict = {}
         var id = iid
-        var assignId = []
 
         var cuts = fn.list('_u', '_d')
 
-        function cut(i, v) {
-            if (i === undefined) throw new Error()
-            var n = { i: i, v: v }
+        // insert a item into the linked list
+        function cut(index, value) {
+            if (index === undefined) throw new Error()
+            var n = { i: index, v: value }
             cuts.sorted(n, 'i')
             return n
         }
