@@ -5,9 +5,9 @@
 // \____________________________________________/
 
 define(function (require, exports, module) {
-    var fn = require("./../fn")
-    var gl = require("./gl_browser")
-    var acorn_tools = require("./../acorn_tools")
+    const fn = require("./../fn");
+    const gl = require("./gl_browser");
+    const acorn_tools = require("./../acorn_tools");
 
     if (!gl) {
         module.exports = null
@@ -22,14 +22,14 @@ define(function (require, exports, module) {
     }
 
     (function () {
-        var la = 0 // last attribute
+        let la = 0; // last attribute
         this.use = function (f) {
-            var ss = this.$ss = this.$sf[f || '_'] // selected shader
+            const ss = this.$ss = this.$sf[f || '_']; // selected shader
             this.$ul = ss.ul // uniform lookup
             gl.useProgram(ss.sp)
-            var ha = 0 // highest attribute
+            let ha = 0; // highest attribute
             for (var i in ss.al) {
-                var a = ss.al[i]
+                const a = ss.al[i];
                 gl.enableVertexAttribArray(a)
                 if (a > ha) ha = a
             }
@@ -38,34 +38,34 @@ define(function (require, exports, module) {
             }
             la = ha
             this.$tc = 0 // texture counter
-            var tl = this.$tl
+            const tl = this.$tl;
             // lets set all texture lookups
             for (var i in tl) {
-                var tc = this.$tc++
+                const tc = this.$tc++;
                 gl.activeTexture(gl.TEXTURE0 + tc)
                 gl.bindTexture(gl.TEXTURE_2D, tl[i])
                 gl.uniform1i(this.$ul[i], tc)
             }
-            var u = this.$un
+            const u = this.$un;
             if (u) {
-                for (var k in u) {
+                for (const k in u) {
                     this[k](u[k])
                 }
             }
         }
 
         this.n = function (n) {
-            var nu = this.$nu
+            const nu = this.$nu;
             // set all uniforms from n
-            for (var i in nu) {
-                var v = nu[i]
-                var p = n
-                var d = v.d
-                var k = v.k
+            for (const i in nu) {
+                const v = nu[i];
+                let p = n;
+                let d = v.d;
+                const k = v.k;
                 while (d > 0) {
                     p = p._p || p._b, d--
                 }
-                var t = typeof p[k]
+                const t = typeof p[k];
                 if (t == 'string') {
                     this[i](p.eval(k))
                 } else {
@@ -76,14 +76,14 @@ define(function (require, exports, module) {
 
         //|  draw buffer
         this.draw = function (b) {
-            var sd = this.$sd
-            var ss = this.$ss
+            const sd = this.$sd;
+            const ss = this.$ss;
             b = b || this.$b
             gl.bindBuffer(gl.ARRAY_BUFFER, b.$vb)
             if (b.up) gl.bufferData(gl.ARRAY_BUFFER, b.$va, gl.STATIC_DRAW)
-            var vt = b.$vt // vertex types
-            for (var i in vt) {
-                var t = vt[i]
+            const vt = b.$vt; // vertex types
+            for (const i in vt) {
+                const t = vt[i];
                 gl.vertexAttribPointer(ss.al[i], t.c, t.t, !t.n, b.$vs, b[i].o)
             }
             if (sd.i) {
@@ -98,27 +98,27 @@ define(function (require, exports, module) {
         }
 
         this.set = function (u) {
-            for (var k in u) {
+            for (const k in u) {
                 this[k](u[k])
             }
         }
 
-        var _delvb = []
-        var _delib = []
+        const _delvb = [];
+        const _delib = [];
         //|  allocate buffer
         this.alloc = function (sc, ob) {
-            var sd = this.$sd // shader def
-            var ad = this.$ad // attribute dep
-            var an = this.$an // attribute node lookup
-            var b = {} // buffer
+            const sd = this.$sd; // shader def
+            const ad = this.$ad; // attribute dep
+            const an = this.$an; // attribute node lookup
+            let b = {}; // buffer
 
-            var vs = 0 // vertex stride
-            for (var k in ad) {
+            let vs = 0; // vertex stride
+            for (const k in ad) {
                 vs += gt.types[ad[k]].s
             }
 
-            var vl = sc * vs * sd.l
-            var va = new ArrayBuffer(vl)
+            const vl = sc * vs * sd.l;
+            const va = new ArrayBuffer(vl);
 
             if (sd.i) {
                 var il = sc * 2 * sd.i
@@ -166,10 +166,10 @@ define(function (require, exports, module) {
             b.$vt = {} // vertex types
             b.$sh = this  // shader
 
-            var o = 0 // offset
-            var vt = b.$vt
-            for (var i in ad) { // create arrayviews
-                var t = gt.types[ad[i]] // look up type
+            let o = 0; // offset
+            const vt = b.$vt;
+            for (const i in ad) { // create arrayviews
+                const t = gt.types[ad[i]]; // look up type
                 vt[i] = t
                 b[i] = {
                     a: new t.a(va, o),
@@ -195,10 +195,10 @@ define(function (require, exports, module) {
     }).apply(Shader.prototype)
 
     // uniform setter functions for shader
-    var shader_us = {
+    const shader_us = {
         0: function (i) {
             return function (t) {
-                var tc = this.$tc++
+                const tc = this.$tc++;
                 gl.activeTexture(gl.TEXTURE0 + tc)
                 gl.bindTexture(gl.TEXTURE_2D, t)
                 gl.uniform1i(this.$ul[i], tc)
@@ -236,35 +236,35 @@ define(function (require, exports, module) {
                 }
             }
         }
-    }
+    };
 
-    var illegal_attr = { hi: 1, lo: 1, i: 1, up: 1 }
+    const illegal_attr = { hi: 1, lo: 1, i: 1, up: 1 };
 
     // |  shader function id-ifyer for fast caching
     // \____________________________________________/
-    var fnid_c = 1 // the function id counter
-    var fnid_o = {} // id to function string lookup
-    var fnid_tc = {} // tracecache, used for fast shader hashing
-    var fnid_rc = {} // reverse function lookup
-    var fnid_ev = {} // js function evaluation cache
+    let fnid_c = 1; // the function id counter
+    const fnid_o = {}; // id to function string lookup
+    const fnid_tc = {}; // tracecache, used for fast shader hashing
+    const fnid_rc = {}; // reverse function lookup
+    const fnid_ev = {}; // js function evaluation cache
 
     // fingerprint this function against a domtree node n
     function fnid(f, n) {
         if (!n || n.q) return f
-        var c = f._c
+        let c = f._c;
         if (!c) f._c = c = f.toString().replace(/[;\s\r\n]*/g, '')
-        var i = fnid_o[c]
-        var tc = fnid_tc[i]
+        const i = fnid_o[c];
+        const tc = fnid_tc[i];
         if (!tc) return '@' // not compiled yet
-        var s = String(i)
-        for (var k in tc) { // walk the tracecache
-            var v = tc[k]
-            var p = n
+        let s = String(i);
+        for (const k in tc) { // walk the tracecache
+            let v = tc[k];
+            let p = n;
             while (v > 0) {
                 p = n._p || n._b, v--, s += '^'
             }
-            var j = p[k]
-            var t = typeof j
+            const j = p[k];
+            const t = typeof j;
             if (p.hasOwnProperty(k)) { // clean up unregistered properties to getter/setters
                 delete p[k]
                 p[k] = j
@@ -286,17 +286,18 @@ define(function (require, exports, module) {
 
     // wrap createTexture to set a unique id on each texture
     gl.createTexture2 = gl.createTexture
-    var textureID = 0
+    let textureID = 0;
     // make sure textures have unique ID's
     gl.createTexture = function () {
-        var t = gl.createTexture2()
+        const t = gl.createTexture2();
         t.id = textureID++
         return t
     }
 
     //|  compile or cache shader from definition
     //\____________________________________________/
-    gl.getShader = function (sd, dn) { // shader def, domnode
+    gl.getShader = function (sd, dn) {
+        // shader def, domnode
 
         // shader definition
         // m : mode, gl.TRIANGLES
@@ -317,59 +318,59 @@ define(function (require, exports, module) {
         sd.u = sd.u || {}
         if (!sd.cache) sd.cache = {}
 
-        var vi = dn && dn.v || sd.v
-        var fi = dn && dn.f || sd.f
+        const vi = dn && dn.v || sd.v;
+        const fi = dn && dn.f || sd.f;
 
-        var sid = fnid(vi, dn) + '|' + fnid(fi, dn)
-        var sh = sd.cache[sid]
+        let sid = fnid(vi, dn) + '|' + fnid(fi, dn);
+        let sh = sd.cache[sid];
 
         if (sh) return sh
 
         // create new shader object
         sh = new Shader()
         sh.$sd = sd
-        var ad = sh.$ad = {} // attribute deps
-        var an = sh.$an = {} // attribute node lookup
-        var nu = sh.$nu = {} // node uniforms
-        var ud = sh.$ud = {} // uniform deps
-        var tl = sh.$tl = {} // texture list
-        var nd = sh.$nd = {} // n dependencies
-        var tn // texture on n
+        const ad = sh.$ad = {}; // attribute deps
+        const an = sh.$an = {}; // attribute node lookup
+        const nu = sh.$nu = {}; // node uniforms
+        const ud = sh.$ud = {}; // uniform deps
+        const tl = sh.$tl = {}; // texture list
+        const nd = sh.$nd = {}; // n dependencies
+        let tn; // texture on n
 
-        var dt = Date.now()
+        const dt = Date.now();
 
-        var fw  // function wraps
-        var fd = {} // function definitions
-        var in_f
-        var rd  // already defined
+        let fw;  // function wraps
+        const fd = {}; // function definitions
+        let in_f;
+        let rd;  // already defined
 
-        var fa = {} // frag attributes
-        var ts = {} // texture slots
+        const fa = {}; // frag attributes
+        const ts = {}; // texture slots
 
-        var ti = 0 // texture id
-        var wi = 0 // function wrap id
+        let ti = 0; // texture id
+        let wi = 0; // function wrap id
 
         // compiler output
-        var oh  // output head
-        var od  // output definitions
-        var oe  // output expression
-        var ob  // output body
+        let oh;  // output head
+        let od;  // output definitions
+        let oe;  // output expression
+        let ob;  // output body
 
         // parse and generate fragment shader
         oh = ob = od = '', pd = {}, fw = '', in_f = true
         if (sd.m == gl.POINTS) pd.c = 1
 
-        var cs = fi
+        let cs = fi;
         if (typeof cs == 'function') {
             sd.e._f = cs
             cs = '_f()'
         }
-        var ns = { n: dn || { l: 1 }, np: 'N', dp: 0 }
+        const ns = { n: dn || { l: 1 }, np: 'N', dp: 0 };
         oe = expr(cs, 0, 0, ns)
 
         // compile switchable fragment shaders
-        var ssf = sd.s || { _: 0 }
-        var sf = {}
+        const ssf = sd.s || { _: 0 };
+        const sf = {};
         for (var i in ssf) {
             sf[i] = expr(ssf[i], [oe], 0, ns)
         }
@@ -383,12 +384,15 @@ define(function (require, exports, module) {
                   ' c = vec2(gl_PointCoord.x,1.-gl_PointCoord.y);\n'
         }
 
-        var yf = '', yd = '', yb = '', yv = ''
+        let yf = '';
+        let yd = '';
+        let yb = '';
+        let yv = '';
 
         // pack varyings
-        var vu = 0 // used
+        let vu = 0; // used
         var vs = 0
-        var vn = { 0: 'x', 1: 'y', 2: 'z', 3: 'w' }
+        const vn = { 0: 'x', 1: 'y', 2: 'z', 3: 'w' };
         for (var i in fa) {
             yd += fa[i] + ' ' + i + ';\n'
             if (fa[i] == 'float') { //pack
@@ -421,12 +425,12 @@ define(function (require, exports, module) {
         }
         if (vu > 0) yf += 'varying vec' + (vu > 1 ? vu : 2) + ' v_' + vs + ';\n'
 
-        var fs =
-            'precision mediump float;\n' +
-            '#define ucol vec4\n' +
-            oh + od + yf + yd + fw +
-            'void main(void){\n' + yb + ob +
-            ' gl_FragColor = '
+        const fs =
+          'precision mediump float;\n' +
+          '#define ucol vec4\n' +
+          oh + od + yf + yd + fw +
+          'void main(void){\n' + yb + ob +
+          ' gl_FragColor = ';
 
         // generate multiple fragments
         for (var i in sf) {
@@ -451,15 +455,15 @@ define(function (require, exports, module) {
         }
 
         var vs =
-            'precision mediump float;\n' +
-            '#define ucol vec4\n' +
-            oh + od + yf + fw + '\n' +
-            'void main(void){\n' + yv + ob +
-            ' gl_Position = ' + oe + ';\n' +
-            '}\n'
+          'precision mediump float;\n' +
+          '#define ucol vec4\n' +
+          oh + od + yf + fw + '\n' +
+          'void main(void){\n' + yv + ob +
+          ' gl_Position = ' + oe + ';\n' +
+          '}\n'
 
         if (sd.dbg || (dn && dn.dbg)) {
-            var o = ''
+            let o = '';
             for (var i in sf) {
                 o += '---- fragment shader ' + i + ' ----\n' + sf[i]
             }
@@ -473,7 +477,7 @@ define(function (require, exports, module) {
              }*/
         }
 
-        var gv = gl.createShader(gl.VERTEX_SHADER)
+        const gv = gl.createShader(gl.VERTEX_SHADER);
         gl.shaderSource(gv, vs)
         gl.compileShader(gv)
         if (!gl.getShaderParameter(gv, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(gv) + "\n" + vs)
@@ -492,8 +496,8 @@ define(function (require, exports, module) {
         }
 
         for (i in ud) {
-            var t = ud[i] // type
-            var y = gt.types[t] // uniform function name
+            const t = ud[i]; // type
+            const y = gt.types[t]; // uniform function name
             if (i in sh) throw new Error("Cannot use uniform with name " + i)
             sh[i] = shader_us[y.c](i, y.u)
         }
@@ -509,18 +513,18 @@ define(function (require, exports, module) {
 
         // compile fragment
         function frag(gv, fs) {
-            var s = {}
+            const s = {};
 
             s.al = {}
             s.ul = {}
 
-            var gf = gl.createShader(gl.FRAGMENT_SHADER)
+            const gf = gl.createShader(gl.FRAGMENT_SHADER);
             gl.shaderSource(gf, fs)
             gl.compileShader(gf)
 
             if (!gl.getShaderParameter(gf, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(gf) + "\n" + fs)
 
-            var sp = s.sp = gl.createProgram()
+            const sp = s.sp = gl.createProgram();
             gl.attachShader(sp, gv)
             gl.attachShader(sp, gf)
             gl.linkProgram(sp)
@@ -549,15 +553,15 @@ define(function (require, exports, module) {
             var c = f._c || (f._c = f.toString().replace(/[;\s\r\n]*/g, ''))
 
             // lets id-ify the function
-            var id = f._i
+            let id = f._i;
             if (!id) f._i = id = fnid_o[c] || (fnid_o[c] = fnid_c++)
 
-            var tc = fnid_tc[id] || (fnid_tc[id] = {})// trace cache
+            const tc = fnid_tc[id] || (fnid_tc[id] = {});// trace cache
             fnid_rc[id] = f
 
-            var p = acorn_tools.parse(c, { noclose: 1, compact: 1 }).tokens._c
+            let p = acorn_tools.parse(c, { noclose: 1, compact: 1 }).tokens._c;
 
-            var ma = {} // macro args
+            const ma = {}; // macro args
 
             if (p.t.match(/^function/)) {
                 if (a) { // we have args, build up macro args
@@ -582,15 +586,15 @@ define(function (require, exports, module) {
             }
 
             function subexpr(i, f, lv, ns) { // iter parse, function, local variables,  nodestruct
-                var c = f._c || (f._c = f.toString().replace(/[;\s\r\n]*/g, ''))
-                var e = f._e
+                const c = f._c || (f._c = f.toString().replace(/[;\s\r\n]*/g, ''));
+                let e = f._e;
                 if (!e) {
                     f._e = e = c.indexOf('_fw_') != -1 ? 3 :
                                c.indexOf('return_') != -1 ? 2 :
                                c.indexOf('return') != -1 ? 4 : 1
                 }
 
-                var ar // args
+                let ar; // args
                 if (i._d && i._d.parenL) {
                     ar = expand(i._d._c, 0, lv, ns), i._d.t = i._d._t = ''
                 }
@@ -615,7 +619,7 @@ define(function (require, exports, module) {
                 }
                 else if (e == 3) { // its a function wrapper
                     // lets parse out return type
-                    var m = c.match(/([a-zA-Z0-9_]*)\_fw\_([a-zA-Z0-9_]*)/)
+                    const m = c.match(/([a-zA-Z0-9_]*)\_fw\_([a-zA-Z0-9_]*)/);
                     var v = m[1] || 'vec4'
                     var o = 'vec2 c'
                     if (m[2]) o = m[2].replace(/_/g, ' ')
@@ -624,7 +628,7 @@ define(function (require, exports, module) {
                     i.t = expr(f, ar, lv, ns)
                 }
                 else if (e == 4) { // its a string generator
-                    var b = []
+                    const b = [];
                     if (ar) {
                         for (var j = 0; j < ar.length; j++) {
                             b[j] = '(' + ar[j] + ')'
@@ -645,20 +649,20 @@ define(function (require, exports, module) {
 
             // parse GLSL subfunction
             function subfn(f, t, ns) {
-                var ce = f._ce
+                let ce = f._ce;
                 if (!ce) f._ce = ce = f.toString()
-                var p = acorn_tools.parse(ce, { noclose: 1, compact: 1, tokens: 1 }).tokens._c
+                let p = acorn_tools.parse(ce, { noclose: 1, compact: 1, tokens: 1 }).tokens._c;
                 //var p = ep(ce)._c // parse code and fetch first child
 
-                var i // iterator
-                var lv = {}// local variables
-                var rt // return type
+                let i; // iterator
+                const lv = {};// local variables
+                let rt; // return type
                 // lets parse the args and write the function header
                 //fn(ce,p)
                 while (!p.parenL) {
                     p = p._d
                 } // scan till we have ()
-                var os = '(' // output string
+                let os = '('; // output string
                 for (i = p._c; i; i = i._d) {
                     if (i.name) {
                         var j = i.t.indexOf('_')
@@ -684,8 +688,11 @@ define(function (require, exports, module) {
                         }
                         i = i._c
                     }
-                    if (i.name && i._d && i._d.semi) { // empty define
-                        var o = i.t.indexOf('_'), y
+                    if (i.name && i._d && i._d.semi) {
+                        // empty define
+                        var o = i.t.indexOf('_');
+
+                        let y;
                         var k = i.t.slice(o + 1)
                         if (o != 0 && gt.types[y = i.t.slice(0, o)]) {
                             lv[k] = y // define it
@@ -694,8 +701,11 @@ define(function (require, exports, module) {
                         }
                         os += y + ' ' + k + ';'
                         i = i._d
-                    } else if (i.name && i._d && i._d.isAssign) { // assign define
-                        var o = i.t.indexOf('_'), y
+                    } else if (i.name && i._d && i._d.isAssign) {
+                        // assign define
+                        var o = i.t.indexOf('_');
+
+                        var y;
                         var k = i.t.slice(o + 1)
                         if (o != 0 && gt.types[y = i.t.slice(0, o)]) {
                             lv[k] = y // define it
@@ -712,7 +722,8 @@ define(function (require, exports, module) {
                         os += y + ' ' + k + ' ' + i._d.t + ' ' + expand(i._d._d, j, lv, ns) + ';'
                         i = j
                     } else if (i.name && i._d && i._d.parenL) {
-                        var o = i.t.indexOf('_'), y
+                        var o = i.t.indexOf('_');
+                        var y;
                         if (o != 0 && gt.types[y = i.t.slice(0, o)]) {
                             var k = i.t.slice(o + 1)
                             lv[k] = y, k += ' = ' + y
@@ -731,8 +742,13 @@ define(function (require, exports, module) {
                     } else if (i.if && i._d.parenL) {
                         os += ';\n' + i.t + '(' + expand(i._d._c, 0, lv, ns).join(',') + ')'
                         i = i._d
-                    } else if (i.for && i._d.parenL) { // for loop
-                        var p1 = i._d._c, p2, p3, p4
+                    } else if (i.for && i._d.parenL) {
+                        // for loop
+                        const p1 = i._d._c;
+
+                        let p2;
+                        let p3;
+                        let p4;
                         p2 = p1
                         while (p2 && !p2.semi) {
                             p2 = p2._d
@@ -766,8 +782,8 @@ define(function (require, exports, module) {
             }
 
             function expand(i, x, lv, ns) { // recursive expression expander
-                var ea = [] // expression args
-                var os = '' // output string
+                const ea = []; // expression args
+                let os = ''; // output string
                 while (i && i != x) {
                     // integer bypass
                     if (i.t == '+' && i._d && i._d.num && (!i._u || i._u.t == '=')) {
@@ -813,7 +829,7 @@ define(function (require, exports, module) {
                             in_f ? fa[t] = ad[t] = sd.a[t] : ad[t] = sd.a[t]
                         }
                         else if (t == 'n' || t == 'p') {
-                            var n2 = ns
+                            let n2 = ns;
                             var k = i.t.slice(o + 1)
                             if (t == 'p') {
                                 n2 = {
@@ -825,10 +841,10 @@ define(function (require, exports, module) {
                             } else {
                                 tc[k] = 0
                             }
-                            var j = n2.n[k]
-                            var to = typeof j
+                            const j = n2.n[k];
+                            const to = typeof j;
                             gl.regvar(k) // hook to allow ui node prototype to update
-                            var is_tex = j instanceof WebGLTexture
+                            const is_tex = j instanceof WebGLTexture;
                             if (to == 'function' || to == 'string') {
                                 subexpr(i, j, lv, n2)
                             } else if (to == 'object' && !is_tex) { // its an animating property
@@ -910,13 +926,13 @@ define(function (require, exports, module) {
         if (!f) return a[0]
 
         var c = f._c
-        var id = f._i
+        let id = f._i;
         if (!c) f._c = c = f.toString()
         if (!id) f._i = id = fnid_o[c] || (fnid_o[c] = fnid_c++)
 
-        var p = acorn_tools.parse(c, { noclose: 1, compact: 1, tokens: 1 }).tokens._c
-        var i // iterator
-        var m = {} // macro args
+        let p = acorn_tools.parse(c, { noclose: 1, compact: 1, tokens: 1 }).tokens._c;
+        let i; // iterator
+        const m = {}; // macro args
 
         if (p.t.match(/^function/)) {
             if (a) { // we have args, build up macro args
@@ -941,19 +957,19 @@ define(function (require, exports, module) {
         }
 
         function subexpr(i, f) { // iter node, function
-            var c = f._c
+            let c = f._c;
             if (!c) f._c = c = f.toString().replace(/[;\s\r\n]*/g, '')
 
-            var e = f._e
+            let e = f._e;
             if (!e) {
                 f._e = e = c.indexOf('_fw_') != -1 ? 3 :
                            c.indexOf('return_') != -1 ? 2 :
                            c.indexOf('return') != -1 ? 4 : 1
             }
-            var a // args
+            let a; // args
             if (i._d && i._d.parenL) {
                 a = expand(i._d._c), i._d.t = i._d._t = ''
-                for (var j = 0; j < a.length; j++) {
+                for (let j = 0; j < a.length; j++) {
                     a[j] = '(' + a[j] + ')'
                 }
             }
@@ -969,13 +985,14 @@ define(function (require, exports, module) {
         }
 
         function expand(i) { // recursive expander
-            var a = [] // args we collect for macros
-            var s = '' // string concatenator
+            const a = []; // args we collect for macros
+            let s = ''; // string concatenator
             while (i) {
                 if (i.num && i.t.indexOf('.') == -1) {
                     i.t += '.'
                 } else if (i.name) {
-                    var o, t = (o = i.t.indexOf('.')) != -1 ? i.t.slice(0, o) : i.t
+                    let o;
+                    const t = (o = i.t.indexOf('.')) != -1 ? i.t.slice(0, o) : i.t;
 
                     if (t in m) {
                         i.t = m[t]
@@ -984,7 +1001,7 @@ define(function (require, exports, module) {
                         i.t = '__u.' + i.t
                     }
                     else if (t == 'n' || t == 'p') { // node reference
-                        var k = i.t.slice(o + 1)
+                        const k = i.t.slice(o + 1);
                         i.t = t + '_' + k
                         if (!rd[t + '_' + k]) {
                             rd.b += 'var ' + t + '_' + k + ' = __x(' + t + ',' + t + '.' + k + ', __u, __e);\n'
@@ -1020,10 +1037,10 @@ define(function (require, exports, module) {
 
     gl.eval = function (n, f, un, el) {
         if (typeof f == 'number') return f
-        var j = fnid_ev[f]
+        let j = fnid_ev[f];
         if (!j) {
-            var rd = { b: '' } // already defined
-            var e = js_expr(f, 0, un, el, rd) // compile it
+            const rd = { b: '' }; // already defined
+            const e = js_expr(f, 0, un, el, rd); // compile it
             rd.b += 'return ' + e + '\n'
             fnid_ev[f] = j = Function('n', 'p', '__u', '__e', '__b', '__x', rd.b)
         }
@@ -1035,10 +1052,10 @@ define(function (require, exports, module) {
     //|  render to texture
     //\____________________________________________/
     gl.renderTexture = function (w, h, f) {
-        var b = gl.createFramebuffer()
+        const b = gl.createFramebuffer();
         b.width = w
         b.height = h
-        var t = gl.createTexture()
+        const t = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, t)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
@@ -1066,33 +1083,33 @@ define(function (require, exports, module) {
     //\____________________________________________/
     function detect_y() {
         // build shaders
-        var v = 'attribute vec2 c;void main(void){gl_PointSize = 2.;gl_Position = vec4(c.x,c.y,0,1.);}'
-        var f = 'precision mediump float;void main(void){gl_FragColor = vec4(gl_PointCoord.y>0.5?1.0:0.0,gl_PointCoord.x,0,1.);}'
-        var fs = gl.createShader(gl.FRAGMENT_SHADER)
+        const v = 'attribute vec2 c;void main(void){gl_PointSize = 2.;gl_Position = vec4(c.x,c.y,0,1.);}';
+        const f = 'precision mediump float;void main(void){gl_FragColor = vec4(gl_PointCoord.y>0.5?1.0:0.0,gl_PointCoord.x,0,1.);}';
+        const fs = gl.createShader(gl.FRAGMENT_SHADER);
         gl.shaderSource(fs, f), gl.compileShader(fs)
         if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(fs))
 
-        var vs = gl.createShader(gl.VERTEX_SHADER)
+        const vs = gl.createShader(gl.VERTEX_SHADER);
         gl.shaderSource(vs, v), gl.compileShader(vs)
         if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(vs))
 
         sp = gl.createProgram()
         gl.attachShader(sp, vs),
-            gl.attachShader(sp, fs),
-            gl.linkProgram(sp)
+          gl.attachShader(sp, fs),
+          gl.linkProgram(sp)
 
-        var b = gl.createBuffer()
+        const b = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, b)
-        var x = new Float32Array(2)
+        const x = new Float32Array(2);
         x[0] = -1, x[1] = 1
         gl.bufferData(gl.ARRAY_BUFFER, x, gl.STATIC_DRAW)
 
-        var cl = gl.getAttribLocation(sp, 'c')
+        const cl = gl.getAttribLocation(sp, 'c');
         gl.useProgram(sp)
         gl.enableVertexAttribArray(cl)
         gl.vertexAttribPointer(cl, 2, gl.FLOAT, false, 8, 0);
         gl.drawArrays(gl.POINTS, 0, 1)
-        var pv = new Uint8Array(4)
+        const pv = new Uint8Array(4);
         gl.readPixels(0, gl.height - 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pv)
         gl.deleteBuffer(b)
         return pv[0] != 0
@@ -1101,7 +1118,7 @@ define(function (require, exports, module) {
     //|  gl table with lookups
     function gt() {
         // u:uniformfn  s:stride  a:arraytype  f:floatsize  c:components  w:writefn  r:readfn  t:type
-        var y = {}
+        const y = {};
         y.int = { u: "uniform1i", c: 1 }
         y.ivec2 = { u: "uniform2i", c: 2 }
         y.ivec3 = { u: "uniform3i", c: 3 }
@@ -1130,7 +1147,7 @@ define(function (require, exports, module) {
             n: false,
             x: 'vec4'
         },
-            y.sampler2D = { c: 0 }
+          y.sampler2D = { c: 0 }
         y.bool = { c: 0 }
         gt.types = y
 
@@ -1303,7 +1320,8 @@ define(function (require, exports, module) {
         function fl(i, a, o, m, s) {
             a[o] = parseFloat(i)
             if (m <= 1) return
-            var x = a[o], o2 = o + s
+            const x = a[o];
+            let o2 = o + s;
             while (m > 1) {
                 a[o2] = x, m--, o2 += s
             }
@@ -1311,9 +1329,10 @@ define(function (require, exports, module) {
 
         // stringify stored float(s)
         function _fl(a, o, m, s) {
-            var v = 'fl |' + a[o] + '|'
+            let v = 'fl |' + a[o] + '|';
             if (m <= 1) return v
-            var x = a[o], o2 = o + s
+            const x = a[o];
+            let o2 = o + s;
             while (m > 1) {
                 v += ' ' + a[o2] + '|', m--, o2 += s
             }
@@ -1322,7 +1341,7 @@ define(function (require, exports, module) {
 
         // vec2 JS value type to vertexbuffer parser
         function v2(i, a, o, m, s) {
-            var t = typeof i
+            const t = typeof i;
             if (t == 'object') {
                 a[o] = i.x, a[o + 1] = i.y
             } else if (t == 'array') {
@@ -1331,7 +1350,9 @@ define(function (require, exports, module) {
                 a[o] = a[o + 1] = parseFloat(i[0])
             }
             if (m <= 1) return
-            var x = a[o], y = a[o + 1], o2 = o + s
+            const x = a[o];
+            const y = a[o + 1];
+            let o2 = o + s;
             while (m > 1) {
                 a[o2] = x, a[o2 + 1] = y, m--, o2 += s
             }
@@ -1339,9 +1360,10 @@ define(function (require, exports, module) {
 
         // stringify stored vec2)
         function _v2(a, o, m, s) {
-            var v = '|' + a[o] + ' ' + a[o + 1] + ''
+            let v = '|' + a[o] + ' ' + a[o + 1] + '';
             if (m <= 1) return v
-            var x = a[o], o2 = o + s
+            const x = a[o];
+            let o2 = o + s;
             while (m > 1) {
                 v += '|' + a[o2] + ' ' + a[o2 + 1] + '', m--, o2 += s
             }
@@ -1350,7 +1372,7 @@ define(function (require, exports, module) {
 
         // vec3 JS value type to vertexbuffer parser
         function v3(i, a, o, m, s) {
-            var t = typeof i
+            const t = typeof i;
             if (t == 'object') {
                 a[o] = i.x, a[o + 1] = i.y, a[o + 2] = i.z
             } else if (t == 'array') {
@@ -1359,7 +1381,10 @@ define(function (require, exports, module) {
                 a[o] = a[o + 1] = a[o + 2] = parseFloat(v[0])
             }
             if (m <= 1) return
-            var x = a[o], y = a[o + 1], z = a[o + 2], o2 = o + s
+            const x = a[o];
+            const y = a[o + 1];
+            const z = a[o + 2];
+            let o2 = o + s;
 
             while (m > 1) {
                 a[o2] = x, a[o2 + 1] = y, a[o2 + 2] = z, n--, o2 += s
@@ -1368,9 +1393,10 @@ define(function (require, exports, module) {
 
         // stringify stored vec3
         function _v3(a, o, m, s) {
-            var v = '|' + a[o] + ' ' + a[o + 1] + ' ' + a[o + 2] + ''
+            let v = '|' + a[o] + ' ' + a[o + 1] + ' ' + a[o + 2] + '';
             if (m <= 1) return v
-            var x = a[o], o2 = o + s
+            const x = a[o];
+            let o2 = o + s;
             while (m > 1) {
                 v += '|' + a[o2] + ' ' + a[o2 + 1] + ' ' + a[o2 + 2] + '', m--, o2 += s
             }
@@ -1379,7 +1405,7 @@ define(function (require, exports, module) {
 
         // vec4 JS value type to vertexbuffer parser
         function v4(i, a, o, m, s) {
-            var t = typeof i
+            const t = typeof i;
             if (t == 'object') {
                 if ('r' in i) {
                     a[o] = i.r, a[o + 1] = i.g, a[o + 2] = i.b, a[o + 3] = i.a
@@ -1400,7 +1426,11 @@ define(function (require, exports, module) {
             }
             if (m <= 1) return;
 
-            var x = a[o], y = a[o + 1], z = a[o + 2], w = a[o + 3], o2 = o + s
+            const x = a[o];
+            const y = a[o + 1];
+            const z = a[o + 2];
+            const w = a[o + 3];
+            let o2 = o + s;
 
             while (m > 1) {
                 a[o2] = x, a[o2 + 1] = y, a[o2 + 2] = z, a[o2 + 3] = w, m--, o2 += s
@@ -1409,9 +1439,10 @@ define(function (require, exports, module) {
 
         // stringify stored vec4)
         function _v4(a, o, m, s) {
-            var v = '|' + a[o] + ' ' + a[o + 1] + ' ' + a[o + 2] + ' ' + a[o + 3] + ''
+            let v = '|' + a[o] + ' ' + a[o + 1] + ' ' + a[o + 2] + ' ' + a[o + 3] + '';
             if (m <= 1) return v
-            var x = a[o], o2 = o + s
+            const x = a[o];
+            let o2 = o + s;
             while (m > 1) {
                 v += '|' + a[o2] + ' ' + a[o2 + 1] + ' ' + a[o2 + 2] + ' ' + a[o2 + 3] + '', m--, o2 += s
             }
@@ -1420,7 +1451,7 @@ define(function (require, exports, module) {
 
         // color JS value type to vertexbuffer parser
         function co(i, a, o, m, s) {
-            var t = typeof i;
+            const t = typeof i;
             if (t == 'number') {
                 a[o] = i
             } else if (t == 'object' || t == 'function') {
@@ -1438,7 +1469,8 @@ define(function (require, exports, module) {
             }
             if (m <= 1) return
 
-            var x = a[o], o2 = o + s
+            const x = a[o];
+            let o2 = o + s;
             while (m > 1) {
                 a[o2] = x, m--, o2 += s;
             }
@@ -1446,9 +1478,10 @@ define(function (require, exports, module) {
 
         // stringify stored color)
         function _co(a, o, m, s) {
-            var v = '|' + a[o]
+            let v = '|' + a[o];
             if (m <= 1) return v
-            var x = a[o], o2 = o + s
+            const x = a[o];
+            let o2 = o + s;
             while (m > 1) {
                 v += '|' + a[o2], m--, o2 += s
             }
@@ -1463,7 +1496,7 @@ define(function (require, exports, module) {
     // |  parse string colors
     // \____________________________________________/
     function parseColor(s) {
-        var c
+        let c;
         if (!s.indexOf("vec4")) {
             c = s.slice(5, -1).split(",")
             return { r: parseFloat(c[0]), g: parseFloat(c[1]), b: parseFloat(c[2]), a: parseFloat(c[3]) }
@@ -1500,20 +1533,20 @@ define(function (require, exports, module) {
     //|  a fullscreen shader with buffer
     //\____________________________________________/
     gl.getScreenShader = function (sd) {
-        var d = {
+        const d = {
             m: gl.TRIANGLES,
             l: 6,
             a: { c: 'vec2' },
             v: 'vec4(c.x * 2. -1, 1. - c.y * 2., 0, 1.)'
-        }
-        for (var k in sd) {
+        };
+        for (const k in sd) {
             d[k] = sd[k]
         }
 
-        var sh = gl.getShader(d)
+        const sh = gl.getShader(d);
 
-        var b = sh.$b = sh.alloc(1)// write 2 triangles
-        var a = b.c.a
+        const b = sh.$b = sh.alloc(1);// write 2 triangles
+        const a = b.c.a;
         a[0] = a[1] = a[3] = a[7] = a[10] = a[4] = 0
         a[2] = a[5] = a[6] = a[8] = a[9] = a[11] = 1
         b.hi = 1
@@ -1525,20 +1558,21 @@ define(function (require, exports, module) {
     function debug(stack) {
         if ('__createTexture' in gl) return
 
-        var glrev = {}
-        for (var k in gl) {
+        const glrev = {};
+        for (const k in gl) {
             if (k == 'debug' || k == 'undebug' || k == 'eval' || k == 'regvar' ||
-                k == 'parseColor') {
+              k == 'parseColor') {
                 continue;
             }
             if (typeof gl[k] == 'function') {
                 gl['__' + k] = gl[k];
                 function gldump(k) {
-                    var v = '__' + k
+                    const v = '__' + k;
                     gl[k] = function () {
-                        var s = [], t;
-                        for (var i = 0; i < arguments.length; i++) {
-                            var a = arguments[i]
+                        const s = [];
+                        let t;
+                        for (let i = 0; i < arguments.length; i++) {
+                            const a = arguments[i];
                             if (a && (t = glrev[a])) {
                                 s.push(a + " = gl." + t + "")
                             } else {
@@ -1546,7 +1580,7 @@ define(function (require, exports, module) {
                             }
                         }
                         if (stack) fn.log(new Error().stack)
-                        var rv = gl[v].apply(gl, arguments)
+                        const rv = gl[v].apply(gl, arguments);
                         console.log("gl." + k + "(" + s.join(", ") + ")" + ((rv !== undefined) ? (" -> " + rv) : ""))
                         return rv
                     }
@@ -1563,9 +1597,9 @@ define(function (require, exports, module) {
 
     function undebug() {
         if (!('__createTexture' in gl)) return
-        for (var k in gl) {
+        for (const k in gl) {
             if (k.indexOf('__') == 0) {
-                var k2 = k.slice(2)
+                const k2 = k.slice(2);
                 gl[k2] = gl[k]
                 delete gl[k]
             }

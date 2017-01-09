@@ -6,25 +6,25 @@
 
 define(function (require) {
 
-    var ui = require("../../core/ui/ui")
+    const ui = require("../../core/ui/ui");
 
 
-    var ct = require("../../core/ui/controls")
-    var tm = require("../../core/ui/text_mix")
-    var ts = require("../../core/ui/text_shaders")
+    const ct = require("../../core/ui/controls");
+    const tm = require("../../core/ui/text_mix");
+    const ts = require("../../core/ui/text_shaders");
 
     //|  Styling
     //\____________________________________________/
 
-    var ft1 = ui.gl.sfont(
-        navigator.platform.match(/Mac/) ?
-        "12px Menlo" :
-        "12px Lucida Console")
+    const ft1 = ui.gl.sfont(
+      navigator.platform.match(/Mac/) ?
+      "12px Menlo" :
+      "12px Lucida Console");
 
     function codeView(g) {
 
         // background
-        var b = ui.rect({ f: 't.codeBg' })
+        const b = ui.rect({ f: 't.codeBg' });
 
         // scrollbars
         b._v_ = ct.vScroll({ h: 'p.h - 10' })

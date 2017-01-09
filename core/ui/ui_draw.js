@@ -10,7 +10,7 @@ define(function (require, exports, module) {
         // |  group
         // \____________________________________________/
         function group(g) {
-            var n = new ui.Node()
+            const n = new ui.Node();
             n._t = group
             n.$$ = function () {
             }
@@ -25,10 +25,10 @@ define(function (require, exports, module) {
         // \____________________________________________/
 
         function rect(g) {
-            var n = new ui.Node()
+            const n = new ui.Node();
             n._t = rect
             n.$$ = function () {
-                var sh = ui.gl.getShader(rect.sd, n)
+                const sh = ui.gl.getShader(rect.sd, n);
                 // alloc buffers
                 ui.alloc(n, sh)
                 // set our default values on c
@@ -51,9 +51,9 @@ define(function (require, exports, module) {
         })
 
         rect.set = function (v, i, z, d) { // vb, index, zero, digit
-            var s = v.s // stride
-            var o = i * s * v.l // offset
-            var a = v.a
+            const s = v.s; // stride
+            let o = i * s * v.l; // offset
+            const a = v.a;
             a[o] = z, a[o + 1] = z, o += s
             a[o] = d, a[o + 1] = z, o += s
             a[o] = z, a[o + 1] = d, o += s
@@ -70,9 +70,9 @@ define(function (require, exports, module) {
 
         rect.drawer = function (n) {
             n.l = 1
-            var sd = ui.gl.getShader(rect.sd, n)
+            const sd = ui.gl.getShader(rect.sd, n);
             // allocate buffer of 1 rect
-            var b = sd.alloc(1)
+            const b = sd.alloc(1);
             rect.set(b.c, 0, 0, 1)
             b.hi = 1
             sd.rect = function (x, y, w, h) {
@@ -92,14 +92,14 @@ define(function (require, exports, module) {
         // \____________________________________________/
         function text(g) {
 
-            var n = new ui.Node()
+            const n = new ui.Node();
             n._t = text
             n.$$ = function () {
-                var ol = n._n // text length
+                const ol = n._n; // text length
 
-                var t = n.t // text
+                const t = n.t; // text
 
-                var m = t && t.length || 0
+                const m = t && t.length || 0;
                 l = 0
                 for (var i = 0; i < m; i++) {
                     var c = t.charCodeAt(i)
@@ -110,36 +110,36 @@ define(function (require, exports, module) {
                 n.w = 0
                 n.h = 0
 
-                var sh = ui.gl.getShader(text.sd, n)
+                const sh = ui.gl.getShader(text.sd, n);
 
                 ui.alloc(n, sh)
 
                 if (!n._v) return
 
-                var v = n._v.e // element array
-                var a = v.a
-                var s = v.s // stride
-                var o = n._s * s * v.l // offset
+                const v = n._v.e; // element array
+                const a = v.a;
+                const s = v.s; // stride
+                let o = n._s * s * v.l; // offset
 
-                var b = n.b // bitmap font
+                const b = n.b; // bitmap font
                 if (!b) throw new Error("missing font on textnode")
 
-                var floor = Math.floor
-                var x = 0
-                var y = 0
-                var w = 0
+                const floor = Math.floor;
+                let x = 0;
+                let y = 0;
+                let w = 0;
                 for (var i = 0; i < m; i++) {
                     var c = t.charCodeAt(i)
                     if (c > 32) {
-                        var d = c - b.s
-                        var wn = b.m[d] + 2 * b.xp
-                        var x2 = x + (wn / ui.gl.ratio)
-                        var y2 = y + (b.g / ui.gl.ratio)
+                        const d = c - b.s;
+                        const wn = b.m[d] + 2 * b.xp;
+                        const x2 = x + (wn / ui.gl.ratio);
+                        const y2 = y + (b.g / ui.gl.ratio);
 
-                        var tx1 = ((d % b.b) * b.g - b.xp) / b.w
-                        var ty1 = (floor(d / b.b) * b.g) / b.h
-                        var tx2 = tx1 + (wn / (b.w))
-                        var ty2 = ty1 + (b.g / b.h)
+                        const tx1 = ((d % b.b) * b.g - b.xp) / b.w;
+                        const ty1 = (floor(d / b.b) * b.g) / b.h;
+                        const tx2 = tx1 + (wn / (b.w));
+                        const ty2 = ty1 + (b.g / b.h);
 
                         a[o] = x, a[o + 1] = y, a[o + 2] = tx1, a[o + 3] = ty1, o += s
                         a[o] = x2, a[o + 1] = y, a[o + 2] = tx2, a[o + 3] = ty1, o += s
@@ -178,10 +178,10 @@ define(function (require, exports, module) {
         }
 
         text.set = function (v, i, l, z, d) {
-            var a = v.a
-            var s = v.s // stride
-            var o = i * s * v.l // offset
-            for (var j = 0; j < l; j++) {
+            const a = v.a;
+            const s = v.s; // stride
+            let o = i * s * v.l; // offset
+            for (let j = 0; j < l; j++) {
                 a[o] = z, a[o + 1] = z, o += s
                 a[o] = d, a[o + 1] = z, o += s
                 a[o] = z, a[o + 1] = d, o += s
@@ -202,17 +202,17 @@ define(function (require, exports, module) {
         text.pos = function (n, l, cb) { // node, pos, callback
             if (!n.t) return { x: 0, y: 0 }
             if (l == -1) l = n.t.length
-            var b = n.b // bitmap font
-            var x = 0
-            var y = 0
-            var w = 0
-            var t = n.t
-            var ratio = ui.gl.ratio
-            for (var i = 0; i < l; i++) {
+            const b = n.b; // bitmap font
+            let x = 0;
+            let y = 0;
+            let w = 0;
+            const t = n.t;
+            const ratio = ui.gl.ratio;
+            for (let i = 0; i < l; i++) {
                 if (cb && cb(i, x / ratio, y / ratio)) break
-                var c = t.charCodeAt(i)
+                const c = t.charCodeAt(i);
                 if (c > 32) {
-                    var d = c - b.s
+                    const d = c - b.s;
                     w = b.m[d] + 2 * b.xp
                     x += b.c[d]
                 } else if (c == 10) {
@@ -228,7 +228,7 @@ define(function (require, exports, module) {
         // |  edge
         // \____________________________________________/
         function edge(g) {
-            var n = new ui.Node()
+            const n = new ui.Node();
             n._t = edge
 
             n.x_ = 'n.x + n.mx'
@@ -238,7 +238,7 @@ define(function (require, exports, module) {
 
             n.$$ = function () {
 
-                var sh = ui.gl.getShader(edge.sd, n)
+                const sh = ui.gl.getShader(edge.sd, n);
 
                 ui.alloc(n, sh)
 
@@ -265,7 +265,7 @@ define(function (require, exports, module) {
                 var v = n._v.i
                 var a = v.a
                 var o = n._s * v.i
-                var i = n._s * v.l
+                const i = n._s * v.l;
                 a[o++] = i + 0, a[o++] = i + 4, a[o++] = i + 1
                 a[o++] = i + 1, a[o++] = i + 4, a[o++] = i + 5
                 a[o++] = i + 5, a[o++] = i + 6, a[o++] = i + 1

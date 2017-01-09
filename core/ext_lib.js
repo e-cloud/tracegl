@@ -7,7 +7,7 @@
 define(function (require, exports) {
     "no tracegl"
 
-    var e = exports
+    const e = exports;
 
     e.i0 = function () {
         clamp(step(0, -n.a0) + (u - n.t0) / n.a0, 0, 1)
@@ -104,10 +104,10 @@ define(function (require, exports) {
 
     e.normal_ = function (float_ln, float_n1, float_n2, float_n3) {
         return_vec3(
-            cross(
-                normalize(vec3(0, ln, n2 - n1)),
-                normalize(vec3(ln, 0, n3 - n1))
-            )
+          cross(
+            normalize(vec3(0, ln, n2 - n1)),
+            normalize(vec3(ln, 0, n3 - n1))
+          )
         );
     }
 
@@ -127,9 +127,9 @@ define(function (require, exports) {
 
     e.normal = function (ds, ln, float_fw_vec2_c) {
         normal_(ln,
-            float_fw_vec2_c(vec2(c.x, c.y)),
-            float_fw_vec2_c(vec2(c.x + ds, c.y)),
-            float_fw_vec2_c(vec2(c.x, c.y + ds)))
+          float_fw_vec2_c(vec2(c.x, c.y)),
+          float_fw_vec2_c(vec2(c.x + ds, c.y)),
+          float_fw_vec2_c(vec2(c.x, c.y + ds)))
     }
 
     e.img = function (a) {
@@ -142,17 +142,17 @@ define(function (require, exports) {
 
     e.fontgrow = function () {
         return_vec4(
-            (
-                texture2D(n.b, vec2(e.z - 'n.b'.x, e.w - 'n.b'.y)) +
-                texture2D(n.b, vec2(e.z, e.w - 'n.b'.y)) +
-                texture2D(n.b, vec2(e.z + 'n.b'.x, e.w - 'n.b'.y)) +
-                texture2D(n.b, vec2(e.z - 'n.b'.x, e.w)) +
-                texture2D(n.b, vec2(e.z, e.w)) +
-                texture2D(n.b, vec2(e.z + 'n.b'.x, e.w)) +
-                texture2D(n.b, vec2(e.z - 'n.b'.x, e.w + 'n.b'.y)) +
-                texture2D(n.b, vec2(e.z, e.w + 'n.b'.y)) +
-                texture2D(n.b, vec2(e.z + 'n.b'.x, e.w + 'n.b'.y))
-            ))
+          (
+            texture2D(n.b, vec2(e.z - 'n.b'.x, e.w - 'n.b'.y)) +
+            texture2D(n.b, vec2(e.z, e.w - 'n.b'.y)) +
+            texture2D(n.b, vec2(e.z + 'n.b'.x, e.w - 'n.b'.y)) +
+            texture2D(n.b, vec2(e.z - 'n.b'.x, e.w)) +
+            texture2D(n.b, vec2(e.z, e.w)) +
+            texture2D(n.b, vec2(e.z + 'n.b'.x, e.w)) +
+            texture2D(n.b, vec2(e.z - 'n.b'.x, e.w + 'n.b'.y)) +
+            texture2D(n.b, vec2(e.z, e.w + 'n.b'.y)) +
+            texture2D(n.b, vec2(e.z + 'n.b'.x, e.w + 'n.b'.y))
+          ))
     }
 
     e.fontshift = function () {
@@ -166,26 +166,26 @@ define(function (require, exports) {
     e.subpix = function (vec4_c, vec4_fg, vec4_bg) {
         float_a(3.2 * (t.subpx).w)
         return_vec4(vec4(pow(c.r * pow(fg.r, a) + (1 - c.r) * pow(bg.r, a), 1 / a),
-                pow(c.g * pow(fg.g, a) + (1 - c.g) * pow(bg.g, a), 1 / a),
-                pow(c.b * pow(fg.b, a) + (1 - c.b) * pow(bg.b, a), 1 / a),
-                c.a * fg.a) * 1.0)
+            pow(c.g * pow(fg.g, a) + (1 - c.g) * pow(bg.g, a), 1 / a),
+            pow(c.b * pow(fg.b, a) + (1 - c.b) * pow(bg.b, a), 1 / a),
+            c.a * fg.a) * 1.0)
     }
 
     e.sfont = function (vec4_fg, vec4_bg) {
         vec4_c(texture2D(n.b, vec2(e.z, e.w)))
         float_a(3.2 * (t.subpx).w)
         return_vec4(vec4(pow(c.r * pow(fg.r, a) + (1 - c.r) * pow(bg.r, a), 1 / a),
-            pow(c.g * pow(fg.g, a) + (1 - c.g) * pow(bg.g, a), 1 / a),
-            pow(c.b * pow(fg.b, a) + (1 - c.b) * pow(bg.b, a), 1 / a),
-            c.a * fg.a))
+          pow(c.g * pow(fg.g, a) + (1 - c.g) * pow(bg.g, a), 1 / a),
+          pow(c.b * pow(fg.b, a) + (1 - c.b) * pow(bg.b, a), 1 / a),
+          c.a * fg.a))
     }
 
     e.sfont2 = function (vec4_fg, vec4_bg, float_a) {
         vec4_c(texture2D(n.b, vec2(e.z, e.w)))
         return_vec4(vec4(pow(c.r * pow(fg.r, a) + (1 - c.r) * pow(bg.r, a), 1 / a),
-            pow(c.g * pow(fg.g, a) + (1 - c.g) * pow(bg.g, a), 1 / a),
-            pow(c.b * pow(fg.b, a) + (1 - c.b) * pow(bg.b, a), 1 / a),
-            c.a * fg.a))
+          pow(c.g * pow(fg.g, a) + (1 - c.g) * pow(bg.g, a), 1 / a),
+          pow(c.b * pow(fg.b, a) + (1 - c.b) * pow(bg.b, a), 1 / a),
+          c.a * fg.a))
     }
 
     e.alpha = function (vec4_i, float_a) {
@@ -194,10 +194,10 @@ define(function (require, exports) {
 
     // we return a function based on the number of arguments
     e.mix = function () {
-        var a = arguments
-        var l = a.length
+        const a = arguments;
+        const l = a.length;
 
-        var s = 'vec4 #('
+        let s = 'vec4 #(';
         for (var i = 0; i < l - 1; i++) {
             s += (i ? ',vec4 a' : 'vec4 a') + i
         }
@@ -288,9 +288,9 @@ define(function (require, exports) {
         // Permutations
         i = mod(i, 289.0);
         vec4_p = permute4(permute4(permute4(
-                    i.z + vec4(0.0, i1.z, i2.z, 1.0))
-                + i.y + vec4(0.0, i1.y, i2.y, 1.0))
-            + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+              i.z + vec4(0.0, i1.z, i2.z, 1.0))
+            + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+          + i.x + vec4(0.0, i1.x, i2.x, 1.0));
 
         // ( N*N points uniformly over a square, mapped onto an octahedron.)
         float_n_ = 1.0 / 7.0;
@@ -324,7 +324,7 @@ define(function (require, exports) {
         vec4_m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
         m = m * m;
         return_float(42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1),
-                dot(p2, x2), dot(p3, x3))));
+            dot(p2, x2), dot(p3, x3))));
     }
 
     e.snoise4_g = function (float_j, vec4_ip) {
@@ -361,10 +361,10 @@ define(function (require, exports) {
         i = mod(i, 289.0);
         float_j0 = permute1(permute1(permute1(permute1(i.w) + i.z) + i.y) + i.x);
         vec4_j1 = permute4(permute4(permute4(permute4(
-                        i.w + vec4(i1.w, i2.w, i3.w, 1.0))
-                    + i.z + vec4(i1.z, i2.z, i3.z, 1.0))
-                + i.y + vec4(i1.y, i2.y, i3.y, 1.0))
-            + i.x + vec4(i1.x, i2.x, i3.x, 1.0));
+                i.w + vec4(i1.w, i2.w, i3.w, 1.0))
+              + i.z + vec4(i1.z, i2.z, i3.z, 1.0))
+            + i.y + vec4(i1.y, i2.y, i3.y, 1.0))
+          + i.x + vec4(i1.x, i2.x, i3.x, 1.0));
         // Gradients: 7x7x6 points over a cube, mapped onto a 4-cross polytope
         // 7*7*6 = 294, which is close to the ring size 17*17 = 289.
         vec4_ip = vec4(1.0 / 294.0, 1.0 / 49.0, 1.0 / 7.0, 0.0);
@@ -386,7 +386,7 @@ define(function (require, exports) {
         m0 = m0 * m0;
         m1 = m1 * m1;
         return_float(49.0 * (dot(m0 * m0, vec3(dot(p0, x0), dot(p1, x1), dot(p2, x2)))
-            + dot(m1 * m1, vec2(dot(p3, x3), dot(p4, x4)))));
+          + dot(m1 * m1, vec2(dot(p3, x3), dot(p4, x4)))));
     }
 
     e.cell = function (vec2_v) {

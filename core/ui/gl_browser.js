@@ -6,21 +6,21 @@
 
 define(function (require, exports, module) {
 
-    var fn = require("./../fn")
+    const fn = require("./../fn");
 
-    var gl // context
-    var cvs // canvas
-    var div // main div
-    var img = {} // image cache
+    let gl; // context
+    let cvs; // canvas
+    let div; // main div
+    const img = {}; // image cache
 
     if (typeof navigator === 'undefined') {
         module.exports = null
         return
     }
-    var isSafari = navigator.userAgent.match(/Safari/) != null
-    var isGecko = navigator.userAgent.match(/Gecko\//) != null
-    var isChrome = navigator.userAgent.match(/Chrome\//) != null
-    var isIos = navigator.userAgent.match(/Apple.*Mobile\//) != null
+    const isSafari = navigator.userAgent.match(/Safari/) != null;
+    const isGecko = navigator.userAgent.match(/Gecko\//) != null;
+    const isChrome = navigator.userAgent.match(/Chrome\//) != null;
+    const isIos = navigator.userAgent.match(/Apple.*Mobile\//) != null;
 
     if (!init()) {
         module.exports = null
@@ -32,13 +32,13 @@ define(function (require, exports, module) {
     function init() {
         window.requestAnimFrame = (function () {
             return window.requestAnimationFrame ||
-                window.webkitRequestAnimationFrame ||
-                window.mozRequestAnimationFrame ||
-                window.oRequestAnimationFrame ||
-                window.msRequestAnimationFrame ||
-                function (callback) {
-                    window.setTimeout(callback, 1000 / 60)
-                }
+              window.webkitRequestAnimationFrame ||
+              window.mozRequestAnimationFrame ||
+              window.oRequestAnimationFrame ||
+              window.msRequestAnimationFrame ||
+              function (callback) {
+                  window.setTimeout(callback, 1000 / 60)
+              }
         })()
 
         cvs = document.createElement('canvas')
@@ -51,7 +51,7 @@ define(function (require, exports, module) {
 
         div.style.userSelect = 'none';
         //div.style.cursor = 'none'
-        var ratio = window.devicePixelRatio
+        const ratio = window.devicePixelRatio;
         document.body.appendChild(cvs)
 
         window.onresize = function () {
@@ -68,22 +68,22 @@ define(function (require, exports, module) {
         cvs.height = (div.offsetHeight - 2) * ratio
 
         gl = cvs.getContext && cvs.getContext('experimental-webgl', {
-                antialias: false,
-                premultipliedAlpha: false,
-                alpha: false,
-                preserveDrawingBuffer: true
-            })
+              antialias: false,
+              premultipliedAlpha: false,
+              alpha: false,
+              preserveDrawingBuffer: true
+          })
 
         if (!gl) { // lets try to be helpful
             function msg() {
                 var w = '<a href="http://en.wikipedia.org/wiki/WebGL#Implementation">WebGL</a>'
-                var c = '<a href="http://www.google.com/chrome">Chrome</a>'
-                var gi = '<a href="http://www.google.com/search?q=enable+webgl+ios">solution</a>'
-                var d = 'Oh no! We cannot use ' + w + '.<br>'
-                var p1 = 'Reminder to self, try this WebGL link: '
-                var l1 = encodeURIComponent(p1 + location.href)
-                var m = '<a href="mailto:link@n4.io?subject=' + l1 + '&body=' + l1 + '">Email yourself the link</a> (replace to).'
-                var a = 'http://www.apple.com/feedback/safari.html'
+                const c = '<a href="http://www.google.com/chrome">Chrome</a>';
+                const gi = '<a href="http://www.google.com/search?q=enable+webgl+ios">solution</a>';
+                let d = 'Oh no! We cannot use ' + w + '.<br>';
+                const p1 = 'Reminder to self, try this WebGL link: ';
+                const l1 = encodeURIComponent(p1 + location.href);
+                const m = '<a href="mailto:link@n4.io?subject=' + l1 + '&body=' + l1 + '">Email yourself the link</a> (replace to).';
+                const a = 'http://www.apple.com/feedback/safari.html';
                 var w = 'install ' + c + ' for the best experience. Or ' + m
                 if (isChrome) {
                     d += 'You seem to be running Chrome already, try updating your videocard drivers, updating ' + c + ', or running on a newer computer.<br/>' + m
@@ -92,13 +92,13 @@ define(function (require, exports, module) {
                     d += 'For now, experience this on a desktop OS. ' + m + '<br/>Or search for a ' + gi
                 } else if (isSafari) {
                     d += w + '<br/><br/>' +
-                        'To enable webGL in Safari (5.1 or higher) follow these 5 steps:<br/>' +
-                        '1. Top left of the screen: click Safari then Preferences (opens window).<br/>' +
-                        '2. Click the advanced tab (gear) in the preferences window, its the last tab on the right.<br/>' +
-                        '3. At the bottom check the "Show Develop menu in menu bar" checkbox.<br/>' +
-                        '   At the top of the screen between Bookmarks and Window a new Develop menu appears<br/>' +
-                        '4. Click the Develop menu at the top, and select Enable WebGL (last item at the bottom)<br/>' +
-                        '5. <a href="' + location.href + '">Click here to refresh the browser</a><br/>'
+                      'To enable webGL in Safari (5.1 or higher) follow these 5 steps:<br/>' +
+                      '1. Top left of the screen: click Safari then Preferences (opens window).<br/>' +
+                      '2. Click the advanced tab (gear) in the preferences window, its the last tab on the right.<br/>' +
+                      '3. At the bottom check the "Show Develop menu in menu bar" checkbox.<br/>' +
+                      '   At the top of the screen between Bookmarks and Window a new Develop menu appears<br/>' +
+                      '4. Click the Develop menu at the top, and select Enable WebGL (last item at the bottom)<br/>' +
+                      '5. <a href="' + location.href + '">Click here to refresh the browser</a><br/>'
                     d += 'I know this is a hassle, you can help by <a href="' + a + '"+>asking Apple to enable WebGL by default.</a><br/>'
                 } else {
                     d += w + '<br/>'
@@ -166,24 +166,24 @@ define(function (require, exports, module) {
         // cell
         // copy
 
-        var ct = isGecko ? {
-                'grab': '-moz-grab',
-                'grabbing': '-moz-grabbing'
-            } : {
-                'grab': '-webkit-grab',
-                'grabbing': '-webkit-grabbing',
-                'zoom-in': '-webkit-zoom-in',
-                'zoom-out': '-webkit-zoom-out'
-            }
+        const ct = isGecko ? {
+              'grab': '-moz-grab',
+              'grabbing': '-moz-grabbing'
+          } : {
+              'grab': '-webkit-grab',
+              'grabbing': '-webkit-grabbing',
+              'zoom-in': '-webkit-zoom-in',
+              'zoom-out': '-webkit-zoom-out'
+          };
 
-        var cursor
+        let cursor;
         gl.cursor = function (c) {
             if (cursor != c) {
                 document.body.style.cursor = cursor = c in ct ? ct[c] : c
             }
         }
 
-        var b = 0 // block anim
+        let b = 0; // block anim
         gl.anim = function (c) {
             if (b) return
             b = 1
@@ -209,9 +209,9 @@ define(function (require, exports, module) {
         }
 
         // doubleclick filter (dont fire if its dblclick-drag)
-        var dfx
-        var dfy
-        var dfd
+        let dfx;
+        let dfy;
+        let dfd;
         cvs.onmousedown = function (e) {
             dfx = e.clientX
             dfy = e.clientY
@@ -241,16 +241,16 @@ define(function (require, exports, module) {
         }
 
         window.onmouseup =
-            cvs.onmouseup = function (e) {
-                dfd = dfx == e.clientX && dfy == e.clientY
-                setMouse(e)
-                gl.mouse_r()
-            }
+          cvs.onmouseup = function (e) {
+              dfd = dfx == e.clientX && dfy == e.clientY
+              setMouse(e)
+              gl.mouse_r()
+          }
 
         if (isGecko) {
             window.addEventListener('DOMMouseScroll', function (e) {
                 setMouse(e)
-                var d = e.detail;
+                let d = e.detail;
                 d = d * 10
                 if (e.axis == 1) {
                     gl.ms.v = 0
@@ -266,7 +266,7 @@ define(function (require, exports, module) {
         window.onmousewheel = function (e) {
             //e.wheelDeltaX or e.wheelDeltaY is set
             setMouse(e)
-            var n = Math.abs(e.wheelDeltaX || e.wheelDeltaY)
+            let n = Math.abs(e.wheelDeltaX || e.wheelDeltaY);
             if (n % 120) {
                 n = isSafari ? -6 : -1
             } else {
@@ -278,16 +278,16 @@ define(function (require, exports, module) {
         }
 
         // add hidden copy paste textarea
-        var clip = document.createElement('textarea')
+        const clip = document.createElement('textarea');
         clip.tabIndex = -1
         clip.autocomplete = 'off'
         clip.spellcheck = false
         clip.id = 'clipboard'
         clip.style.position = 'absolute'
         clip.style.left =
-            clip.style.top = '-10px'
+          clip.style.top = '-10px'
         clip.style.width =
-            clip.style.height = '0px'
+          clip.style.height = '0px'
         clip.style.border = '0'
         clip.style.display = 'none'
         document.body.appendChild(clip)
@@ -316,7 +316,7 @@ define(function (require, exports, module) {
             }, 100)
         }
 
-        var kn = { // key normalization
+        const kn = { // key normalization
             8: 'backspace', 9: 'tab', 13: 'enter', 16: 'shift', 17: 'ctrl', 18: 'alt',
             19: 'pause', 20: 'capslock', 27: 'escape',
             32: 'space', 33: 'pgup', 34: 'pgdn',
@@ -337,11 +337,11 @@ define(function (require, exports, module) {
             144: 'numlock', 145: 'scrollock', 186: 'semicolon', 187: 'equals', 188: 'comma',
             189: 'dash', 190: 'period', 191: 'slash', 192: 'accent', 219: 'openbracket',
             220: 'backslash', 221: 'closebracket', 222: 'singlequote'
-        }
-        var kr = {} // key repeat
+        };
+        const kr = {}; // key repeat
 
         function key(e, k) {
-            var r
+            let r;
             if (kr[k]) {
                 r = kr[k]++
             } else {
@@ -360,8 +360,8 @@ define(function (require, exports, module) {
             }
         }
 
-        var kc = 0
-        var ki = 0
+        let kc = 0;
+        let ki = 0;
         window.onkeydown = function (e) {
             kc = e.keyCode
             ki = setTimeout(function () {// only executed when press doesnt fire
@@ -394,15 +394,15 @@ define(function (require, exports, module) {
     // |  font load watcher. go browsers! Safari still manages to break this
     function fwatch(ft, cb) {
 
-        var c = document.createElement('canvas')
+        const c = document.createElement('canvas');
         c.width = c.height = 4
-        var x = c.getContext('2d')
+        const x = c.getContext('2d');
         x.fillStyle = 'rgba(0,0,0,0)'
         x.fillRect(0, 0, c.width, c.height)
         x.fillStyle = 'white'
         x.textBaseline = 'top'
 
-        var n = document.createElement('span')
+        const n = document.createElement('span');
         n.innerHTML = 'giItT1WQy@!-/#'
         n.style.position = 'absolute'
         n.style.left = n.style.top = '-10000px'
@@ -410,15 +410,15 @@ define(function (require, exports, module) {
         n.style.letterSpacing = '0'
         document.body.appendChild(n)
 
-        var w = n.offsetWidth
+        const w = n.offsetWidth;
         n.style.fontFamily = ft
 
-        var i = setInterval(function () {
+        const i = setInterval(function () {
             if (n.offsetWidth != w) { //inconclusive in chrome
                 x.font = '4px ' + ft
                 x.fillText('X', 0, 0) // x marks the spot
-                var p = x.getImageData(0, 0, c.width, c.height).data
-                for (var j = 0, l = p.length; j < l; j++) {
+                const p = x.getImageData(0, 0, c.width, c.height).data;
+                for (let j = 0, l = p.length; j < l; j++) {
                     if (p[j]) {
                         document.body.removeChild(n)
                         clearInterval(i)
@@ -427,24 +427,24 @@ define(function (require, exports, module) {
                     }
                 }
             }
-        }, 100)
+        }, 100);
     }
 
 
     // |  font and image loader
     // \____________________________________________/
     gl.load = function () {
-        var n = 0
-        var f = arguments[arguments.length - 1]
+        let n = 0;
+        const f = arguments[arguments.length - 1];
         for (var i = 0; i < arguments.length - 1; i++) {
             r = arguments[i]
-            var t = r.indexOf(':')
-            var c = r.slice(0, t)
-            var u = r.slice(t + 1)
+            const t = r.indexOf(':');
+            const c = r.slice(0, t);
+            const u = r.slice(t + 1);
 
             if (c == 'g') {// google font
                 n++
-                var l = document.createElement('link')
+                const l = document.createElement('link');
                 l.setAttribute('rel', 'stylesheet')
                 l.setAttribute('type', 'text/css')
                 l.setAttribute('href', 'http://fonts.googleapis.com/css?family=' + u.replace(/ /g, '+'))
@@ -475,12 +475,12 @@ define(function (require, exports, module) {
 
         if (!i.width || (i.width & (i.width - 1)) || (i.height & (i.height - 1))) { // not power 2
             if (gl.npot) {
-                var c = document.createElement("canvas")
+                const c = document.createElement("canvas");
                 fn(i.width, i.height)
                 c.width = fn.nextpow2(i.width)
                 c.height = fn.nextpow2(i.height)
                 fn(c.width, c.height)
-                var x = c.getContext("2d")
+                const x = c.getContext("2d");
                 x.drawImage(i, 0, 0, i.width, i.height)
                 i = c
             } else {
@@ -509,29 +509,29 @@ define(function (require, exports, module) {
     // |  create a camera feed
     // \____________________________________________/
     gl.camera = function (cb) {
-        var o = document.createElement('video');
+        const o = document.createElement('video');
         o.autoplay = 'autoplay';
         if (!window.navigator.webkitGetUserMedia) return
         window.navigator.webkitGetUserMedia({ audio: false, video: true },
-            function (s) {
-                o.src = window.webkitURL.createObjectURL(s)
-                cb(o)
-            },
-            function (e) {
-                fn(e)
-            }
+          function (s) {
+              o.src = window.webkitURL.createObjectURL(s)
+              cb(o)
+          },
+          function (e) {
+              fn(e)
+          }
         )
     }
 
     // |  texture load queue
     // \____________________________________________/
     gl.loadImage = function (u, cb) {
-        var t = gl.createTexture()
+        const t = gl.createTexture();
         if (img[u]) {
             gl.texture(img[u], t)
             return t
         }
-        var i = new Image()
+        const i = new Image();
         i.onload = function () {
             gl.texture(i, t);
             if (cb) cb()
@@ -540,17 +540,17 @@ define(function (require, exports, module) {
         return t
     }
 
-    var sFontSh
-    var pFontSh
+    let sFontSh;
+    let pFontSh;
     // |  Create a pixel font texture
     // \____________________________________________/
 
     gl.pfont = function (f) { // font
         "no tracegl"
-        var t = font((typeof f == 'object') ? f : { f: f })
+        const t = font((typeof f == 'object') ? f : { f: f });
         // fix up alpha
         if (!pFontSh) {
-            var d = { u: { s: 'sampler2D' } }
+            const d = { u: { s: 'sampler2D' } };
             if (isChrome) {
                 d.f = function () {
                     vec4_v = texture2D(s, vec2(c.x, c.y));
@@ -571,13 +571,13 @@ define(function (require, exports, module) {
             s = gl.getScreenShader(d)
             pFontSh = s
         }
-        var t2 = gl.renderTexture(t.w, t.h, function () {
+        const t2 = gl.renderTexture(t.w, t.h, function () {
             gl.disable(gl.BLEND)
             pFontSh.use()
             pFontSh.s(t)
             pFontSh.draw()
-        })
-        for (var k in t) {
+        });
+        for (const k in t) {
             t2[k] = t[k]
         }
         gl.deleteTexture(t)
@@ -588,7 +588,7 @@ define(function (require, exports, module) {
     // \____________________________________________/
     gl.sfont = function (f) { // font
         "no tracegl"
-        var t
+        let t;
         if (typeof f == 'object') {
             f.a = 1
             t = font(f)
@@ -614,14 +614,14 @@ define(function (require, exports, module) {
                 }
             })
         }
-        var t2 = gl.renderTexture(t.w, t.h, function () {
+        const t2 = gl.renderTexture(t.w, t.h, function () {
             gl.disable(gl.BLEND)
             sFontSh.use()
             sFontSh.s(t)
             sFontSh.a(1)//isGecko?1:1)
             sFontSh.draw()
-        })
-        for (var k in t) {
+        });
+        for (const k in t) {
             t2[k] = t[k]
         }
         gl.deleteTexture(t)
@@ -647,8 +647,8 @@ define(function (require, exports, module) {
 
     //|  build a palette for use with t
     gl.palette = function (o, t) {
-        var w = 0
-        var h = 1
+        let w = 0;
+        const h = 1;
         for (var i in o) {
             w++
         }
@@ -657,17 +657,17 @@ define(function (require, exports, module) {
         t.w = w
         t.h = h
 
-        var c = document.createElement("canvas")
-        var x = c.getContext("2d")
+        const c = document.createElement("canvas");
+        const x = c.getContext("2d");
         c.width = x.width = w
         c.height = x.height = h
-        var d = x.createImageData(w, 1)
-        var p = d.data
-        var j = 0
-        var v = 0
+        const d = x.createImageData(w, 1);
+        const p = d.data;
+        let j = 0;
+        let v = 0;
         for (var i in o) {
             t[i] = v / w
-            var r = gl.parseColor(o[i])
+            const r = gl.parseColor(o[i]);
             p[j + 0] = r.r * 255
             p[j + 1] = r.g * 255
             p[j + 2] = r.b * 255
@@ -683,18 +683,18 @@ define(function (require, exports, module) {
 
     // |  Create a font texture
     function font(f) { // font
-        var c = document.createElement("canvas")
-        var x = c.getContext("2d")
+        const c = document.createElement("canvas");
+        const x = c.getContext("2d");
 
-        var t = gl.createTexture()
+        const t = gl.createTexture();
 
-        var o = {}
+        let o = {};
         if (typeof f == 'object') o = f, f = o.f || o.font
 
         // lets parse the fontstring for \dpx
-        var n = f.match(/(\d+)px/)
+        const n = f.match(/(\d+)px/);
         if (!n) throw new Error("Cannot parse font without size in px")
-        var px = parseInt(n[0])
+        let px = parseInt(n[0]);
         px = px * gl.ratio
         f = px + 'px' + f.slice(n[0].length)
         // calculate grid size
@@ -726,19 +726,19 @@ define(function (require, exports, module) {
         x.textBaseline = 'bottom'
         x.textAlign = 'start'
 
-        var ia = 0 // italic adjust
+        let ia = 0; // italic adjust
         if (f.match(/italic/i)) ia = parseInt(px / 4)
 
-        for (var i = 0, l = t.e - t.s; i < l; i++) {
-            var xp = i % t.b
-            var yp = Math.floor(i / t.b)
-            var ch = String.fromCharCode(i + t.s)
+        for (let i = 0, l = t.e - t.s; i < l; i++) {
+            const xp = i % t.b;
+            const yp = Math.floor(i / t.b);
+            const ch = String.fromCharCode(i + t.s);
             t.c[i] = Math.round(x.measureText(ch).width)
             t.m[i] = t.c[i] + ia
             t.t[i] = (Math.floor((( xp * gs - t.xp) / t.w) * 256) << 16) |
-                (Math.floor((( yp * gs) / t.h) * 256) << 24)
+              (Math.floor((( yp * gs) / t.h) * 256) << 24)
             if (i == 127 - t.s) {
-                for (var j = 0; j < px + 1; j += 2) {
+                for (let j = 0; j < px + 1; j += 2) {
                     x.fillRect(xp * gs + 2 + 0.5, yp * gs + j, 0.25, 1)
                 }
             } else if (i == 128 - t.s) {

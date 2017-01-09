@@ -5,9 +5,9 @@
 // \____________________________________________/
 define(function (require) {
 
-    var gl = require("./gl")
-    var fn = require("./../fn")
-    var el = require("./../ext_lib")
+    const gl = require("./gl");
+    const fn = require("./../fn");
+    const el = require("./../ext_lib");
 
     if (!gl) {
         return {
@@ -15,7 +15,7 @@ define(function (require) {
             }
         }
     }
-    var ui = {}
+    var ui = {};
 
     ui.gl = gl
     ui.load = gl.load
@@ -25,7 +25,7 @@ define(function (require) {
 
     // |  DOM node API
     // \____________________________________________/
-    var ex = {
+    const ex = {
 
         // coordinates
         x: 'x',
@@ -154,9 +154,9 @@ define(function (require) {
         o_: 'old height',
         g_: 'old geometry'
 
-    }
+    };
 
-    var defaults = {
+    const defaults = {
         i0: el.i0,
         i1: el.i1,
         i2: el.i2,
@@ -180,11 +180,11 @@ define(function (require) {
         _w: 'n.w',
         _h: 'n.h',
         t: ''
-    }
+    };
 
     // |  the DOM node
     // \____________________________________________/
-    var node_vs = {};
+    const node_vs = {};
 
     function Node() {
         this._p = ui.p
@@ -194,13 +194,13 @@ define(function (require) {
     (function (p) {
 
         p.set = function (g) {
-            var t = typeof g
+            const t = typeof g;
             if (t == 'object') {
-                for (var k in g) {
+                for (const k in g) {
                     this[k] = g[k]
                 }
             } else if (t == 'function') {
-                var p = ui.p
+                const p = ui.p;
                 ui.p = this
                 g(this)
                 ui.p = p
@@ -254,7 +254,7 @@ define(function (require) {
 
         // group setter
         function gs(k) {
-            var pt = '$' + k
+            const pt = '$' + k;
             p.__defineSetter__(k, function (v) {
                 // setting a group callback
                 if (!(this._g in group)) group[this._g = parseInt(groupRnd() * 0xffffff) | 0xff000000] = this
@@ -275,15 +275,15 @@ define(function (require) {
 
         function setvb(n, k, f) {
             if (!n._v) return
-            var v
+            let v;
             if (v = n._v[k]) {
-                var nm = n._i || 1
+                const nm = n._i || 1;
                 v.t.w(f, v.a, n._s * v.s * v.l, v.l * nm, v.s)
                 n._v.up = 1
             }
             // update child deps
             if (n._a) {
-                for (var m in n._a) {
+                for (const m in n._a) {
                     ui.update(n._a[m])
                 }
             }
@@ -291,12 +291,12 @@ define(function (require) {
 
         // animation setter
         function as(k) {
-            var pk = '$' + k
-            var nk = 'N' + k
+            const pk = '$' + k;
+            const nk = 'N' + k;
             node_vs[k] = 1
             p.__defineSetter__(k, function (v) {
                 if (!l_a[k]) {
-                    var i = l_a_i[k]
+                    const i = l_a_i[k];
                     l_a[k] = fn.list('l' + i, 'r' + i)
                     l_a[k].l = 'l' + i
                     l_a[k].r = 'r' + i
@@ -315,14 +315,14 @@ define(function (require) {
 
         // value setter
         function vs(k, d) {
-            var pk = '$' + k
-            var nk = 'N' + k
+            const pk = '$' + k;
+            const nk = 'N' + k;
             node_vs[k] = 1
             p.__defineSetter__(k, function (v) {
 
                 if (this._9) { // already initialized, check vb or call update
-                    var t = typeof this[pk]
-                    var y = typeof v
+                    const t = typeof this[pk];
+                    const y = typeof v;
                     this[pk] = v
                     if (t == y && y == 'number') {
                         setvb(this, nk, v)
@@ -364,7 +364,7 @@ define(function (require) {
             vs(k, 0)
         }
 
-        for (var i = 0; i < 10; i++) {
+        for (let i = 0; i < 10; i++) {
             as('a' + i)
             vs('t' + i, 0)
             vs('i' + i, 0)
@@ -374,7 +374,7 @@ define(function (require) {
     })(Node.prototype)
 
     // main theme texture
-    var theme = gl.createTexture()
+    const theme = gl.createTexture();
     ui.t = theme
     ui.theme = function (o) {
         // create a palette on theme
@@ -384,7 +384,7 @@ define(function (require) {
     // |  baseclass for UI shader definitions
     // \____________________________________________/
     ui.shader = function (p) {
-        var d = {
+        const d = {
             e: el,
             d: { // defines
                 'P': '3.14159265358979323846264',
@@ -413,14 +413,14 @@ define(function (require) {
                 g: 'n._g'
             },
             t: theme
-        }
+        };
         // overload default shader with a deep copy
-        for (var k in p) {
+        for (const k in p) {
             if (typeof p[k] == 'object') {
                 if (!(k in d)) d[k] = {}
-                var s = d[k]
-                var u = p[k]
-                for (var j in u) {
+                const s = d[k];
+                const u = p[k];
+                for (const j in u) {
                     s[j] = u[j];
                 }
             } else {
@@ -433,19 +433,19 @@ define(function (require) {
     // |  nodelists
     // \____________________________________________/
     var l_i = fn.list('_3', '_4')
-    var l_t = fn.list('_5', '_6') // permanent anims
+    const l_t = fn.list('_5', '_6'); // permanent anims
 
     var l_a = {} // anims
     var l_a_i = {} // lookup table
-    for (var i = 0; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
         l_a_i['a' + i] = i
     }
 
     var group = {}
     var groupRnd = fn.mt()
-    var groupId = 1
+    const groupId = 1;
 
-    var root = new Node()
+    const root = new Node();
     root.l = 1
     root.x = 0
     root.y = 0
@@ -464,8 +464,8 @@ define(function (require) {
     function initnew() {
         // build up the DOM tree from init list,
         // call init function
-        var t = l_i.len && fn.dt()
-        var n = l_i.first()
+        const t = l_i.len && fn.dt();
+        let n = l_i.first();
         while (n) {
             // build up DOM
             if (n._b) {
@@ -487,7 +487,7 @@ define(function (require) {
             //automatic z = tree depth
             if (!n._z) {
                 var p = n._p || n._b
-                var z = 0
+                let z = 0;
                 while (p && !p.l) {
                     p = p._p || p._b;
                     z++
@@ -534,15 +534,15 @@ define(function (require) {
         if (!n._v) return
         //while(n._v.r) n._v = n._v.r // find last resize
 
-        var vt = n._v.$vt
-        var nm = n._i || 1
-        for (var i in vt) {
-            var v = n._v[i]
-            var ln = v.n // fetch lookup
+        const vt = n._v.$vt;
+        const nm = n._i || 1;
+        for (const i in vt) {
+            const v = n._v[i];
+            const ln = v.n; // fetch lookup
             if (ln) { // if we dont have a lookup, its an internal attribute
-                var d = ln.d // scan up to depth * parents
-                var k = ln.k // key on that node
-                var p = n
+                let d = ln.d; // scan up to depth * parents
+                const k = ln.k; // key on that node
+                let p = n;
                 while (d) {
                     p = p._p || p._b, d--
                 } // go to parent
@@ -566,18 +566,18 @@ define(function (require) {
         }
         else if (l_t.has(n)) l_t.rm(n)
 
-        var v // vertex buffer
-        var s = -1 // slot id
-        var m = '_n' in n ? n._n : 1
+        let v; // vertex buffer
+        let s = -1; // slot id
+        const m = '_n' in n ? n._n : 1;
 
         // fingerprint texture references
-        var tn = sh.$tn
-        var id = sh.$id
+        const tn = sh.$tn;
+        let id = sh.$id;
         if (tn) {
             for (var k in tn) {
                 var l = tn[k]
                 var d = l.ld
-                var p = n
+                let p = n;
                 while (d > 0) {
                     p = p._p || p._b, d--
                 }
@@ -603,7 +603,7 @@ define(function (require) {
                 }
                 else { // keep slot, but clear data
                     n._t.clear(n)
-                    var o = n._o || (n._o = {}) // slot by id
+                    const o = n._o || (n._o = {}); // slot by id
                     var k = n._k || (n._k = {}) // written buffers by id
                     o[n._v.$id] = n._s // cache old slot
                     k[n._v.$id] = n._v // cache old buffer
@@ -626,14 +626,14 @@ define(function (require) {
                 if (!l) throw new Error('trying to execute node without a container')
             }
 
-            var z = l._q || (l._q = {}) // z list
+            const z = l._q || (l._q = {}); // z list
             var d = n.l ? 0 : n._z // if we are a layer, our local z = 0
             var q = z[d] // queuebuffers
             if (!q) {
                 z[d] = q = { z: d }
                 // build a z-sorted single linked list on the shader hash object
-                var a = z.b
-                var b
+                let a = z.b;
+                let b;
                 while (a) {
                     if (a.z > d) { // insert between a and b
                         if (b) {
@@ -688,17 +688,17 @@ define(function (require) {
     // |  free layer render structs
     function freelayer(n) {
 
-        var q = n._q
-        for (var i in q) {
-            var qb = q[i]
-            for (var k in qb) {
+        const q = n._q;
+        for (const i in q) {
+            const qb = q[i];
+            for (const k in qb) {
                 qb[k].sh.free(qb[k])
             }
         }
 
         if (n._0) n._0.each(freelayer)
         // remove ourself from our parent layer
-        var p = n._p || n._b
+        let p = n._p || n._b;
         while (!p.l) {
             p = p._p || p._b
         }
@@ -711,7 +711,7 @@ define(function (require) {
         var v = n._v
         if (!v) return
 
-        var m = n._i || 1
+        const m = n._i || 1;
 
         v.$us -= m
 
@@ -730,9 +730,9 @@ define(function (require) {
         delete n._s
 
         // drop us from all remaining cache buffers
-        var k = n._k
+        const k = n._k;
         if (k) {
-            for (var i in k) {
+            for (const i in k) {
                 var v = k[i]
                 v.$us -= m
                 if (!v.$us) v.hi = v.lo = 0
@@ -744,7 +744,7 @@ define(function (require) {
 
     // |  unhook node, leave all refs node->tree
     function unhook(n) {
-        var p = n._p
+        let p = n._p;
         if (!p) {
             p = n._b
             if (p && p._f == n) p._f = n._d
@@ -795,7 +795,7 @@ define(function (require) {
             if (i._g in group) delete group[i._g]
             //if(l_k.has(i)) l_k.rm(i)
             if (l_t.has(i)) l_t.rm(i)
-            for (var k in l_a) {
+            for (const k in l_a) {
                 if (l_a[k].has(i)) l_a[k].rm(i)
             }
 
@@ -856,7 +856,7 @@ define(function (require) {
     ui.top = function (n) {
         if (!n.l) throw new Error("cannot top non layer node")
         // find parent layer
-        var p = n._p || n._b
+        let p = n._p || n._b;
         while (p && !p.l) {
             p = p._p || n._b
         }
@@ -879,7 +879,7 @@ define(function (require) {
     // |  release last modal
     // \____________________________________________/
     ui.popmodal = function () {
-        var n = ui.modal.pop()
+        const n = ui.modal.pop();
         n._m = 0
         ui.modal.top()._m = 1
     }
@@ -896,7 +896,7 @@ define(function (require) {
     // |  focus next item
     // \____________________________________________/
     ui.focus_next = function () {
-        var n = ui.foc._d
+        let n = ui.foc._d;
         while (n) {
             if (n.f_) {
                 ui.focus(n);
@@ -917,7 +917,7 @@ define(function (require) {
     // |  focus previous item
     // \____________________________________________/
     ui.focus_prev = function () {
-        var n = ui.foc._u
+        let n = ui.foc._u;
         while (n) {
             if (n.f_) {
                 ui.focus(n);
@@ -989,9 +989,9 @@ define(function (require) {
     ui.view = function (n, v) { // node, left top bottom right
         v = v || {}
         v.x = gl.eval(n, n._x, uni, el),
-            v.y = gl.eval(n, n._y, uni, el),
-            v.w = gl.eval(n, n._w, uni, el),
-            v.h = gl.eval(n, n._h, uni, el)
+          v.y = gl.eval(n, n._y, uni, el),
+          v.w = gl.eval(n, n._w, uni, el),
+          v.h = gl.eval(n, n._h, uni, el)
         return v
     }
     // |  view computation
@@ -999,22 +999,22 @@ define(function (require) {
     ui.inner = function (n, v) { // node, left top bottom right
         v = v || {}
         v.x = gl.eval(n, n.x_, uni, el),
-            v.y = gl.eval(n, n.y_, uni, el),
-            v.w = gl.eval(n, n.w_, uni, el),
-            v.h = gl.eval(n, n.h_, uni, el)
+          v.y = gl.eval(n, n.y_, uni, el),
+          v.w = gl.eval(n, n.w_, uni, el),
+          v.h = gl.eval(n, n.h_, uni, el)
         return v
     }
     // |  mouse is in the rect
     // \____________________________________________/
     ui.isin = function (n) {
-        var r = ui.map(n)
+        const r = ui.map(n);
         return !(r.x < 0 || r.x > 1 || r.y < 0 || r.y > 1)
     }
 
     // |  get mouse remapped to a node
     // \____________________________________________/
     ui.map = function (n, l, t, r, b) { // node, left top right bottom
-        var v = ui.view(n)
+        const v = ui.view(n);
 
         if (l) v.x += l
         if (t) v.y += t
@@ -1030,7 +1030,7 @@ define(function (require) {
     // |  get the mouse relative to a node
     // \____________________________________________/
     ui.rel = function (n) { // node, left top right bottom
-        var v = ui.view(n)
+        const v = ui.view(n);
         return {
             x: ui.mx - v.x,
             y: ui.my - v.y
@@ -1053,15 +1053,15 @@ define(function (require) {
 
     // |  mouse handling
     // \____________________________________________/
-    var md // mousedown
-    var ms // mousescroll
-    var lp // last pick
-    var le // last edge
-    var dc // dbclick
+    let md; // mousedown
+    let ms; // mousescroll
+    let lp; // last pick
+    let le; // last edge
+    let dc; // dbclick
 
     // |  rendering
     // \____________________________________________/
-    var dt = fn.dt()
+    const dt = fn.dt();
     var uni = { s: {}, m: {}, l: {} }
     ui.uniforms = uni
     update_uni()
@@ -1077,12 +1077,12 @@ define(function (require) {
         uni.m.y = ui.my
     }
 
-    var dirty = {}
+    const dirty = {};
 
     // |  draw the layer tree
     function drawLayer(n, x1, y1, x2, y2) {
 
-        var v = n.g_ || (n.g_ = {})
+        const v = n.g_ || (n.g_ = {});
         v.x = gl.eval(n, n._x, uni, el)
         v.y = gl.eval(n, n._y, uni, el)
         v.w = gl.eval(n, n._w, uni, el)
@@ -1104,11 +1104,11 @@ define(function (require) {
 
         var q = n._q
         if (q) {
-            var z = q.b
+            let z = q.b;
             while (z) {
-                var sh
-                var b
-                for (var k in z) {
+                let sh;
+                let b;
+                for (const k in z) {
                     if (sh = (b = z[k]).$sh) {
 
                         sh.use()
@@ -1131,19 +1131,19 @@ define(function (require) {
 
     // |  draw group IDs
     function drawGroupID(n) {
-        var vx1 = gl.eval(n, n._x, uni, el)
-        var vy1 = gl.eval(n, n._y, uni, el)
-        var vx2 = vx1 + gl.eval(n, n._w, uni, el)
-        var vy2 = vy1 + gl.eval(n, n._h, uni, el)
+        const vx1 = gl.eval(n, n._x, uni, el);
+        const vy1 = gl.eval(n, n._y, uni, el);
+        const vx2 = vx1 + gl.eval(n, n._w, uni, el);
+        const vy2 = vy1 + gl.eval(n, n._h, uni, el);
         if (ui.mx >= vx1 && ui.my >= vy1 && ui.mx < vx2 && ui.my < vy2) {
 
             var q = n._q
             if (q) {
-                var z = q.b
+                let z = q.b;
                 while (z) {
-                    var sh
-                    var b
-                    for (var k in z) {
+                    let sh;
+                    let b;
+                    for (const k in z) {
                         if (sh = (b = z[k]).$sh) {
                             sh.use('g')
                             sh.n(b.$n)
@@ -1165,8 +1165,8 @@ define(function (require) {
     }
 
     ui.frame = fn.ps()
-    var renderTime = fn.dt()
-    var pv = new Uint8Array(4)
+    const renderTime = fn.dt();
+    const pv = new Uint8Array(4);
     ui.move = true
     // |  render UI
     // \____________________________________________/
@@ -1195,8 +1195,11 @@ define(function (require) {
             } else {
                 gl.enable(gl.SCISSOR_TEST)
             }
+
             //var mv = true
-            var sx = 0, sy = gl.height - 1
+            let sx = 0;
+
+            let sy = gl.height - 1;
             if (!ui.move) {
                 sx = ui.mx
                 sy = gl.height - ui.my - 1
@@ -1277,15 +1280,15 @@ define(function (require) {
         dirty.y1 = dirty.x1 = Infinity
         dirty.y2 = dirty.x2 = -Infinity
 
-        for (var k in l_a) {
-            var _a = k
-            var _t = l_a[k].t
-            var _r = l_a[k].r
-            var _e = l_a[k].e
+        for (const k in l_a) {
+            const _a = k;
+            const _t = l_a[k].t;
+            const _r = l_a[k].r;
+            const _e = l_a[k].e;
             n = l_a[k].first()
             while (n) {
                 if (uni.u >= n[_t] + Math.abs(n[_a])) {
-                    var m = n[_r]
+                    const m = n[_r];
                     l_a[k].rm(n)
                     //delete n[_a]
                     if (n[_e]) {
@@ -1346,11 +1349,11 @@ define(function (require) {
             dirty.x2 = gl.width
             dirty.y2 = gl.height
         } else {
-            var v = n.g_
+            const v = n.g_;
             if (v.x < dirty.x1) dirty.x1 = v.x
             if (v.y < dirty.y1) dirty.y1 = v.y
-            var x2 = v.x + v.w
-            var y2 = v.y + v.h
+            const x2 = v.x + v.w;
+            const y2 = v.y + v.h;
             if (x2 > dirty.x2) dirty.x2 = x2
             if (y2 > dirty.y2) dirty.y2 = y2
         }
@@ -1361,8 +1364,8 @@ define(function (require) {
     ui.redrawRect = function (x, y, w, h) {
         if (x < dirty.x1) dirty.x1 = x
         if (y < dirty.y1) dirty.y1 = y
-        var x2 = x + w
-        var y2 = y + h
+        const x2 = x + w;
+        const y2 = y + h;
         if (x2 > dirty.x2) dirty.x2 = x2
         if (y2 > dirty.y2) dirty.y2 = y2
         gl.anim(ui.draw)
@@ -1371,18 +1374,18 @@ define(function (require) {
     // |  dump
     // \____________________________________________/
     ui.dump = function (n, dv) {
-        var s = ''
+        let s = '';
         fn.walk(n, null, function (n, z) {
             s += Array(z + 1).join(' ') + n._t._t
 
             // lets build up our vertexbuffers
             if (n._v) {
-                var vb = n._v
+                const vb = n._v;
                 if (n.t) s += " t:" + n.t
-                var nm = n._i || 1
+                const nm = n._i || 1;
                 if (dv) {
-                    for (var i in vb.vv) {
-                        var v = vb.vv[i]
+                    for (const i in vb.vv) {
+                        const v = vb.vv[i];
                         s += " " + i + "=" + v.t.r(v.a, n._s * v.s, vb.sl * nm, v.s)
                     }
                 }

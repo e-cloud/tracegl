@@ -10,8 +10,8 @@ define(function () {
         var fn = console.log.bind(console)
     } else {
         var fn = function () {
-            var s = ''
-            for (var i = 0; i < arguments.length; i++) {
+            let s = '';
+            for (let i = 0; i < arguments.length; i++) {
                 s += (s ? ', ' : '') + arguments[i]
             }
             console.log(s)
@@ -45,15 +45,15 @@ define(function () {
     // |  named arguments
     // \____________________________________________/
     function named(a, f) {
-        var t = typeof a[0]
+        const t = typeof a[0];
         if (t == 'function' || t == 'object') return t
         if (!f) f = named.caller
         if (!f._c) f._c = f.toString()
         if (!f._n) f._n = f._c.match(/function.*?\((.*?)\)/)[1].split(',')
-        var n = f._n
+        const n = f._n;
         if (a.length > n.length) throw new Error("Argument list mismatch, " + a.length + " instead of " + n.length)
-        var g = {}
-        for (var i = 0, j = a.length; i < j; i++) {
+        const g = {};
+        for (let i = 0, j = a.length; i < j; i++) {
             g[n[i]] = a[i]
         }
         return g
@@ -65,8 +65,8 @@ define(function () {
     function list(l, r) {
 //		var u // unique id/
 //		var f // free slot
-        var begin // begin
-        var end // end
+        let begin; // begin
+        let end; // end
 
         function li() {
             return li.fn.apply(0, arguments)
@@ -74,12 +74,12 @@ define(function () {
 
         li.fn = function (a) {
             if (arguments.length > 1) {
-                var rm = {}
-                for (var i = 0, j = arguments.length; i < j; i++) {
+                let rm = {};
+                for (let i = 0, j = arguments.length; i < j; i++) {
                     li.add(rm[i] = arguments[i])
                 }
                 return function () {
-                    for (var i in rm) {
+                    for (const i in rm) {
                         li.rm(rm[i])
                     }
                     rm = null
@@ -92,15 +92,15 @@ define(function () {
             }
         }
 
-        var ln = 0
+        let ln = 0;
         li.len = 0
         li.add = add
         li.rm = rm
 
         li.clear = function () {
-            var n = begin
+            let n = begin;
             while (n) {
-                var m = n[r]
+                const m = n[r];
                 delete n[r]
                 delete n[l]
                 n = m
@@ -118,7 +118,7 @@ define(function () {
         function add(i) {
 
             if (arguments.length > 1) {
-                for (var i = 0, j = arguments.length; i < j; i++) {
+                for (const i = 0, j = arguments.length; i < j; i++) {
                     add(arguments[i])
                 }
                 return ln
@@ -140,7 +140,7 @@ define(function () {
         //|  add a sorted item scanning from the  end
         li.sorted = function (i, s) {
             if (l in i || r in i || begin == i) return ln
-            var a = end
+            let a = end;
             while (a) {
                 if (a[s] <= i[s]) { // insert after a
                     if (a[r]) {
@@ -169,13 +169,13 @@ define(function () {
         //|  remove item from the list
         function rm(i) {
             if (arguments.length > 1) {
-                for (var i = 0, j = arguments.length; i < j; i++) {
+                for (const i = 0, j = arguments.length; i < j; i++) {
                     rm(arguments[i])
                 }
                 return ln
             }
 
-            var t = 0
+            let t = 0;
             if (begin == i) begin = i[r], t++
             if (end == i) end = i[l], t++
             if (i[r]) {
@@ -207,7 +207,9 @@ define(function () {
 
         //|  run all items in the list
         li.run = function () {
-            var n = begin, t, v
+            let n = begin;
+            let t;
+            let v;
             while (n) {
                 v = n.apply(null, arguments), t = v !== undefined ? v : t, n = n[r]
             }
@@ -216,11 +218,11 @@ define(function () {
 
         //|  iterate over all items
         li.each = function (c) {
-            var n = begin
-            var j = 0
-            var t
+            let n = begin;
+            let j = 0;
+            let t;
             while (n) {
-                var x = n[r]
+                const x = n[r];
                 v = c(n, li, j)
                 if (v !== undefined) t = v
                 n = x, j++
@@ -249,8 +251,8 @@ define(function () {
     function events(o) {
 
         o.on = function (e, f) {
-            var l = this.$l || (this.$l = {})
-            var a = l[e]
+            const l = this.$l || (this.$l = {});
+            const a = l[e];
             if (!a) {
                 l[e] = f
             } else {
@@ -263,12 +265,12 @@ define(function () {
         }
 
         o.off = function (e, f) {
-            var l = this.$l || (this.$l = {})
+            const l = this.$l || (this.$l = {});
             if (!l) return
-            var a = l[e]
+            const a = l[e];
             if (!a) return
             if (Array.isArray(a)) {
-                for (var i = 0; i < a.length; i++) {
+                for (let i = 0; i < a.length; i++) {
                     if (a[i] == f) a.splice(i, 1), i--
                 }
             }
@@ -276,18 +278,18 @@ define(function () {
         }
 
         o.clear = function (e, f) {
-            var l = this.$l
+            const l = this.$l;
             if (!l) return
             delete l[e]
         }
 
         o.emit = function (e) {
-            var l = this.$l
+            const l = this.$l;
             if (!l) return
-            var a = l[e]
+            const a = l[e];
             if (!a) return
             if (arguments.length > 1) {
-                var arg = Array.prototype.slice.call(arguments, 1)
+                const arg = Array.prototype.slice.call(arguments, 1);
                 if (typeof a == 'function') {
                     a.apply(null, arg)
                 } else {
@@ -316,12 +318,12 @@ define(function () {
 
         st.fn = function (a) {
             if (arguments.length > 1) {
-                var rm = {}
+                let rm = {};
                 for (var i = 0, j = arguments.length; i < j; i++) {
                     rm[push(arguments[i])] = 1
                 }
                 return function () {
-                    for (var i in rm) {
+                    for (const i in rm) {
                         st.rm(i)
                     }
                     rm = null
@@ -339,9 +341,9 @@ define(function () {
         st.shift = shift
         st.set = set
         //|  length of the stack, externals are readonly
-        var b = st.beg = 1
-        var e = st.end = 1
-        var l = st.len = 0
+        let b = st.beg = 1;
+        let e = st.end = 1;
+        let l = st.len = 0;
 
         //|  return item on bottom of stack
         st.bottom = function () {
@@ -358,8 +360,8 @@ define(function () {
         //|  push item to the top of the stack
         function push(a) {
             if (arguments.length > 1) {
-                var r
-                for (var i = 0, j = arguments.length; i < j; i++) {
+                let r;
+                for (let i = 0, j = arguments.length; i < j; i++) {
                     r = push(arguments[i])
                 }
                 return r
@@ -371,7 +373,7 @@ define(function () {
 
         //|  pop item from the top of the stack
         st.pop = function () {
-            var p = st[e - 1]
+            const p = st[e - 1];
             if (b != e) {
                 delete st[e]
                 while (e != b && !(e in st)) {
@@ -389,8 +391,8 @@ define(function () {
         //|  insert item at the bottom of the stack
         function shift(a) {
             if (arguments.length > 1) {
-                var r
-                for (var i = 0, j = arguments.length; i < j; i++) {
+                let r;
+                for (let i = 0, j = arguments.length; i < j; i++) {
                     r = push(arguments[i])
                 }
                 return r
@@ -416,8 +418,8 @@ define(function () {
         //|  set an item with a particular index
         function set(i, v) {
             if (arguments.length > 2) {
-                var r
-                for (var i = 0, j = arguments.length; i < j; i += 2) {
+                let r;
+                for (const i = 0, j = arguments.length; i < j; i += 2) {
                     r = add(arguments[i], arguments[i + 1])
                 }
                 return r
@@ -453,9 +455,9 @@ define(function () {
 
         //|  iterate over all items in the stack
         st.each = function (c) {
-            var r
-            var v
-            for (var i = b; i < e; i++) {
+            let r;
+            let v;
+            for (let i = b; i < e; i++) {
                 if (i in st) {
                     v = c(st[i], st, i)
                     if (v !== undefined) r = v
@@ -470,8 +472,8 @@ define(function () {
     // | create a random hex string
     // \____________________________________________/
     function rndhex(n) {
-        var s = ""
-        for (var i = 0; i < n; i++) {
+        let s = "";
+        for (let i = 0; i < n; i++) {
             s += parseInt(Math.random() * 16).toString(16)
         }
         return s.toLowerCase()
@@ -481,8 +483,8 @@ define(function () {
     // \____________________________________________/
     function ps(il, ir) {
 
-        var li = list(il || '_psl', ir || '_psr')
-        var of = li.fn
+        const li = list(il || '_psl', ir || '_psr');
+        const of = li.fn;
         li.fn = function (i) {
             if (arguments.length == 1 && typeof i == 'function') return of(i) // pubsub
             return li.run.apply(null, arguments) // otherwise forward the call to all
@@ -493,12 +495,14 @@ define(function () {
     // |  mersenne twister
     // |  Inspired by http://homepage2.nifty.com/magicant/sjavascript/mt.js
     // \____________________________________________/
-    function mt(s, h) { // seed, itemarray or hash
+    function mt(s, h) {
+        // seed, itemarray or hash
         if (s === undefined) s = new Date().getTime();
-        var p, t
+        let p;
+        let t;
         if (h) {
             p = {}
-            var j = 0
+            let j = 0;
             for (var i in h) {
                 p[j++] = h[i]
             }
@@ -508,18 +512,22 @@ define(function () {
 
         m[0] = s >>> 0
         for (var i = 1; i < m.length; i++) {
-            var a = 1812433253
-            var b = (m[i - 1] ^ (m[i - 1] >>> 30))
-            var x = a >>> 16, y = a & 0xffff
-            var c = b >>> 16, d = b & 0xffff;
+            const a = 1812433253;
+            const b = (m[i - 1] ^ (m[i - 1] >>> 30));
+            const x = a >>> 16;
+            const y = a & 0xffff;
+            const c = b >>> 16;
+            const d = b & 0xffff;
             m[i] = (((x * d + y * c) << 16) + y * d) >>> 0
         }
         var i = m.length
 
         function nx(a) {
-            var v
+            let v;
             if (i >= m.length) {
-                var k = 0, N = m.length, M = 397
+                let k = 0;
+                const N = m.length;
+                const M = 397;
                 do {
                     v = (m[k] & 0x80000000) | (m[k + 1] & 0x7fffffff)
                     m[k] = m[k + M] ^ (v >>> 1) ^ ((v & 1) ? 0x9908b0df : 0)
@@ -557,7 +565,10 @@ define(function () {
         }
 
         function lsb(v) {
-            var s = "", i, vh, vl
+            let s = "";
+            let i;
+            let vh;
+            let vl;
             for (i = 0; i <= 6; i += 2) {
                 vh = (v >>> (i * 4 + 4)) & 0x0f, vl = (v >>> (i * 4)) & 0x0f, s += vh.toString(16) + vl.toString(16)
             }
@@ -565,7 +576,9 @@ define(function () {
         }
 
         function hex(v) {
-            var s = "", i, j
+            let s = "";
+            let i;
+            let j;
             for (i = 7; i >= 0; i--) {
                 j = (v >>> (i * 4)) & 0x0f, s += j.toString(16)
             }
@@ -574,10 +587,10 @@ define(function () {
 
         function utf8(s) {
             s = s.replace(/\r\n/g, "\n");
-            var u = "";
-            var fc = String.fromCharCode
-            for (var n = 0; n < s.length; n++) {
-                var c = s.charCodeAt(n)
+            let u = "";
+            const fc = String.fromCharCode;
+            for (let n = 0; n < s.length; n++) {
+                const c = s.charCodeAt(n);
                 if (c < 128) {
                     u += fc(c)
                 } else if ((c > 127) && (c < 2048)) {
@@ -591,17 +604,29 @@ define(function () {
 
         m = utf8(m)
 
-        var bs, i, j, u = new Array(80)
-        var v = 0x67452301, w = 0xEFCDAB89, x = 0x98BADCFE, y = 0x10325476, z = 0xC3D2E1F0
-        var a, b, c, d, e, t
-        var l = m.length
+        let bs;
+        let i;
+        let j;
+        const u = new Array(80);
+        let v = 0x67452301;
+        let w = 0xEFCDAB89;
+        let x = 0x98BADCFE;
+        let y = 0x10325476;
+        let z = 0xC3D2E1F0;
+        let a;
+        let b;
+        let c;
+        let d;
+        let e;
+        let t;
+        const l = m.length;
 
-        var wa = []
+        const wa = [];
         for (i = 0; i < l - 3; i += 4) {
             j = m.charCodeAt(i) << 24 | m.charCodeAt(i + 1) << 16 | m.charCodeAt(i + 2) << 8 | m.charCodeAt(i + 3), wa.push(j)
         }
 
-        var r = l % 4
+        const r = l % 4;
         if (r == 0) {
             i = 0x080000000
         } else if (r == 1) {
@@ -654,7 +679,7 @@ define(function () {
     // |  wait for t milliseconds
     // \____________________________________________/
     function wait(t) {
-        var p = ps()
+        const p = ps();
         p.empty = function () {
             clearTimeout(i)
         }
@@ -665,7 +690,7 @@ define(function () {
     // |  repeat with an interval of t milliseconds
     // \____________________________________________/
     function repeat(t) {
-        var p = ps()
+        const p = ps();
         p.empty = function () {
             clearInterval(i)
         }
@@ -677,7 +702,7 @@ define(function () {
     // \____________________________________________/
     function nextpow2(x) {
         --x
-        for (var i = 1; i < 32; i <<= 1) {
+        for (let i = 1; i < 32; i <<= 1) {
             x = x | x >> i
         }
         return x + 1
@@ -704,12 +729,12 @@ define(function () {
     // |  delta time helper
     // \____________________________________________/
     function dt() {
-        var ci
+        let ci;
         if (typeof chrome !== "undefined" && typeof chrome.Interval === "function") {
             ci = new chrome.Interval
         }
 
-        var n = now()
+        let n = now();
 
         function now() {
             return ci ? ci.microseconds() : Date.now()
@@ -738,8 +763,8 @@ define(function () {
     // |  node walker
     // \____________________________________________/
     function walk(n, sn, f) {
-        var s = typeof f != 'function' && f
-        var z = 0
+        const s = typeof f != 'function' && f;
+        let z = 0;
         while (n && n != sn) {
             if (s) {
                 if (s in n) n[s](n)
@@ -764,23 +789,23 @@ define(function () {
     // |  dump objects to string
     // \____________________________________________/
     function dump(
-        d, // dump object
-        o, // options {m:99 max depth,  p:0 pack, c:0  capacity, n:1 no recursion }*/,
-        s, // internal string
-        z, // internal depth
-        r  // internal object stack
+      d, // dump object
+      o, // options {m:99 max depth,  p:0 pack, c:0  capacity, n:1 no recursion }*/,
+      s, // internal string
+      z, // internal depth
+      r  // internal object stack
     ) {
 
         if (!s) s = [], r = [], z = 0;
         o = o || {};
-        var k  // key for object enum
-        var ic // indent current string
-        var ip // indent parent string
-        var nl // newline string
-        var i  // iterator
-        var l  // length of loop
-        var t  // test variable in recurblock
-        var c = s.length // current output
+        let k;  // key for object enum
+        let ic; // indent current string
+        let ip; // indent parent string
+        let nl; // newline string
+        let i;  // iterator
+        let l;  // length of loop
+        let t;  // test variable in recurblock
+        let c = s.length; // current output
 
         switch (typeof(d)) {
             case 'function':

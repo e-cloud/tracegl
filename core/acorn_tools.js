@@ -275,14 +275,14 @@ define(function (require, exports, module) {
         },
         IfStatement: function (n) {
             return 'if(' + stringifyExpression(n.test) + ')' + stringifyExpression(n.consequent) + strSeparator +
-                (n.alternate ? 'else ' + stringifyExpression(n.alternate) + strSeparator : '')
+              (n.alternate ? 'else ' + stringifyExpression(n.alternate) + strSeparator : '')
         },
         ThrowStatement: function (n) {
             return 'throw ' + stringifyExpression(n.argument)
         },
         TryStatement: function (n) {
             return 'try ' + stringifyExpression(n.block) + strSeparator + stringifyBlock(n.handlers) + strSeparator +
-                (n.finalizer ? 'finally ' + stringifyBlock(n.finalizer) : '')
+              (n.finalizer ? 'finally ' + stringifyBlock(n.finalizer) : '')
         },
         CatchClause: function (n) {
             return 'catch(' + stringifyExpression(n.param) + (n.guard ? ' if ' + stringifyExpression(n.guard) : ')') + stringifyExpression(n.body)
@@ -373,7 +373,7 @@ define(function (require, exports, module) {
     }
 
     Node.uuid = (function () {
-        let id =0
+        let id = 0
         return function () {
             return id++
         }
@@ -413,10 +413,10 @@ define(function (require, exports, module) {
             // verify this one
             node = lastLeftMatch._e
         } else if (hack.compact && lastLeftMatch._e &&
-            (
-                type == types.name && lastLeftMatch._e._t == types.dot ||
-                type == types.dot && lastLeftMatch._e._t == types.name
-            )
+          (
+            type == types.name && lastLeftMatch._e._t == types.dot ||
+            type == types.dot && lastLeftMatch._e._t == types.name
+          )
         ) {
             node = lastLeftMatch._e
             node._t = type

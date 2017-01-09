@@ -6,22 +6,22 @@
 
 define(function (require, exports, module) {
 
-    var fn = require("../../core/fn")
-    var ui = require("../../core/ui/ui")
-    var ct = require("../../core/ui/controls")
-    var tm = require("../../core/ui/text_mix")
-    var ts = require("../../core/ui/text_shaders")
+    const fn = require("../../core/fn");
+    const ui = require("../../core/ui/ui");
+    const ct = require("../../core/ui/controls");
+    const tm = require("../../core/ui/text_mix");
+    const ts = require("../../core/ui/text_shaders");
 
     //|  Styling
     //\____________________________________________/
 
-    var font1 = ui.gl.sfont(
-        navigator.platform.match(/Mac/) ?
-        "12px Menlo" :
-        "12px Lucida Console")
+    const font1 = ui.gl.sfont(
+      navigator.platform.match(/Mac/) ?
+      "12px Menlo" :
+      "12px Lucida Console");
 
     function listView(g) {
-        var b = ui.rect({ f: 't.codeBg' })
+        const b = ui.rect({ f: 't.codeBg' });
 
         b._v_ = ct.vScrollHider({ h: 'p.h - 10' })
         b._h_ = ct.hScrollHider({ w: 'p.w - 10' })
@@ -57,7 +57,7 @@ define(function (require, exports, module) {
             b.db.font = b.font
             b.db.sh.text = b.sh.text
 
-            var rt = 0
+            let rt = 0;
             b.db.changed(function () {
                 b.tw = b.db.tw
                 b.th = b.db.th
@@ -82,11 +82,11 @@ define(function (require, exports, module) {
                 //b.cursor.view(x, y, 0, 1)
                 fn('here1')
             }
-            var last
+            let last;
             b.cursor.viewChange = function (x, y) {
                 // alright so we have a cursor selection,
                 // lets fetch the data stored at our first cursor
-                var c = b.dcs.l.first() || b.vcs.l.first()
+                const c = b.dcs.l.first() || b.vcs.l.first();
                 //fn(c!=null, c.d!=null, last!=c.d, b.db.selectTrace !=0)
                 if (c && c.d && last != c.d && b.db.selectTrace) b.db.selectTrace(last = c.d)
                 b.view(x, y, 0, 1)
@@ -98,7 +98,7 @@ define(function (require, exports, module) {
         b.o = function () {
             // set the view back to our head cursor
             if (b.linked) {
-                var c = b.vcs.l.first()
+                const c = b.vcs.l.first();
                 if (c) {
                     b.linked.view(0, c.y, 0, 1, 1)
                 }
@@ -115,7 +115,7 @@ define(function (require, exports, module) {
         }
 
         // rendering
-        var ly = 0
+        let ly = 0;
 
         function layer() {
 
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
             if (!b._v_.pg) b.size()
 
             // draw hover cursor
-            var y = b.hy
+            const y = b.hy;
             if (y >= 0) b.sh.hover.rect(b.vps.o.x, b.vps.o.y - b.vps.ss + (y + b.vps.y) * b.vps.sy + b.vps.gy, b.vps.o.w, b.vps.sy)
 
             if (ly != y) {

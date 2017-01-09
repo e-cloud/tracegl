@@ -8,28 +8,28 @@ define(function (require) {
     define.settings = define.settings || {}
     document.title = "traceGL"
 
-    var fn = require("../core/fn")
-    var ui = require("../core/ui/ui")
+    const fn = require("../core/fn");
+    const ui = require("../core/ui/ui");
     if (!ui.gl) return
 
-    var ct = require("../core/ui/controls")
+    const ct = require("../core/ui/controls");
 
-    var themes = require("../core/ui/themes")
+    const themes = require("../core/ui/themes");
 
-    var theme_type = define.settings.theme || 'dark'
+    let theme_type = define.settings.theme || 'dark';
     ui.theme(themes[define.settings.theme] || themes.dark)// set theme
 
-    var ioChannel = require("../core/io_channel")
+    const ioChannel = require("../core/io_channel");
 
-    var traceDb = require('./trace_db')
-    var codeDb = require('./ui/code_db')
-    var listView = require('./ui/list_view')
-    var hoverText = require("./ui/hover_text")
-    var codeBubble = require("./ui/code_bubble")
+    const traceDb = require('./trace_db');
+    const codeDb = require('./ui/code_db');
+    const listView = require('./ui/list_view');
+    const hoverText = require("./ui/hover_text");
+    const codeBubble = require("./ui/code_bubble");
 
-    var pass = fn.sha1hex("p4ssw0rd")
-    var sess = fn.rndhex(8)
-    var chan = ioChannel("/io_" + sess + "_" + pass)
+    const pass = fn.sha1hex("p4ssw0rd");
+    const sess = fn.rndhex(8);
+    const chan = ioChannel("/io_" + sess + "_" + pass);
 
     window.ui = ui
 
@@ -46,12 +46,12 @@ define(function (require) {
     }
     ui.load(function () {
 
-        var tdb = traceDb()
-        var sdb = traceDb(tdb)
-        var cdb = codeDb()
+        const tdb = traceDb();
+        const sdb = traceDb(tdb);
+        const cdb = codeDb();
 
-        var paused
-        var paused_m
+        let paused;
+        let paused_m;
 
         // io channel data function
         chan.data = function (m) {
@@ -80,7 +80,7 @@ define(function (require) {
             }
         }
 
-        var bubbles = fn.list('prev', 'next')
+        const bubbles = fn.list('prev', 'next');
 
         function clearTraces() {
             // clear the traceDb, searchDb
@@ -94,7 +94,7 @@ define(function (require) {
             bigView.tvc = null
             sminiView.tvc = null
             sbigView.tvc = null
-            var b = bubbles.first()
+            let b = bubbles.first();
             while (b) {
                 b.hide()
                 b = b.next
@@ -105,14 +105,14 @@ define(function (require) {
         }
 
         function selectBubble(b, scroll) {
-            var n = bubbles.first()
+            let n = bubbles.first();
             while (n) {
                 if (n != b) n.title.sel = 0
                 n = n.next
             }
             b.title.sel = 1
             if (scroll) {
-                var v = bubbleBg._v_
+                const v = bubbleBg._v_;
                 v.ds(b.y - v.mv)
                 ui.redraw(bubbleBg)
             }
@@ -136,12 +136,12 @@ define(function (require) {
 
         tdb.selectTrace = function (m) {
             //fn('selectTrace')
-            var y = 0 // y pos
-            var stacky = 0 // callstack counter
-            var spacing = 1 // spacing between bubbles
-            var rev = false // reverse callstack
-            var b = { next: bubbles.first() }
-            var max = 64
+            let y = 0; // y pos
+            let stacky = 0; // callstack counter
+            const spacing = 1; // spacing between bubbles
+            const rev = false; // reverse callstack
+            let b = { next: bubbles.first() };
+            let max = 64;
             stackView.clearText()
 
             if (rev) {
@@ -152,8 +152,8 @@ define(function (require) {
             while (m && max > 0) {
                 max--
                 // lookup line and file
-                var l = tdb.lineDict[m.i]
-                var f = tdb.fileDict[l && l.fid]
+                const l = tdb.lineDict[m.i];
+                const f = tdb.fileDict[l && l.fid];
                 if (!f) {
                     m = m.c;
                     continue;
@@ -167,7 +167,7 @@ define(function (require) {
                     // sync selection between title and
                     (function (prev) {
                         b.title.p = function (n) {
-                            var b = n._p
+                            const b = n._p;
                             b.resetLine()
                             stackView.selectFirst(stackView.ly = b.stacky)
                             selectBubble(b)
@@ -195,18 +195,18 @@ define(function (require) {
                 }
 
                 // set the title on the bubble
-                var headSize = b.setTitle(m, tdb)
+                const headSize = b.setTitle(m, tdb);
 
                 // position bubble
                 b.x = 0
                 b.y = y
 
                 // select text in bubble
-                var file = cdb.files[f.longName]
-                var line = l.y
+                const file = cdb.files[f.longName];
+                const line = l.y;
 
                 // get the function body height
-                var height = (l.ey - l.y + 1) * b.body.vps.sy + headSize + 20
+                let height = (l.ey - l.y + 1) * b.body.vps.sy + headSize + 20;
                 if (height > 6000) height = 6000
 
                 // check if we have to fetch the file
@@ -217,7 +217,7 @@ define(function (require) {
 
                 // remove callstack reversal
                 if (rev) {
-                    var c = m.c
+                    const c = m.c;
                     delete m.c
                     m = c
                 }
@@ -244,24 +244,24 @@ define(function (require) {
         }
 
         // main UI
-        var mainGroup
-        var searchGroup
+        let mainGroup;
+        let searchGroup;
         var miniView
         var bigView
         var sminiView
         var sbigView
-        var hoverView
-        var sourceView
+        let hoverView;
+        let sourceView;
         var bubbleBg
         var searchBox
 
         var searcher
 
-        var pattern = 0
-        var regexp = 0
+        let pattern = 0;
+        let regexp = 0;
 
         function matchSearch(m) {
-            var s = searchBox.t
+            const s = searchBox.t;
             if (s != pattern) {
                 if (s.charAt(0) == '/') {
                     try {
@@ -282,7 +282,7 @@ define(function (require) {
         }
 
         function doSearch() {
-            var s = searchBox.t
+            const s = searchBox.t;
             if (s.length) {
                 mainGroup.hide()
                 searchGroup.show()
@@ -291,16 +291,16 @@ define(function (require) {
                 if (searcher) clearInterval(searcher)
                 sminiView.tvc = null
                 sbigView.tvc = null
-                var n = tdb.text.first()
+                let n = tdb.text.first();
                 searcher = setInterval(function () {
-                    var dt = fn.dt()
+                    const dt = fn.dt();
                     // we process n and a few others
-                    var ntraces = 1000
-                    var nblocks = 500
+                    let ntraces = 1000;
+                    let nblocks = 500;
                     while (n && nblocks > 0 && ntraces > 0) {
                         // go through the lines
-                        for (var i = 0; i < n.ld.length; i++) {
-                            var m = n.ld[i]
+                        for (let i = 0; i < n.ld.length; i++) {
+                            const m = n.ld[i];
                             // simple search
                             if (matchSearch(m)) {
                                 ntraces--
@@ -417,7 +417,7 @@ define(function (require) {
                     stackView.viewChange = function (x, y) {
                         if (stackView.ly != y) {
                             stackView.ly = y
-                            var c = stackView.dcs.l.first() || stackView.vcs.l.first()
+                            const c = stackView.dcs.l.first() || stackView.vcs.l.first();
                             if (c && c.d) selectBubble(c.d, true)
                         }
                     }

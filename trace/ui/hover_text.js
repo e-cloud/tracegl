@@ -6,25 +6,25 @@
 
 define(function (require) {
 
-    var fn = require("../../core/fn")
-    var ui = require("../../core/ui/ui")
+    const fn = require("../../core/fn");
+    const ui = require("../../core/ui/ui");
 
-    var tm = require("../../core/ui/text_mix")
-    var ts = require("../../core/ui/text_shaders")
+    const tm = require("../../core/ui/text_mix");
+    const ts = require("../../core/ui/text_shaders");
 
     //|  Styling
     //\____________________________________________/
 
-    var ft1 = ui.gl.sfont(
-        navigator.platform.match(/Mac/) ?
-        "12px Menlo" :
-        "12px Lucida Console")
+    const ft1 = ui.gl.sfont(
+      navigator.platform.match(/Mac/) ?
+      "12px Menlo" :
+      "12px Lucida Console");
 
     hoverText.ft = ft1
     function hoverText(g) {
         "no tracegl"
         // background
-        var b = ui.rect({ f: 'mix(vec4(0,0,0,0),alpha(t.codeBg2,0.9),1-smoothstep(0.5,1.0,n.shape(2*(c-.5))))' })
+        const b = ui.rect({ f: 'mix(vec4(0,0,0,0),alpha(t.codeBg2,0.9),1-smoothstep(0.5,1.0,n.shape(2*(c-.5))))' });
         b.shape = function (vec2_v) {
             return_float(len(vec2(pow(abs(v.x), n.w / 5), pow(abs(v.y), n.h / 5))))
         }
@@ -41,7 +41,7 @@ define(function (require) {
 
         // shaders+-
 
-        var ts1 = ts.codeText
+        const ts1 = ts.codeText;
         //	ts1.f = 'subpix(texture2D(b,vec2(e.z*0.99609375 + c.x/(512./26.), e.w*0.99609375 +
         // c.y/(128./26.))),t.codeBg,theme(fg))'
 //		ts1.f = 'subpix(texture2D(b,vec2(e.z*0.99609375 + c.x/(512./13.), e.w*0.99609375 +
@@ -68,7 +68,7 @@ define(function (require) {
         b.vps.gy = 5
 
         b.fit = function (x, y) {
-            var w = b.tw * b.vps.sx + 2 * b.vps.gx
+            const w = b.tw * b.vps.sx + 2 * b.vps.gx;
             x -= 0.5 * w
             if (x + w > ui.gl.width) {
                 x = fn.max(0, x + (ui.gl.width - (x + w)))
@@ -76,7 +76,7 @@ define(function (require) {
             if (x < 0) x = 0
 
             b.show(x, y + b.vps.sy, w,
-                b.th * b.vps.sy + 1 * b.vps.gy
+              b.th * b.vps.sy + 1 * b.vps.gy
             )
         }
 

@@ -6,15 +6,15 @@
 
 define(function (require, exports) {
 
-    var ui = require("./ui")
-    var fn = require("./../fn")
+    var ui = require("./ui");
+    const fn = require("./../fn");
 
-    var cm = exports
+    const cm = exports;
 
     // |  button
     // \____________________________________________/
     cm.button = function (b) {
-        var d = 0
+        let d = 0;
 
         function cl() { // clicked
             if (d) return
@@ -61,10 +61,10 @@ define(function (require, exports) {
     // |  vertical scrollbar
     // \____________________________________________/
     cm.scroll = function (b, k, v) { // button knob vertical
-        var r // real move
+        let r; // real move
         function ds(y) {
             r += y
-            var o = fn.clamp(r, 0, fn.max(b.ts - b.pg, 0))
+            const o = fn.clamp(r, 0, fn.max(b.ts - b.pg, 0));
             if (o != b.mv) {
                 b.mv = o
                 if (b.c) b.c()
@@ -80,12 +80,12 @@ define(function (require, exports) {
         b.p = function (n) {
             if (n != b) return // press event from child
             r = b.mv // one page up/down scrolling
-            var l = ui.rel(k)
+            const l = ui.rel(k);
             ds((((v ? l.y : l.x) < 0) ? -1 : 1) * b.pg)
         }
 
-        var x = 0
-        var y = 0 // y of mouse
+        let x = 0;
+        let y = 0; // y of mouse
         k.p = function () {
             ui.cap = k
             x = ui.mx
@@ -95,7 +95,7 @@ define(function (require, exports) {
         }
         k.m = function () {
             if (ui.cap == k) {
-                var d = v ? (ui.my - y) : (ui.mx - x)
+                const d = v ? (ui.my - y) : (ui.mx - x);
                 ds(d * (b.ts / b.eval(v ? 'h' : 'w')))
                 x = ui.mx
                 y = ui.my
@@ -137,10 +137,10 @@ define(function (require, exports) {
     // |  hor/vert slider
     // \____________________________________________/
     cm.slider = function (b, k, v) { // button knob vertical
-        var r // real move
+        let r; // real move
         function ds(y) {
             r += y
-            var o = fn.clamp(r, 0, 1)
+            const o = fn.clamp(r, 0, 1);
             if (o != b.mv) {
                 b.mv = o
                 if (b.c) b.c(b)
@@ -158,7 +158,7 @@ define(function (require, exports) {
             //ui.focus(b)
             r = b.eval('mv') // one page up/down scrolling
             // grab slider
-            var l = ui.rel(k)
+            const l = ui.rel(k);
             ds((v ? l.y : l.x) < 0 ? -0.1 : 0.1)
         }
 
@@ -206,8 +206,8 @@ define(function (require, exports) {
             return 1
         }
 
-        var y = 0
-        var x = 0
+        let y = 0;
+        let x = 0;
         k.p = function () {
             if (ui.cap)    return
             ui.cap = k
@@ -242,13 +242,13 @@ define(function (require, exports) {
     // |  list
     // \____________________________________________/
     cm.list = function (b) {
-        var ty = 0 // total y
+        let ty = 0; // total y
 
         function cs() { // clamp scroller
             if (b._v_) {
-                var v = b._v_
-                var pg = b.eval('h')
-                var mv = fn.clamp(v.mv, 0, fn.max(ty - pg, 0))
+                const v = b._v_;
+                const pg = b.eval('h');
+                const mv = fn.clamp(v.mv, 0, fn.max(ty - pg, 0));
                 v.pg = pg
                 v.ts = ty
                 //v.set({ pg:pg, ts: ty })
@@ -265,7 +265,7 @@ define(function (require, exports) {
 
         b.r_ = function (n) { // node removed
             ty = n.y // old ypos
-            var p = n._d // down
+            let p = n._d; // down
             while (p) { // run over DOM updating height
                 p.y = ty//({ y1: ty })
                 ty += p.eval('h')
@@ -286,7 +286,7 @@ define(function (require, exports) {
     // |  selecting childnodes
     // \____________________________________________/
     cm.select = function (b) {
-        var s // selection
+        let s; // selection
 
         function se(n) { // select
             if (s == n) return
@@ -297,12 +297,12 @@ define(function (require, exports) {
             if (s && s.s_) s.s_()
             if (!s) return
             // scroll-into-view in render
-            var rm = ui.frame(function () {
+            const rm = ui.frame(function () {
                 //fn('frame!')
                 rm()
-                var rb = ui.view(b)
-                var rn = ui.view(n)
-                var y = rn.y - rb.y
+                const rb = ui.view(b);
+                const rn = ui.view(n);
+                const y = rn.y - rb.y;
                 //fn(y)
                 if (y < 0) b._v_.ds(y)
                 if (y + rn.h > rb.h) b._v_.ds(y - rb.h + rn.h)
@@ -310,7 +310,7 @@ define(function (require, exports) {
                 // selection node
                 b.n = s
                 if (b.c) b.c()
-            })
+            });
         }
 
         b.sel = se
@@ -326,13 +326,13 @@ define(function (require, exports) {
 
         // add selection handling
         b.m =
-            b.p = function (n) { // mouse press
-                if (!ui.md || ui.cap) return
-                ui.focus(b)
-                if (s == n || b == n) return
-                se(n)
-                return 1
-            }
+          b.p = function (n) { // mouse press
+              if (!ui.md || ui.cap) return
+              ui.focus(b)
+              if (s == n || b == n) return
+              se(n)
+              return 1
+          }
 
         b.k = function () {
             if (!s) se(b._c)
@@ -348,11 +348,11 @@ define(function (require, exports) {
     // |  drag
     // \____________________________________________/
     cm.drag = function (b, c) {
-        var d
-        var mx
-        var my
-        var sx
-        var sy
+        let d;
+        let mx;
+        let my;
+        let sx;
+        let sy;
         c.p = function () { // grab to start drag
             if (ui.bubble(c._p, 'p')) return 1 // give parent option to capture first
             ui.cap = c
@@ -381,12 +381,12 @@ define(function (require, exports) {
     // |  resize
     // \____________________________________________/
     cm.resize = function (b) {
-        var d
-        var mx
-        var my
-        var bx
-        var by
-        var ov
+        let d;
+        let mx;
+        let my;
+        let bx;
+        let by;
+        let ov;
         b.p = function () { // grab to start drag
             if (bx || by) {
                 ui.cap = b
@@ -399,8 +399,8 @@ define(function (require, exports) {
 
         b.m = function (n) {
             if (ui.cap == b) { // resize
-                var dx = ui.mx - mx
-                var dy = ui.my - my
+                const dx = ui.mx - mx;
+                const dy = ui.my - my;
                 if (bx == 1) b.w = fn.min(b.maxw || 9999, fn.max(b.minw || 50, ov.w - dx)), b.x = ov.x - (b.w - ov.w)
                 if (bx == 2) b.w = fn.min(b.maxw || 9999, fn.max(b.minw || 50, ov.w + dx))
                 if (by == 1) b.h = fn.min(b.maxh || 9999, fn.max(b.minh || 50, ov.h - dy)), b.y = ov.y - (b.h - ov.h)
@@ -409,11 +409,11 @@ define(function (require, exports) {
                 return
             }
             //if(n != b) return
-            var v = ui.view(b)
+            const v = ui.view(b);
             bx = ui.mx > v.x + v.w - 8 && ui.mx < v.x + v.w ? 2 : ui.mx < v.x + 8 && ui.mx >= v.x ? 1 : 0
             by = ui.my > v.y + v.h - 8 && ui.my < v.y + v.h ? 2 : ui.my < v.y + 5 && ui.my >= v.y ? 1 : 0
-            var cx = ui.mx > v.x + v.w - 16 && ui.mx < v.x + v.w ? 2 : ui.mx < v.x + 16 && ui.mx >= v.x ? 1 : 0
-            var cy = ui.my > v.y + v.h - 16 && ui.my < v.y + v.h ? 2 : ui.my < v.y + 16 && ui.my >= v.y ? 1 : 0
+            const cx = ui.mx > v.x + v.w - 16 && ui.mx < v.x + v.w ? 2 : ui.mx < v.x + 16 && ui.mx >= v.x ? 1 : 0;
+            const cy = ui.my > v.y + v.h - 16 && ui.my < v.y + v.h ? 2 : ui.my < v.y + 16 && ui.my >= v.y ? 1 : 0;
             if (cx && cy) bx = cx, by = cy
             if (bx) {
                 if (by) {
@@ -439,9 +439,9 @@ define(function (require, exports) {
     // |  split
     // \____________________________________________/
     cm.hSplit = function (b, d, v) { // background, divider,
-        var c = 0
-        var n1
-        var n2
+        let c = 0;
+        let n1;
+        let n2;
         b.a_ = function (n) {
             if (c == 0) {
                 n1 = n
@@ -460,13 +460,13 @@ define(function (require, exports) {
 
         function cv(w) {
             if (w < b.minw) w = b.minw
-            var sw = b.eval('w')
+            const sw = b.eval('w');
             if (sw - (w + d.w) < b.minw) w = sw - b.minw - d.w
             n1.w = d.x = w
             n2.x = d.x + d.w
         }
 
-        var m
+        let m;
         var v
         d.p = function () { // start grab
             ui.cap = d
@@ -492,9 +492,9 @@ define(function (require, exports) {
     // |  split
     // \____________________________________________/
     cm.vSplit = function (b, d) { // background, divider,
-        var c = 0
-        var n1
-        var n2
+        let c = 0;
+        let n1;
+        let n2;
         b.a_ = function (n) {
             if (c == 0) {
                 n1 = n
@@ -509,7 +509,7 @@ define(function (require, exports) {
 
         function cv(h) {
             if (h < b.minh) h = b.minh
-            var sh = b.eval('h')
+            const sh = b.eval('h');
             if (sh - (h + d.h) < b.minh) h = sh - b.minh - d.h
             n1.h = d.y = h
             n2.y = d.y + d.h
@@ -520,8 +520,8 @@ define(function (require, exports) {
             cv(n1.h)
         }
 
-        var m
-        var v
+        let m;
+        let v;
         d.p = function () { // start grab
             ui.cap = d
             m = ui.my
@@ -545,18 +545,21 @@ define(function (require, exports) {
     // |  fold
     // \____________________________________________/
     cm.fold = function (g) {
-        var b
+        let b;
     }
 
     // |  editing
     // \____________________________________________/
-    cm.edit = function (b, t, c, s, m) { // background, text, cursor, select, marked
+    cm.edit = function (b, t, c, s, m) {
+        // background, text, cursor, select, marked
 
-        var cs = 0, ce = 0 // cursor / range
+        let cs = 0; // cursor / range
+
+        let ce = 0;
 
         function gc() { // get cursor
-            var m = ui.rel(t)
-            var l = 0
+            const m = ui.rel(t);
+            let l = 0;
             ui.text.pos(t, t.t.length, function (i, x, y) {
                 if ((l + x) / 2 > m.x) {
                     l = i - 1
@@ -570,14 +573,14 @@ define(function (require, exports) {
 
         function scr() {
             // scroll cursor into view
-            var ps = ui.text.pos(t, cs)
-            var pe = ui.text.pos(t, ce)
-            var pt = ui.text.pos(t, t.t.length)
-            var bv = ui.view(b)
-            var tv = ui.view(t)
+            const ps = ui.text.pos(t, cs);
+            const pe = ui.text.pos(t, ce);
+            const pt = ui.text.pos(t, t.t.length);
+            const bv = ui.view(b);
+            const tv = ui.view(t);
             tv.x -= b.xs
-            var sw = t.b.m[32 - t.b.s] / ui.gl.ratio
-            var w = bv.w - sw - (tv.x - bv.x)
+            const sw = t.b.m[32 - t.b.s] / ui.gl.ratio;
+            const w = bv.w - sw - (tv.x - bv.x);
             if (pe.x > -b.xs + w) b.xs = -(pe.x - w)
             if (pe.x < -b.xs - sw) b.xs = -pe.x - sw
             if (pt.x < -b.xs + w && pt.x > w) b.xs += (-b.xs + w) - pt.x
@@ -591,8 +594,8 @@ define(function (require, exports) {
             if (me === undefined) me = ms
             cs = fn.clamp(ms, 0, t.t.length)
             ce = fn.clamp(me, 0, t.t.length)
-            var ps = ui.text.pos(t, cs)
-            var pe = ui.text.pos(t, ce)
+            const ps = ui.text.pos(t, cs);
+            const pe = ui.text.pos(t, ce);
             scr()
             if (cs != ce) {
                 if (ps.x > pe.x) {
@@ -628,11 +631,11 @@ define(function (require, exports) {
             ui.cursor('default')
         }
 
-        var ct
+        let ct;
 
         b.p = function () {
             if (!ui.cap) ui.focus(b)
-            var p = gc()
+            const p = gc();
             if (ct && ct() < 500 && p >= fn.min(cs, ce) && p <= fn.max(cs, ce)) {
                 mark(0, t.t.length)
             } else {
@@ -642,7 +645,7 @@ define(function (require, exports) {
         }
 
         b.u = function () {
-            var p = gc()
+            let p = gc();
             for (var q = p; q < t.t.length; q++) {
                 if (t.t.charCodeAt(q) != 32) break
             }
@@ -691,9 +694,9 @@ define(function (require, exports) {
         }
 
         b.k = function () {
-            var ms = fn.min(cs, ce)
-            var me = fn.max(cs, ce)
-            var last = b.t
+            const ms = fn.min(cs, ce);
+            const me = fn.max(cs, ce);
+            const last = b.t;
             switch (ui.key.i) {
                 case 'up':
                 case 'home':
@@ -759,23 +762,23 @@ define(function (require, exports) {
     // |  slides
     // \____________________________________________/
     cm.slides = function (b) {
-        var cp = 0
-        var tp = 0
-        var vp = 0
-        var np = 0
+        const cp = 0;
+        let tp = 0;
+        let vp = 0;
+        let np = 0;
 
         ui.frame(function () {
             // easing
             if (tp < vp) tp += (vp - tp) / 10
             if (tp > vp) tp -= (tp - vp) / 10
-            var w = ui.get(b, '_w')
+            const w = ui.get(b, '_w');
             if (Math.abs(tp - vp) * w < 1) {
                 tp = vp
             } else { // keep animating
                 ui.redraw()
             }
-            var k = 0
-            var p = b._c
+            let k = 0;
+            let p = b._c;
             while (p) {
                 p.x = Math.round((k - tp) * w)
                 k++

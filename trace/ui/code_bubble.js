@@ -6,42 +6,41 @@
 
 define(function (require) {
 
-    var ui = require("../../core/ui/ui")
+    const ui = require("../../core/ui/ui");
 
-    var ct = require("../../core/ui/controls")
-    var tm = require("../../core/ui/text_mix")
-    var ts = require("../../core/ui/text_shaders")
+    const ct = require("../../core/ui/controls");
+    const tm = require("../../core/ui/text_mix");
+    const ts = require("../../core/ui/text_shaders");
 
     //|  Styling
     //\____________________________________________/
 
-    var ft1 = ui.gl.sfont(
-        navigator.platform.match(/Mac/) ?
-        "12px Menlo" :
-        "12px Lucida Console")
+    const ft1 = ui.gl.sfont(
+      navigator.platform.match(/Mac/) ?
+      "12px Menlo" :
+      "12px Lucida Console");
 
     function codeBubble(g) {
-
         // background rect
-        var bg = ui.group({ l: 1 })
+        const bg = ui.group({ l: 1 });
         bg.set(g)
         // bubble border
-        var border = ct.innerShadow({
+        const border = ct.innerShadow({
             radius: 10,
             stepa: 1.05,
             stepb: 1.15,
             inner: 't.codeBg',
             outer: 'alpha(t.codeBg,0)'
-        })
+        });
         border._p = bg
         // title area
-        var title = ui.rect({ sel: 0, f: 'mix(t.codeHover,t.codeMark,n.sel)', y: 10, h: 30, x: 10, w: 'p.w - 20' })
+        const title = ui.rect({ sel: 0, f: 'mix(t.codeHover,t.codeMark,n.sel)', y: 10, h: 30, x: 10, w: 'p.w - 20' });
         title._p = bg
         //title._p = bg
         bg.title = title
 
         // code body
-        var body = bg.body = ui.rect({ f: 't.codeBg', x: 10, y: 40, h: 'p.h - (n.y+10)', w: 'p.w - 20' })
+        const body = bg.body = ui.rect({ f: 't.codeBg', x: 10, y: 40, h: 'p.h - (n.y+10)', w: 'p.w - 20' });
         body._p = bg
 
         // scrollbars
@@ -128,7 +127,7 @@ define(function (require) {
         // doubleclick
         body.u = function () {
             // dump file/line
-            var c = body.vcs.l.first()
+            const c = body.vcs.l.first();
             if (c && bg.clickLine) {
                 bg.clickLine(body.file.file, c.y)
             }
@@ -143,24 +142,24 @@ define(function (require) {
 
 
         function setTitle(m) {
-            var v = bg._p._p._p._p.hoverView
-            var tdb = body.tdb
+            const v = bg._p._p._p._p.hoverView;
+            const tdb = body.tdb;
 
-            var l = tdb.lineDict[m.i]
-            var f = tdb.fileDict[l.fid]
+            const l = tdb.lineDict[m.i];
+            const f = tdb.fileDict[l.fid];
 
             v.clearText()
 
             // filename
             v.addFormat(f.longName + " line " + l.y, tdb.colors)
             v.endLine()
-            var mod = '\f' + tdb.modColor(f.shortName) + f.shortName
+            const mod = '\f' + tdb.modColor(f.shortName) + f.shortName;
             // lets output filename
             v.addFormat(mod + ' \fi' + l.n + "(" + (l.a.length ? "" : ")"), tdb.colors)
             v.endLine()
             // then function arguments
-            for (var i = 0; i < l.a.length; i++) {
-                var e = i < l.a.length - 1
+            for (let i = 0; i < l.a.length; i++) {
+                const e = i < l.a.length - 1;
                 v.addFormat('   \ft' + l.a[i] + '\fa = ' + tdb.fmt(m.a[i], 255) + (e ? "," : ""), tdb.colors)
                 v.endLine()
             }
@@ -178,7 +177,7 @@ define(function (require) {
 
         bg.setTitle = function (m, tdb) {
 
-            var h = 0
+            const h = 0;
             body.y = h + 10
             title.h = h + 10
             delete title.vps.o.h // cause height to be recalculated in v_
@@ -204,9 +203,9 @@ define(function (require) {
 
             body.mcs.clear()
             // mark booleans from return value message
-            var r = m.r
+            const r = m.r;
             bg.ret_obj = r
-            for (var k in r) {
+            for (const k in r) {
                 var l = tdb.lineDict[k.slice(1)]
                 //fn(r, l)
                 if (!l) continue
@@ -292,11 +291,11 @@ define(function (require) {
                 }
             }
 
-            var maxlst = 100
+            const maxlst = 100;
 
-            var sites = {}
+            let sites = {};
             // lets mark function calls
-            var fc = m.cs
+            let fc = m.cs;
             while (fc) {
                 // check if we are re-marking a callsite, ifso
                 // store more calls on our marker
@@ -305,7 +304,7 @@ define(function (require) {
                     var l = tdb.lineDict[fc.r.c]
                     if (l) {
                         // add to existing callsite
-                        var id = fc.r.c
+                        const id = fc.r.c;
                         var c
                         if (sites[id]) {
                             c = sites[id]
@@ -330,9 +329,9 @@ define(function (require) {
                         // we have 2 'unique' call patterns called call and apply
                         // in apply we have this, array
                         // in call we have this, ..args..
-                        var args = c.args
+                        const args = c.args;
                         // the function line
-                        var fl = tdb.lineDict[fc.i]
+                        const fl = tdb.lineDict[fc.i];
                         if (l.a) {
                             for (var i = 0; i < l.a.length; i++) {
                                 var a = l.a[i]
@@ -385,19 +384,19 @@ define(function (require) {
 
             // lets mark function sub closure calls
             sites = {}
-            var rblock = {}
+            const rblock = {};
 
             function addClosures(m) {
-                var fc = m.us
+                let fc = m.us;
                 while (fc) {
                     if (rblock[fc.g]) return
                     rblock[fc.g] = 1
 
-                    var l = tdb.lineDict[fc.i]
+                    const l = tdb.lineDict[fc.i];
                     if (l) {
                         // add to existing callsite
-                        var c
-                        var id = fc.i
+                        let c;
+                        const id = fc.i;
                         if (sites[id]) {
                             c = sites[id]
                         } else {
@@ -423,25 +422,27 @@ define(function (require) {
         }
 
         body.o = function () {
-            var v = bg._p._p._p._p.hoverView
+            const v = bg._p._p._p._p.hoverView;
             v.hide()
         }
 
-        var lx, ly, lc
+        let lx;
+        let ly;
+        let lc;
 
-        var oldr = body.r
+        const oldr = body.r;
         body.r = function () {
             oldr()
-            var l = lc
+            const l = lc;
             if (l && l.jmp) {
                 // jump to parent function
                 if (l.jmp === 1) {
                     if (!bg.next || bg.next.l === -1)return
-                    var sv = bg._p._p._p._p.stackView
+                    const sv = bg._p._p._p._p.stackView;
                     sv.ly = -1
                     sv.selectFirst(bg.stacky + bg.stackh)
                 } else if (l.jmp === 2) {
-                    var m = body.tdb.find(bg.msg.u)
+                    const m = body.tdb.find(bg.msg.u);
                     if (m) bg._p._p._p._p.selectCall(m.y)
                 } else {
                     bg._p._p._p._p.selectCall(l.jmp.y)
@@ -450,7 +451,7 @@ define(function (require) {
         }
 
         function formatCall(m, v, tdb) {
-            var up = tdb.msgIds[m.u]
+            const up = tdb.msgIds[m.u];
             v.addFormat((up ? ((m.t - up.t) + 'ms ') : '') + tdb.fmtCall(m), tdb.colors)
             if (m.r && m.r.v) v.addFormat(' ' + tdb.fmtCall(m.r), tdb.colors)
         }
@@ -461,10 +462,10 @@ define(function (require) {
             if (ui.mx == lx && ui.my == ly && m == lc)return
             lx = ui.mx, ly = ui.my, lc = m
 
-            var tdb = body.tdb
+            const tdb = body.tdb;
 
             // when we get a function call, or 'null' we show the hoverview
-            var v = bg._p._p._p._p.hoverView
+            const v = bg._p._p._p._p.hoverView;
             if (!m) { // no hover
                 v.hide()
                 return
@@ -472,8 +473,8 @@ define(function (require) {
             else {
                 v.clearText()
                 if (m.lst) {
-                    var l = m.lst.length
-                    for (var i = 0; i < l; i++) {
+                    const l = m.lst.length;
+                    for (let i = 0; i < l; i++) {
                         if (m.lst[i].type) {
                             v.addFormat((l > 1 ? i + ': ' : '') + m.lst[i].type + ' ' + tdb.fmt(m.lst[i].value, 255), tdb.colors)
                         } else {

@@ -6,13 +6,13 @@
 
 define(function (require, exports, module) {
 
-    var fn = require("../core/fn")
-    var ui = require("../core/ui/ui")
-    var tm = require("../core/ui/text_mix")
+    const fn = require("../core/fn");
+    const ui = require("../core/ui/ui");
+    const tm = require("../core/ui/text_mix");
 
     function traceDb(o) {
         // we store the trace list and databases
-        var db = { sh: {} }
+        const db = { sh: {} };
 
         // put a textstore on the db object
         tm.storage(db)
@@ -50,7 +50,7 @@ define(function (require, exports, module) {
         //  longName
         //  shortName
 
-        var fid = 0 // file id
+        let fid = 0; // file id
 
         // trace colors
         db.colors = {
@@ -72,8 +72,8 @@ define(function (require, exports, module) {
             8: ui.t.codeColor8
         }
 
-        var last
-        var lgc = 0
+        let last;
+        let lgc = 0;
         db.processTrace = function (m) {
 
             if (!lgc) {
@@ -86,7 +86,7 @@ define(function (require, exports, module) {
             }
 
             // look up trace message
-            var l = db.lineDict[m.i]
+            const l = db.lineDict[m.i];
             if (!l) {
                 fn('got trace without lookup')
                 return
@@ -103,7 +103,7 @@ define(function (require, exports, module) {
                         // store us as the return message
                         // check if we can be a return from last
                         if (l.ret != last.i) {
-                            var l2 = db.lineDict[l.ret]
+                            const l2 = db.lineDict[l.ret];
                             var n2 = db.fileDict[l2.fid].longName
                             var l3 = db.lineDict[last.i]
                             var n3 = db.fileDict[l3.fid].longName
@@ -124,7 +124,7 @@ define(function (require, exports, module) {
                         fn(m.i, l)
                     }
                     // if we are not a  return(m.f)
-                    var d = (last.d - m.d) + 1
+                    let d = (last.d - m.d) + 1;
                     while (d > 0 && last) {
                         last = last.p, d--
                     }
@@ -140,9 +140,9 @@ define(function (require, exports, module) {
                     last.p.cs = m
                 }
                 m.y = db.th
-                var dp = m.d > 64 ? 64 : m.d
+                const dp = m.d > 64 ? 64 : m.d;
                 db.addTabs(dp, 1, ui.t.codeTab)
-                var t = db.fmtCall(m)
+                const t = db.fmtCall(m);
                 db.addFormat((m.d > dp ? '>' : '') + t, db.colors)
                 db.endLine(m)
                 // keep a ref
@@ -151,7 +151,7 @@ define(function (require, exports, module) {
                 db.msgIds[m.g] = m
 
                 // chain the closures
-                var u = db.msgIds[m.u]
+                const u = db.msgIds[m.u];
                 if (u) {
                     if (u.us) m.nu = u.us
                     u.us = m
@@ -175,7 +175,7 @@ define(function (require, exports, module) {
 
         db.fmt = function (v, lim) {
             lim = lim || 255
-            var t = typeof v
+            let t = typeof v;
             if (t == 'string') {
                 if (v.indexOf('_$_') == 0) {
                     v = v.slice(3)
@@ -215,8 +215,8 @@ define(function (require, exports, module) {
         }
 
         db.modColor = function (mod) {
-            var uid = 0
-            for (var i = 0; i < mod.length; i++) {
+            let uid = 0;
+            for (let i = 0; i < mod.length; i++) {
                 uid += mod.charCodeAt(i)
             }
             return (uid) % 8 + 1
@@ -227,16 +227,16 @@ define(function (require, exports, module) {
             if (m.x) {
                 return '\faexception ' + (m.v === undefined ? '' : db.fmt(m.v))
             }
-            var l = db.lineDict[m.i]
-            var mod = db.fileDict[l.fid].shortName
-            var col = db.modColor(mod)
+            const l = db.lineDict[m.i];
+            const mod = db.fileDict[l.fid].shortName;
+            const col = db.modColor(mod);
 
             if (l.ret) { // function return
-                var f = db.lineDict[l.ret]
+                const f = db.lineDict[l.ret];
                 return '\fareturn ' + (m.v === undefined ? '' : db.fmt(m.v))
             } else {
-                var s = []
-                for (var i = 0; i < l.a.length; i++) {
+                const s = [];
+                for (let i = 0; i < l.a.length; i++) {
                     s.push('\ft' + l.a[i].n + '\fa=' + db.fmt(m.a[i]))
                 }
                 return '\f' + col + mod + '\fa \fi' + l.n + '\fi(' + s.join('\fi,') + '\fi)'
@@ -245,12 +245,12 @@ define(function (require, exports, module) {
 
         // adds a dictionary
         db.addDict = function (m) {
-            var d = m.d
-            for (var k in d) {
+            const d = m.d;
+            for (const k in d) {
                 db.lineDict[k] = d[k]
                 db.lineDict[k].fid = fid
             }
-            var sn = m.f.match(/[\/\\]([^\/\\]*)(?:.js)$/)
+            let sn = m.f.match(/[\/\\]([^\/\\]*)(?:.js)$/);
             sn = sn ? sn[1] : m.f
             db.fileDict[fid++] = {
                 longName: m.f,

@@ -5,12 +5,12 @@
 // \____________________________________________/
 
 define(function (require) {
-    var fn = require("../core/fn")
-    var acorn = require("../core/acorn")
-    var acorn_tools = require("../core/acorn_tools")
-    var io_channel = require("../core/io_channel")
+    const fn = require("../core/fn");
+    const acorn = require("../core/acorn");
+    const acorn_tools = require("../core/acorn_tools");
+    const io_channel = require("../core/io_channel");
 
-    var gs = "_$_"
+    const gs = "_$_";
 
     function tracehub() {
         //TRACE
@@ -20,17 +20,17 @@ define(function (require) {
         catch (e) {
             _$_ = {};
             (function () {
-                var isNode = typeof process != 'undefined'
-                var isBrowser = typeof window != 'undefined'
-                var isWorker = !isNode && !isBrowser
+                const isNode = typeof process != 'undefined';
+                const isBrowser = typeof window != 'undefined';
+                const isWorker = !isNode && !isBrowser;
 
                 if (isNode) global._$_ = _$_
 
-                var max_depth = 1
-                var max_count = 5
+                const max_depth = 1;
+                const max_count = 5;
 
                 function dump(i, d) {
-                    var t = typeof i
+                    const t = typeof i;
                     if (t == 'string') {
 
                         if (i.length > 100) return i.slice(0, 100) + "..."
@@ -51,7 +51,7 @@ define(function (require) {
                             if (d >= max_depth) return "_$_[..]"
                             var o = []
                             for (var k = 0; k < i.length && k < max_count; k++) {
-                                var m = i[k]
+                                const m = i[k];
                                 o[k] = dump(m, d + 1)
                             }
                             if (k < i.length) {
@@ -61,9 +61,9 @@ define(function (require) {
                         }
                         if (d >= max_depth) return "_$_{..}"
                         var o = {}
-                        var c = 0
+                        let c = 0;
                         try {
-                            var pd
+                            let pd;
                             for (var k in i) {
                                 if (pd = Object.getOwnPropertyDescriptor(i, k)) {
                                     if (c++ > max_count) {
@@ -81,7 +81,7 @@ define(function (require) {
                 }
 
                 //var no_websockets = 1
-                var channel = //CHANNEL
+                const channel = //CHANNEL
                   0;
                 if (isBrowser) {
                     _$_.ch = channel('/io_X_X');
@@ -108,12 +108,12 @@ define(function (require) {
                         }
                     }
                 }
-                var lgc = 0
-                var dp = 0 // depth
-                var di = 0
-                var gc = 1
+                const lgc = 0;
+                let dp = 0; // depth
+                let di = 0;
+                let gc = 1;
 
-                var lr = 0 // last return
+                let lr = 0; // last return
 
                 // function call entry
 
@@ -127,10 +127,10 @@ define(function (require) {
                                 di = dp = 0
                             }, 0)
                         }
-                        var r = { i: i, g: gc++, d: dp, u: u, t: global.Date.now() }
+                        const r = { i: i, g: gc++, d: dp, u: u, t: global.Date.now() };
                         if (a) {
                             r.a = []
-                            for (var j = 0; j < a.length; j++) {
+                            for (let j = 0; j < a.length; j++) {
                                 r.a[j] = dump(a[j], 0)
                             }
                         } else {
@@ -149,10 +149,10 @@ define(function (require) {
                                 di = dp = 0
                             }, 0)
                         }
-                        var r = { i: i, g: gc++, d: dp, u: u, t: Date.now() }
+                        const r = { i: i, g: gc++, d: dp, u: u, t: Date.now() };
                         if (a) {
                             r.a = []
-                            for (var j = 0; j < a.length; j++) {
+                            for (let j = 0; j < a.length; j++) {
                                 r.a[j] = dump(a[j], 0)
                             }
                         } else {
@@ -174,10 +174,10 @@ define(function (require) {
                 // function exit
                 _$_.e = function (i, r, v, x) {
                     if (lr) _$_.ch.send(lr, 1), lr = 0
-                    for (var k in r) {
-                        var j = r[k]
+                    for (const k in r) {
+                        const j = r[k];
                         if (j !== null) {
-                            var t = typeof j
+                            const t = typeof j;
                             if (t == 'undefined' | t == 'function') {
                                 r[k] = '_$_' + t
                             } else if (t == 'object') {
@@ -202,18 +202,19 @@ define(function (require) {
         //TRACE
     }
 
-    var head
+    let head;
 
 
     function mkHead() {
         // trace impl
-        var trc = tracehub.toString().match(/\/\/TRACE[\s\S]*\/\/TRACE/)[0]
+        const trc = tracehub.toString().match(/\/\/TRACE[\s\S]*\/\/TRACE/)[0];
         // fetch io channel
         for (var k in define.factory) {
-            if (k.indexOf('core/io_channel') != -1)
+            if (k.indexOf('core/io_channel') != -1) {
                 break
+            }
         }
-        var chn = define.factory[k].toString().match(/\/\/CHANNEL(?:\n|\r)([\s\S]*)\/\/CHANNEL/)[1].trim()
+        const chn = define.factory[k].toString().match(/\/\/CHANNEL(?:\n|\r)([\s\S]*)\/\/CHANNEL/)[1].trim();
 
         return trc.replace('//CHANNEL', chn) + "\n"
     }
@@ -238,15 +239,15 @@ define(function (require) {
 
         if (opt.dump) fn(acorn_tools.dump(n))
         // verify parse
-        var dict = {}
-        var id = iid
+        const dict = {};
+        let id = iid;
 
-        var cuts = fn.list('_u', '_d')
+        const cuts = fn.list('_u', '_d');
 
         // insert a item into the linked list
         function cut(index, value) {
             if (index === undefined) throw new Error()
-            var n = { i: index, v: value }
+            const n = { i: index, v: value };
             cuts.sorted(n, 'i')
             return n
         }
@@ -260,12 +261,12 @@ define(function (require) {
                 return
             }
 
-            var fnid = id
+            const fnid = id;
             if (!isRoot) {
                 var fhead = cut(n.body.start + 1, '')
-                var args = []
+                const args = [];
                 for (var i = 0; i < n.params.length; i++) {
-                    var p = n.params[i]
+                    const p = n.params[i];
                     args[i] = {
                         n: acorn_tools.stringify(p),
                         x: p.loc.start.column,
@@ -296,12 +297,13 @@ define(function (require) {
                 }
             }
 
-            var loopIds = []
+            const loopIds = [];
 
             function addLoop(b, s, e) {
                 if (!b || !('type' in b)) return
 
-                var x, o
+                let x;
+                let o;
                 if (b.type == 'BlockStatement') {
                     x = gs + 'b.l' + id + '++;', o = 1
                 } else if (b.type == 'ExpressionStatement') {
@@ -315,7 +317,7 @@ define(function (require) {
             }
 
             function logicalExpression(n) {
-                var hasLogic = 0
+                let hasLogic = 0;
                 // if we have logical expressions we only mark the if
                 acorn_tools.walkDown(n, {
                     LogicalExpression: function (n, p) {
@@ -354,8 +356,8 @@ define(function (require) {
 
             function needSemi(p, pos) {
                 if (pos) {
-                    var c = pos - 1
-                    var cc = src.charAt(c)
+                    let c = pos - 1;
+                    let cc = src.charAt(c);
                     while (c > 0) {
                         if (cc != ' ' && cc != '\t' && cc != '\r' && cc != '\n') break
                         cc = src.charAt(--c)
@@ -364,15 +366,15 @@ define(function (require) {
                     if (cc == '(') return false
                 }
                 return p.node.type == 'ExpressionStatement' &&
-                    (p.up.node.type == 'BlockStatement' ||
-                        p.up.node.type == 'Program' ||
-                        p.up.node.type == 'SwitchCase')
+                  (p.up.node.type == 'BlockStatement' ||
+                  p.up.node.type == 'Program' ||
+                  p.up.node.type == 'SwitchCase')
             }
 
             acorn_tools.walkDown(isRoot ? n : n.body, {
                 FunctionExpression: function (n, p) {
                     //return 1
-                    var name = 'function()'
+                    let name = 'function()';
                     acorn_tools.walkUp(p, {
                         VariableDeclarator: function (n, p) {
                             return name = acorn_tools.stringify(n.id)
@@ -384,7 +386,7 @@ define(function (require) {
                             return name = acorn_tools.stringify(p.key)
                         },
                         CallExpression: function (n, p) {
-                            var id = '' // use deepest id as name
+                            let id = ''; // use deepest id as name
                             acorn_tools.walkDown(n.callee, {
                                 Identifier: function (n) {
                                     id = n.name
@@ -415,12 +417,12 @@ define(function (require) {
                     addLoop(n.body, n.loc.start, n.body.loc.start)
                 },
                 IfStatement: function (n, p) {
-                    var b = n.test
+                    const b = n.test;
                     cut(b.start, gs + 'b.b' + id + '=')
-                    var m = dict[id++] = {
+                    const m = dict[id++] = {
                         x: n.loc.start.column, y: n.loc.start.line,
                         ex: n.test.loc.end.column + 1, ey: n.test.loc.end.line
-                    }
+                    };
                     // lets go and split apart all boolean expressions in our test
                     if (logicalExpression(n.test)) {
                         m.ex = m.x + 2
@@ -430,7 +432,7 @@ define(function (require) {
                     //addBlock(n.alternate)
                 },
                 ConditionalExpression: function (n, p) {
-                    var b = n.test
+                    const b = n.test;
                     if (!logicalExpression(n.test)) {
                         cut(b.start, (needSemi(p, b.start) ? ';' : '') + '(' + gs + 'b.b' + id + '=')
 
@@ -442,7 +444,7 @@ define(function (require) {
                     }
                 },
                 SwitchCase: function (n, p) {
-                    var b = n.test
+                    const b = n.test;
                     if (b) {
                         cut(n.colon, gs + 'b.b' + id + '=1;')
                         dict[id++] = {
@@ -459,9 +461,9 @@ define(function (require) {
                     }
                 },
                 ObjectExpression: function (n, p) {
-                    for (var i = 0; i < n.properties.length; i++) {
-                        var k = n.properties[i].key
-                        var v = n.properties[i].value
+                    for (let i = 0; i < n.properties.length; i++) {
+                        const k = n.properties[i].key;
+                        const v = n.properties[i].value;
                         if (v && v.type != 'Literal' && v.type != 'FunctionExpression' && v.type != 'ObjectExpression') {
                             addAssign(k.loc, v.start)
                         }
@@ -477,9 +479,9 @@ define(function (require) {
                     if (p.node.type == 'SequenceExpression' && p.node.expressions[0] == n) p = p.up
                     cut(n.start, (needSemi(p, n.start) ? ';' : '') + '(' + gs + '.c(' + id + ',')
                     cut(n.end - 1, "))")
-                    var a = []
-                    for (var i = 0; i < n.arguments.length; i++) {
-                        var arg = n.arguments[i]
+                    const a = [];
+                    for (let i = 0; i < n.arguments.length; i++) {
+                        const arg = n.arguments[i];
                         if (arg) {
                             a.push({
                                 x: arg.loc.start.column,
@@ -492,7 +494,7 @@ define(function (require) {
                         }
                     }
 
-                    var ce = 0
+                    let ce = 0;
                     if (n.callee.type == 'MemberExpression') {
                         if (n.callee.property.name == 'call') ce = 1
                         if (n.callee.property.name == 'apply') ce = 2
@@ -510,9 +512,9 @@ define(function (require) {
                     if (p.node.type == 'SequenceExpression' && p.node.expressions[0] == n) p = p.up
                     cut(n.start, (needSemi(p, n.start) ? ';' : '') + '(' + gs + '.c(' + id + ',')
                     cut(n.end, "))")
-                    var a = []
-                    for (var i = 0; i < n.arguments.length; i++) {
-                        var arg = n.arguments[i]
+                    const a = [];
+                    for (let i = 0; i < n.arguments.length; i++) {
+                        const arg = n.arguments[i];
                         if (arg) {
                             a.push({
                                 x: arg.loc.start.column,
@@ -566,7 +568,7 @@ define(function (require) {
             }
 
             // write function entry
-            var s = 'var ' + gs + 'b={};'
+            let s = 'var ' + gs + 'b={};';
             if (loopIds.length) {
                 s = 'var ' + gs + 'b={'
                 for (var i = 0; i < loopIds.length; i++) {
@@ -576,8 +578,8 @@ define(function (require) {
                 s += '};'
             }
 
-            var tryStart = "try{"
-            var tryEnd = "}catch(x){" + gs + ".e(" + id + "," + gs + "b,x,1);throw x;}"
+            let tryStart = "try{";
+            let tryEnd = "}catch(x){" + gs + ".e(" + id + "," + gs + "b,x,1);throw x;}";
 
             if (opt.nocatch) {
                 tryStart = ""
@@ -599,9 +601,9 @@ define(function (require) {
         instrumentFn(n, file, true, 0)
 
         function cutUp(cuts, str) {
-            var s = ''
-            var b = 0
-            var n = cuts.first()
+            let s = '';
+            let b = 0;
+            let n = cuts.first();
             while (n) {
 
                 s += str.slice(b, n.i)

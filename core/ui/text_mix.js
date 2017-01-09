@@ -5,14 +5,14 @@
 
 define(function (require, exports) {
 
-    var ui = require("./ui")
-    var fn = require("./../fn")
+    var ui = require("./ui");
+    const fn = require("./../fn");
 
     // |  textview with zoom/scroll
     // \____________________________________________/
     exports.viewport = function (b) {
         // viewport state
-        var s = b.vps = {
+        const s = b.vps = {
             o: {}, // outerview
             gx: 48, // gutter x
             gy: 2,  // gutter y
@@ -27,7 +27,7 @@ define(function (require, exports) {
             ts: 3, // tab stops
             x: 0, // scroll x
             y: 0 // scroll y
-        }
+        };
         s.sx = s.ox
         s.sy = s.oy
         s.sp = s.op
@@ -35,7 +35,7 @@ define(function (require, exports) {
 
         // |  zoom (factor)
         b.zoom = function (z) {
-            var osy = s.sy
+            const osy = s.sy;
             if (z > 1 && s.sy < s.oy / 7) {
                 s.sy *= z
                 if (s.sy > s.oy / 7) s.sy = s.oy / 7
@@ -66,8 +66,8 @@ define(function (require, exports) {
 
         if ('zm' in b) b.zoom(b.zm)
 
-        var v = b._v_
-        var h = b._h_
+        const v = b._v_;
+        const h = b._h_;
         if (v) {
             v._b = b
             v.l = 1
@@ -114,14 +114,14 @@ define(function (require, exports) {
         b.v_ = b.size = function () {
             // check if our scrollbar is at the bottom, ifso keep it there
             if (!v || !h) return
-            var end = (v.mv >= v.ts - v.pg)
+            const end = (v.mv >= v.ts - v.pg);
             if (!('h' in s.o)) ui.view(b, s.o)
             // we have pg and ts and mv on a scroll
             v.pg = s.o.h / s.sy
             v.ts = b.th //+ 1
             h.pg = s.o.w / s.sx
             h.ts = b.tw + 2
-            var d
+            let d;
             if ((d = v.mv - (v.ts - v.pg)) > 0) {
                 v.ds(d)
             } else if (v.pg && end) v.ds((v.ts - v.pg) - v.mv) // stick to end
@@ -131,8 +131,8 @@ define(function (require, exports) {
 
         //| show x y text position in text view
         b.view = function (x, y, p, event, center) {
-            var d
-            var c = center ? (s.o.h - s.gy) / s.sy / 2 : 0
+            let d;
+            const c = center ? (s.o.h - s.gy) / s.sy / 2 : 0;
             if (center == 2) y += (s.o.h - s.gy) / s.sy / 2
             if (!p || p == 1) {
                 // scroll down
@@ -169,7 +169,7 @@ define(function (require, exports) {
         opt = opt || {}
 
         function curSet() {
-            var s = Object.create(curSet.prototype)
+            const s = Object.create(curSet.prototype);
             s.l = fn.list('_u', '_d')
             return s
         }
@@ -178,8 +178,8 @@ define(function (require, exports) {
 
             // add a new cursor to the set
             p.new = function (u, v, x, y) {
-                var s = this
-                var c = cursor()
+                const s = this;
+                const c = cursor();
                 c.u = u || 0
                 c.v = v || 0
                 c.x = x || 0
@@ -191,11 +191,11 @@ define(function (require, exports) {
 
             // move all cursors back to the pool
             p.clear = function (n) {
-                var s = this
-                var l = n || -1
+                const s = this;
+                let l = n || -1;
                 while (s.l.len) {
                     if (l == 0) break
-                    var c = s.l.last()
+                    const c = s.l.last();
                     s.l.rm(c)
                     cursor.prototype.pool.add(c)
                     l--
@@ -204,38 +204,38 @@ define(function (require, exports) {
 
             // merge set against self, merges all cursor overlaps
             p.remerge = function () {
-                var n = curSet()
-                var s = this
+                const n = curSet();
+                const s = this;
                 n.merge(s)
                 s.l = n.l
             }
 
             // merge sets. i know this is O(n^2), should be improved someday.
             p.merge = function (o) {
-                var s = this
-                var c = o.l.first()
-                var l
+                const s = this;
+                let c = o.l.first();
+                let l;
                 o.v = Infinity
                 o.y = -Infinity
                 while (c) {
-                    var n = c._d
+                    const n = c._d;
                     o.l.rm(c)
 
-                    var cu = c.u
-                    var cv = c.v
-                    var cx = c.x
-                    var cy = c.y
+                    let cu = c.u;
+                    let cv = c.v;
+                    let cx = c.x;
+                    let cy = c.y;
                     // flip em
-                    var cf = 0
+                    let cf = 0;
                     if ((cv - cy || cu - cx ) > 0) cu = c.x, cv = c.y, cx = c.u, cy = c.v, cf = 1
-                    var d = s.l.first()
+                    let d = s.l.first();
                     while (d) {
-                        var m = d._d
+                        const m = d._d;
                         // order points
-                        var du = d.u
-                        var dv = d.v
-                        var dx = d.x
-                        var dy = d.y
+                        let du = d.u;
+                        let dv = d.v;
+                        let dx = d.x;
+                        let dy = d.y;
                         // flip em
                         if ((dv - dy || du - dx ) > 0) du = d.x, dv = d.y, dx = d.u, dy = d.v
                         // check if intersect
@@ -265,9 +265,9 @@ define(function (require, exports) {
 
             // make our set to be this grid selection
             p.grid = function (u, v, x, y) {
-                var s = this
+                const s = this;
                 // right size the cursorset
-                var l = Math.abs(y - v) + 1
+                const l = Math.abs(y - v) + 1;
                 while (s.l.len < l) {
                     s.l.add(cursor())
                 }
@@ -278,9 +278,9 @@ define(function (require, exports) {
                 }
                 // set all cursors
                 var c = s.l.first()
-                var d = y - v > 0 ? 1 : -1
-                var i = v
-                var e = s + d
+                const d = y - v > 0 ? 1 : -1;
+                let i = v;
+                const e = s + d;
                 while (c) {
                     if (c.u != u || c.y != i || c.v != i || c.x != x) {
                         c.u = u, c.y = c.v = i, c.w = c.x = x
@@ -295,7 +295,7 @@ define(function (require, exports) {
             // forward nav functions to the entire set
             function fwd(n) {
                 p[n] = function () {
-                    var c = this.l.first()
+                    let c = this.l.first();
                     while (c) {
                         c[n].apply(c, arguments)
                         c = c._d
@@ -313,8 +313,8 @@ define(function (require, exports) {
             fwd('pgdn')
 
             p.copy = function () {
-                var a = ""
-                var c = this.l.first()
+                let a = "";
+                let c = this.l.first();
                 while (c) {
                     if (a) a += "\n"
                     a += c.copy()
@@ -331,8 +331,8 @@ define(function (require, exports) {
 
         // factory a new cursor object
         function cursor() {
-            var c
-            var p = cursor.prototype.pool
+            let c;
+            const p = cursor.prototype.pool;
             if (p.len) {
                 p.rm(c = p.last())
             } else {
@@ -355,7 +355,7 @@ define(function (require, exports) {
 
             // select an AST node
             p.select = function (n) {
-                var c = this
+                const c = this;
                 c.v = c.y // selection is one line
                 c.u = n.x
                 c.w = c.x = n.x + n.w
@@ -364,7 +364,7 @@ define(function (require, exports) {
 
             // clear selection
             p.clear = function () {
-                var c = this
+                const c = this;
                 c.w = c.u = c.x
                 c.v = c.y
                 c.update()
@@ -372,7 +372,7 @@ define(function (require, exports) {
 
             // select current line
             p.selectLine = function () {
-                var c = this
+                const c = this;
                 c.w = c.x = c.u = 0
                 c.y = c.v + 1
                 c.update()
@@ -380,28 +380,28 @@ define(function (require, exports) {
 
             // cursor from mouse coordinate
             p.mouse = function (b) {
-                var c = this
+                const c = this;
                 c.w = c.x = b.tmx()
                 c.y = fn.min(b.tmy(), b.th - 1)
             }
 
             p.updatew = function () {
-                var c = this
+                const c = this;
                 c.update()
                 c.w = c.x
             }
 
             p.inRange = function (x, y) {
-                var c = this
-                var d1 = c.v - y || c.u - x
-                var d2 = c.y - y || c.x - x
+                const c = this;
+                const d1 = c.v - y || c.u - x;
+                const d2 = c.y - y || c.x - x;
                 // we are in range when d1 >= 0 && d2 <= 0
                 return d1 <= 0 && d2 >= 0
             }
 
             p.left = function (s) {
-                var c = this
-                var d = (c.v - c.y || c.u - c.x)
+                const c = this;
+                const d = (c.v - c.y || c.u - c.x);
                 if (d != 0 && !s) {
                     if (d > 0) {
                         c.u = c.x, c.v = c.y
@@ -427,8 +427,8 @@ define(function (require, exports) {
             }
 
             p.right = function (s) {
-                var c = this
-                var d = (c.v - c.y || c.u - c.x)
+                const c = this;
+                const d = (c.v - c.y || c.u - c.x);
                 if (d != 0 && !s) {
                     if (d < 0) {
                         c.u = c.x, c.v = c.y
@@ -453,7 +453,7 @@ define(function (require, exports) {
             }
 
             p.down = function (s, d) {
-                var c = this
+                const c = this;
                 if (c.y >= b.th) return
                 c.y += d || 1
                 if (c.y > b.th - 1) c.y = b.th - 1
@@ -463,7 +463,7 @@ define(function (require, exports) {
             }
 
             p.up = function (s, d) {
-                var c = this
+                const c = this;
                 if (!c.y) return
                 c.y -= d || 1
                 if (c.y < 0) c.y = 0
@@ -490,16 +490,19 @@ define(function (require, exports) {
             }
 
             p.copy = function () {
-                var c = this
-                var u = c.u, v = c.v, x = c.x, y = c.y
+                const c = this;
+                let u = c.u;
+                let v = c.v;
+                let x = c.x;
+                let y = c.y;
                 if (y <= v) u = c.x, v = c.y, x = c.u, y = c.v
                 if (y == v && x < u) x = c.x, u = c.u
                 // lets accumulate text
-                var a = ""
-                for (var i = v; i <= y; i++) {
-                    var s = 0
-                    var t = ""
-                    var e = b.lines[i].length
+                let a = "";
+                for (let i = v; i <= y; i++) {
+                    let s = 0;
+                    let t = "";
+                    let e = b.lines[i].length;
                     if (i == v) s = u
                     if (i == y) {
                         e = x
@@ -517,8 +520,8 @@ define(function (require, exports) {
             }
 
             p.view = function (p) {
-                var c = this
-                var d
+                const c = this;
+                let d;
                 b.view(c.x, c.y, p)
             }
         })(cursor.prototype)
@@ -526,9 +529,9 @@ define(function (require, exports) {
         //|  interaction
         //\____________________________________________/
 
-        var tct = fn.dt() // triple click timer
-        var tcx = 0 // triple click x
-        var tcy = 0 // triple click y
+        const tct = fn.dt(); // triple click timer
+        let tcx = 0; // triple click x
+        let tcy = 0; // triple click y
 
         b.selectLine = function (y) {
             b.vcs.clear()
@@ -563,7 +566,7 @@ define(function (require, exports) {
             cmc.clear()
 
             if (b.cursorToNode) {
-                var n = b.cursorToNode(cmc)
+                const n = b.cursorToNode(cmc);
                 if (n) cmc.select(n)
             } else {
                 cmc.selectLine()
@@ -577,9 +580,9 @@ define(function (require, exports) {
         }
 
         var cmc // current mouse cursor
-        var gsx // grid start x
-        var gsy // grid start y
-        var gmm // grid mouse mode
+        let gsx; // grid start x
+        let gsy; // grid start y
+        let gmm; // grid mouse mode
         // press mouse
         b.p = function () {
             ui.focus(b)
@@ -592,7 +595,10 @@ define(function (require, exports) {
             }
 
             // unless press meta, clear all cursors
-            var o, u, v
+            let o;
+
+            let u;
+            let v;
             if (!ui.ms.m) {
                 // clear cursors
                 if (cmc) o = cmc, u = o.u, v = o.v
@@ -635,15 +641,15 @@ define(function (require, exports) {
                     // scroll into view
                 }
             }
-            var y = fn.min(b.tmy(), b.th - 1)
+            const y = fn.min(b.tmy(), b.th - 1);
             if (y != b.hy && b.textHover) {
                 b.hy = y
                 b.textHover()
             }
             // do marker hover events
             if (b.markerHover) {
-                var mh = 0
-                var x = b.tmx()
+                let mh = 0;
+                const x = b.tmx();
                 var c = b.mcs.l.first()
                 while (c) {
                     if (c.inRange(x, y)) mh = c
@@ -735,14 +741,14 @@ define(function (require, exports) {
         // depends on vps, ssh,
         b.drawText = function () {
 
-            var s = b.sh.text
+            const s = b.sh.text;
             s.use()
             s.set(ui.uniforms)
             s.sz(b.vps.sx, b.vps.sy, b.vps.sp * ui.gl.ratio, (b.vps.oy - b.vps.sy < 2) ? 0.5 : 0)
             s.b(b.font)
 
-            var t = b.tvc || b.text.first()
-            var h = (b.vps.o.h / b.vps.sy)
+            let t = b.tvc || b.text.first();
+            const h = (b.vps.o.h / b.vps.sy);
             if (t) {
                 while (t._u && t.y > (-b.vps.y)) {
                     t = t._u
@@ -760,7 +766,7 @@ define(function (require, exports) {
         }
 
         b.drawSelection = function () {
-            var s = b.sh.select
+            const s = b.sh.select;
             s.use()
             s.set(ui.uniforms)
             s.sz(b.vps.sx, b.vps.sy, b.vps.ss)
@@ -803,7 +809,7 @@ define(function (require, exports) {
 
         b.drawCursors = function () {
             var c = b.vcs.l.first()
-            var s = b.sh.cursor
+            const s = b.sh.cursor;
             while (c) {
                 s.rect(b.vps.o.x + b.vps.gx + (b.vps.x + c.x) * b.vps.sx, b.vps.o.y - b.vps.ss + (b.vps.y + c.y) * b.vps.sy + b.vps.gy, 1, b.vps.sy)
                 c = c._d
@@ -821,7 +827,7 @@ define(function (require, exports) {
 
             // visible line carets next to cursor
             var c = b.vcs.l.first()
-            var s = b.sh.line
+            const s = b.sh.line;
             while (c) {
                 s.rect(b.vps.o.x, b.vps.o.y - b.vps.ss + (c.y + b.vps.y) * b.vps.sy + b.vps.gy, b.vps.gx - 4, b.vps.sy)
                 c = c._d
@@ -835,7 +841,7 @@ define(function (require, exports) {
         }
 
         b.drawLines = function () {
-            var s = b.sh.text
+            const s = b.sh.text;
             s.use()
             s.set(ui.uniforms)
             s.sz(b.vps.ox, b.lvb.hy, b.vps.op, 0.5)
@@ -864,8 +870,12 @@ define(function (require, exports) {
 
         b.cursorUpdate = function (c) {
             // fetch cursor coords, oriented
-            var u = c.u, v = c.v, x = c.x, y = c.y
-            var cf
+            let u = c.u;
+
+            let v = c.v;
+            let x = c.x;
+            let y = c.y;
+            let cf;
             if (y <= v) u = c.x, v = c.y, x = c.u, y = c.v//, cf = 1
 
             // allocate enough vertexbuffer
@@ -874,20 +884,20 @@ define(function (require, exports) {
             }
             // set up locals
             var j = 0 // line counter
-            var e = c.vb.e.a //
-            var r = c.vb.r.a
-            var s = c.vb.e.s // stride
-            var o = 0 // offset
-            var xs
-            var xe
-            var p1 = NaN // previous x1
-            var p2 = NaN // previous x2
-            var pf = 0 // previous flags
-            var po = 0 // previous offset
+            const e = c.vb.e.a; //
+            const r = c.vb.r.a;
+            const s = c.vb.e.s; // stride
+            let o = 0; // offset
+            let xs;
+            let xe;
+            let p1 = NaN; // previous x1
+            let p2 = NaN; // previous x2
+            let pf = 0; // previous flags
+            let po = 0; // previous offset
             c.vb.hi = 0 // reset vertexbuffer
 
             // we should start to find c.v from b.tvc
-            var t = b.tvc || b.text.first()
+            let t = b.tvc || b.text.first();
             if (t) {
                 while (t._u && (t.y) > v) {
                     t = t._u
@@ -898,21 +908,21 @@ define(function (require, exports) {
             }
 
             while (t) {
-                var l = t.ll.length // chunk length
+                const l = t.ll.length; // chunk length
                 var j = t.y
                 // selection is in this textchunk
                 if (y >= j && v <= j + l) {
-                    var xt = 0
+                    let xt = 0;
                     // loop over text lines
-                    for (var i = fn.max(0, v - j); i + j <= y && i < l; i++) {
+                    for (let i = fn.max(0, v - j); i + j <= y && i < l; i++) {
                         // set up rect coords
-                        var x1 = 0
-                        var y1 = j + i
-                        var x2 = t.ll[i]
-                        var y2 = y1 + 1
+                        let x1 = 0;
+                        const y1 = j + i;
+                        let x2 = t.ll[i];
+                        const y2 = y1 + 1;
                         // adjust rect
                         if (i + j == v) xs = x1 = fn.min(x2, u), /*fl && */t.ld && (c.d = t.ld[i]) // adjust begin at
-                                                                                                   // first line
+                        // first line
                         if (i + j == y) {
                             xe = x2 = fn.min(x2, x), xt = 1, /*!fl && */t.ld && (c.d = t.ld[i])
                         }// adjust end at last line
@@ -922,31 +932,33 @@ define(function (require, exports) {
                         if (v == y && x2 < x1) xs = x2 = x1, x1 = xe, xe = x2  // flip em
 
                         // corner flagging
-                        var fl = 0, of = pf
+                        let fl = 0;
+
+                        const of = pf;
                         if (p1 == x1) fl += 1
                         if (p1 >= x1 && x2 > p1) pf += 2
                         if (p2 >= x2 && x2 > p1) fl += 4
                         if (p2 <= x2) pf += 8
                         // adjust old flags
                         if (of != pf) {
-                            for (var k = 0; k < 6; k++, po += s) {
+                            for (let k = 0; k < 6; k++, po += s) {
                                 r[po] = pf
                             }
                         }
 
                         po = o + 3
                         r[o] = x1, r[o + 1] = y1, r[o + 2] = x2, r[o + 3] = fl,
-                            e[o] = x1, e[o + 1] = y1, o += s
+                          e[o] = x1, e[o + 1] = y1, o += s
                         r[o] = x1, r[o + 1] = y1, r[o + 2] = x2, r[o + 3] = fl,
-                            e[o] = x2, e[o + 1] = y1, o += s
+                          e[o] = x2, e[o + 1] = y1, o += s
                         r[o] = x1, r[o + 1] = y1, r[o + 2] = x2, r[o + 3] = fl,
-                            e[o] = x1, e[o + 1] = y2, o += s
+                          e[o] = x1, e[o + 1] = y2, o += s
                         r[o] = x1, r[o + 1] = y1, r[o + 2] = x2, r[o + 3] = fl,
-                            e[o] = x2, e[o + 1] = y1, o += s
+                          e[o] = x2, e[o + 1] = y1, o += s
                         r[o] = x1, r[o + 1] = y1, r[o + 2] = x2, r[o + 3] = fl,
-                            e[o] = x1, e[o + 1] = y2, o += s
+                          e[o] = x1, e[o + 1] = y2, o += s
                         r[o] = x1, r[o + 1] = y1, r[o + 2] = x2, r[o + 3] = fl,
-                            e[o] = x2, e[o + 1] = y2, o += s
+                          e[o] = x2, e[o + 1] = y2, o += s
                         pf = fl
                         p1 = x1
                         p2 = x2
@@ -969,28 +981,28 @@ define(function (require, exports) {
         b.linesUpdate = function (lncol) {
             if (!b.lvb) b.lvb = b.sh.text.alloc(255 * 5)
             // get start/end
-            var t = -b.vps.y
+            const t = -b.vps.y;
             // get skip value
-            var k = Math.ceil(b.vps.oy / b.vps.sy)
+            const k = Math.ceil(b.vps.oy / b.vps.sy);
             b.lvb.hy = k * b.vps.sy
             // round
-            var a = Math.floor(t / k) * k + 1
+            const a = Math.floor(t / k) * k + 1;
 
             // compute y offset
             b.lvb.ry = -(t - a + 1) * b.vps.sy
 
             // get fraction
-            var l = fn.min(b.th + 2, a + Math.ceil(b.vps.o.h / b.vps.sy))
+            const l = fn.min(b.th + 2, a + Math.ceil(b.vps.o.h / b.vps.sy));
 
             // generate line vertexbuffer
-            var e = b.lvb.e.a  // e array
-            var f = b.lvb.fg.a // f array
-            var s = b.lvb.e.s    // stride
-            var o = 0      // offset
+            const e = b.lvb.e.a;  // e array
+            const f = b.lvb.fg.a; // f array
+            const s = b.lvb.e.s;    // stride
+            let o = 0;      // offset
             b.lvb.hi = 0
-            for (var i = a, y = 0; i < l; i += k, y++) {
-                var d = i // digits
-                var x = 4
+            for (let i = a, y = 0; i < l; i += k, y++) {
+                let d = i; // digits
+                let x = 4;
                 while (d) {
                     e[o] = x | (y << 8) | b.font.t[(d % 10 + 48) - b.font.s]
                     f[o] = lncol
@@ -1016,10 +1028,10 @@ define(function (require, exports) {
         b.tvc = null
 
         function allocNode(len) {
-            var v = b.text.last()
+            let v = b.text.last();
             // check if we can add the chunk
             if (!v || v.l > 250 || v.hi + len > blockSize) {
-                var x = 0
+                let x = 0;
                 if (v) x = v.x
                 v = b.sh.text.alloc(blockSize)
                 v.x = x
@@ -1035,17 +1047,17 @@ define(function (require, exports) {
         // adds textchunks
         b.addChunk = function (t, fg) {
             // get the last buffer
-            var v = allocNode(t.length)
+            const v = allocNode(t.length);
             // append t to the blk
-            var e = v.e.a // element array
-            var f = v.fg.a // foreground array
-            var s = v.e.s // stride
-            var o = v.hi * s // offset
-            var a = 0
-            var l = t.length
-            for (var i = 0; i < l; i++) {
+            const e = v.e.a; // element array
+            const f = v.fg.a; // foreground array
+            const s = v.e.s; // stride
+            let o = v.hi * s; // offset
+            let a = 0;
+            const l = t.length;
+            for (let i = 0; i < l; i++) {
                 if (v.x < 255) {
-                    var c = t.charCodeAt(i)
+                    const c = t.charCodeAt(i);
                     e[o] = v.x | (v.l << 8) | b.font.t[c - b.font.s]
                     f[o] = fg
                     o += s
@@ -1059,16 +1071,16 @@ define(function (require, exports) {
         }
 
         b.addTabs = function (num, stops, col) {
-            var v = allocNode(num)
+            const v = allocNode(num);
 
-            var e = v.e.a // element array
-            var f = v.fg.a // foreground array
-            var s = v.e.s // stride
-            var o = v.hi * s // offset
-            var y = v.l // ycoord
-            var a = 0
+            const e = v.e.a; // element array
+            const f = v.fg.a; // foreground array
+            const s = v.e.s; // stride
+            let o = v.hi * s; // offset
+            const y = v.l; // ycoord
+            let a = 0;
             //tb = tb || 1
-            for (var i = 0; i < num; i++) {
+            for (let i = 0; i < num; i++) {
                 e[o] = i * stops | (y << 8) | b.font.t[127 - b.font.s]
                 f[o] = col
                 o += s
@@ -1082,7 +1094,7 @@ define(function (require, exports) {
 
         // ends the current line
         b.endLine = function (data, ox) {
-            var v = b.text.last()
+            const v = b.text.last();
             v.ll[v.l] = arguments.length > 1 ? ox : v.x
             v.ld[v.l] = data
             if (v.x > b.tw) b.tw = v.x
@@ -1093,20 +1105,20 @@ define(function (require, exports) {
 
         // adds a color formatted chunk
         b.addFormat = function (t, colors) {
-            var v = allocNode(t.length)
+            const v = allocNode(t.length);
 
-            var e = v.e.a // element array
-            var f = v.fg.a // foreground array
-            var s = v.e.s // stride
-            var o = v.hi * s // offset
-            var x = v.x
-            var y = v.l // ycoord
-            var a = 0
-            var l = t.length
-            var fg = colors.def
-            for (var i = 0; i < l; i++) {
+            const e = v.e.a; // element array
+            const f = v.fg.a; // foreground array
+            const s = v.e.s; // stride
+            let o = v.hi * s; // offset
+            let x = v.x;
+            const y = v.l; // ycoord
+            let a = 0;
+            const l = t.length;
+            let fg = colors.def;
+            for (let i = 0; i < l; i++) {
                 if (x > 255) break
-                var c = t.charCodeAt(i)
+                const c = t.charCodeAt(i);
                 if (c == 12) { // use formfeed as color escape
                     fg = colors[t.charAt(++i)] || colors.def
                 } else if (c == 32) {
@@ -1126,7 +1138,7 @@ define(function (require, exports) {
         b.colors = "$LICARR3"
         // clears all text
         b.clearText = function () {
-            var v = b.text.first()
+            const v = b.text.first();
             b.text.clear()
             b.tvc = null
             if (v) {

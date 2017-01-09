@@ -13,32 +13,32 @@ define(function (require) {
         return
     }
 
-    var path = require('path')
-    var fs = require('fs')
-    var url = require('url')
-    var zlib = require('zlib')
-    var instrument = require('./instrument')
-    var childproc = require('child_process')
+    const path = require('path');
+    const fs = require('fs');
+    const url = require('url');
+    const zlib = require('zlib');
+    const instrument = require('./instrument');
+    const childproc = require('child_process');
 
     // the nodejs loader
     if (process.argv[2] && process.argv[2].indexOf('-l') == 0) return nodeLoader()
 
     function nodeLoader() {
-        var filter = makeFilter(process.argv[2].slice(2))
+        const filter = makeFilter(process.argv[2].slice(2));
 
-        var m = require('module').Module.prototype;
-        var oldCompile = m._compile;
-        var did = 1
+        const m = require('module').Module.prototype;
+        const oldCompile = m._compile;
+        let did = 1;
         m._compile = function (content, filename) {
 
             if (filter.active && filter(filename)) {
                 return oldCompile.call(this, content, filename)
             }
             // lets instrument
-            var t = instrument(filename, content, did, filter.opt)
+            const t = instrument(filename, content, did, filter.opt);
             did = t.id
             // send the dictionary out
-            var m = { dict: 1, src: t.input, f: filename, d: t.d }
+            const m = { dict: 1, src: t.input, f: filename, d: t.d };
             if (process.send) {
                 process.send(m)
             } else {
@@ -48,19 +48,19 @@ define(function (require) {
         }
         process.argv.splice(1, 2) // remove leading arguments
         // clear require cache
-        for (var k in define.require.cache) {
+        for (const k in define.require.cache) {
             delete define.require.cache[k]
         }
-        var file = path.resolve(process.argv[1])
+        const file = path.resolve(process.argv[1]);
         define.require(file);
     }
 
-    var fn = require('../core/fn')
-    var ssl = require('../core/io_ssl')
-    var ioServer = require('../core/io_server')
+    const fn = require('../core/fn');
+    const ssl = require('../core/io_ssl');
+    const ioServer = require('../core/io_server');
 
     function out() {
-        for (var v = Array.prototype.slice.call(arguments), i = 0, c = out.colors; i < v.length; i++) {
+        for (let v = Array.prototype.slice.call(arguments), i = 0, c = out.colors; i < v.length; i++) {
             v[i] = String(v[i]).replace(/~(\w*)~/g, function (m, a) {
                   return "\x1b[" + (c[a] || 0) + "m";
               }) + "\x1b[0m";
@@ -77,12 +77,12 @@ define(function (require) {
 
         if (typeof fspec == 'string') fspec = JSON.parse(fspec)
 
-        var _do = init(fspec._do)
-        var _no = init(fspec._no)
+        const _do = init(fspec._do);
+        const _no = init(fspec._no);
 
         function init(a) {
-            var d = []
-            for (var i = 0; i < a.length; i++) {
+            const d = [];
+            for (let i = 0; i < a.length; i++) {
                 if (a[i].charAt(0) == ':') {
                     d[i] = a[i].slice(1)
                 } else {
@@ -94,7 +94,7 @@ define(function (require) {
 
         function match(d, f) {
             if (!d.length) return 0
-            for (var i = 0; i < d.length; i++) {
+            for (let i = 0; i < d.length; i++) {
                 if (typeof d[i] == 'string') {
                     if (f.indexOf(d[i]) != -1) return 2
                 } else if (f.match(d[i])) return 2
@@ -123,7 +123,7 @@ define(function (require) {
     function loadSettings(file) {
         if (!fs.existsSync(file)) return
         try {
-            var data = fs.readFileSync(file).toString().replace(/\/\*[\s|S]?\*\//g, '').replace(/\/\/.*?\n/g, '')
+            const data = fs.readFileSync(file).toString().replace(/\/\*[\s|S]?\*\//g, '').replace(/\/\/.*?\n/g, '');
             define.settings = JSON.parse(data)
             define.settingsData = data
             define.settingsFile = file
@@ -133,20 +133,17 @@ define(function (require) {
         }
     }
 
-    if (!loadSettings(path.resolve(process.cwd(), "tracegl.json")) &&
-        !loadSettings("~/tracegl.json") &&
-        !loadSettings(path.resolve(path.dirname(__filename), "tracegl.json")) &&
-        !define.settings) {
+    if (!loadSettings(path.resolve(process.cwd(), "tracegl.json")) && !loadSettings("~/tracegl.json") && !loadSettings(path.resolve(path.dirname(__filename), "tracegl.json")) && !define.settings) {
         loadSettings(path.resolve(path.dirname(__filename), "tracegl.json"))
     }
 
     // argument parse variables
     function processArgs(arg) {
-        var sender // send messages to ui or zip
-        var uiport = 2000
-        var bind = "0.0.0.0"
-        var tgtport = 2080
-        var fspec = { _no: [], _do: [], _opt: {} }
+        let sender; // send messages to ui or zip
+        let uiport = 2000;
+        let bind = "0.0.0.0";
+        let tgtport = 2080;
+        const fspec = { _no: [], _do: [], _opt: {} };
 
         function usage(err) {
             out('~br~' + err + '\n')
@@ -171,11 +168,11 @@ define(function (require) {
         }
 
         // process arguments
-        for (var i = 2; i < arg.length; i++) {
-            var a = arg[i]
+        for (let i = 2; i < arg.length; i++) {
+            const a = arg[i];
             if (a.charAt(0) == '-') {
-                var d = a.indexOf(':')
-                var b
+                const d = a.indexOf(':');
+                let b;
                 if (d != -1) b = a.slice(d + 1)
 
                 if (a.indexOf('-gz') == 0) {
@@ -220,9 +217,9 @@ define(function (require) {
                 }
             } else {
                 if (!sender) sender = uiSender(uiport, bind)
-                var f = makeFilter(fspec)
+                const f = makeFilter(fspec);
 
-                var isfile;
+                let isfile;
                 try {
                     isfile = fs.statSync(a).isFile()
                 }
@@ -246,22 +243,22 @@ define(function (require) {
     // create a file finder
     function fileFinder(root) {
 
-        var scanHash
+        let scanHash;
 
         function scan(dir, done) {
             fs.readdir(dir, function (err, list) {
                 if (err) return done(err)
-                var i = 0
+                let i = 0;
 
                 function next() {
-                    var file = list[i++]
+                    let file = list[i++];
                     if (!file) return done()
                     file = dir + '/' + file
                     fs.stat(file, function (err, stat) {
                         if (stat && stat.isDirectory()) {
                             scan(file, next)
                         } else {
-                            var f = file.toLowerCase().split('/')
+                            const f = file.toLowerCase().split('/');
                             while (f.length) {
                                 scanHash[f.join('/')] = file
                                 f.shift()
@@ -279,14 +276,14 @@ define(function (require) {
             // open a file in the editor
             fs.stat(file, function (err, stat) {
                 if (!err) return found(null, file)
-                var sp = file.split('/')
+                const sp = file.split('/');
                 resolve()
                 function resolve() {
                     if (sp.length == 0) { // not found the fast way
                         function find() {
-                            var f = file.toLowerCase().split('/')
+                            const f = file.toLowerCase().split('/');
                             while (f.length) {
-                                var sf = scanHash[f.join('/')]
+                                const sf = scanHash[f.join('/')];
                                 if (sf) return found(null, sf)
                                 f.shift()
                             }
@@ -302,7 +299,7 @@ define(function (require) {
                             find()
                         }
                     } else {
-                        var sf = path.resolve(root, sp.join('/'))
+                        const sf = path.resolve(root, sp.join('/'));
                         fs.stat(sf, function (err, stat) {
                             if (!err) return found(null, sf)
                             sp.shift()
@@ -315,29 +312,29 @@ define(function (require) {
     }
 
     function openEditor(file, line) {
-        var ed
-        var s = define.settings
+        let ed;
+        const s = define.settings;
         if (!s.editors || !(ed = s.editors[process.platform])) {
             return console.log("No editor settings available for your platform")
         }
         // lets try all editors
-        for (var k in ed) {
+        for (const k in ed) {
             if (fs.existsSync(ed[k].bin)) {
                 // execute editor
-                var rep = { file: file, line: line }
-                var args = ed[k].args
-                var narg = []
-                for (var i = 0; i < args.length; i++) {
+                const rep = { file: file, line: line };
+                const args = ed[k].args;
+                const narg = [];
+                for (let i = 0; i < args.length; i++) {
                     narg[i] = args[i].replace(/\$(\w+)/g, function (m, a) {
                         if (!a in rep) console.log("Opening editor: argument not supported " + a)
                         return rep[a]
                     })
                 }
                 console.log('Opening ' + file + ' line ' + line + ' with ' + k)
-                var child = childproc.spawn(ed[k].bin, narg, {
+                const child = childproc.spawn(ed[k].bin, narg, {
                     detached: true,
                     stdio: [process.stdin, process.stdout, process.stderr]
-                })
+                });
                 return
             }
         }
@@ -357,11 +354,11 @@ define(function (require) {
         ui.listen(port, bind)
         out("~~[trace.GL]~w~ WebGL trace UI: http://" + bind + ":" + port + "\n")
 
-        var dict = []
-        var queue = []
-        var joined = false
+        const dict = [];
+        let queue = [];
+        let joined = false;
 
-        var finder = fileFinder(process.cwd())
+        const finder = fileFinder(process.cwd());
 
         // set a filewatch on settings
         if (define.settingsFile) {
@@ -399,7 +396,7 @@ define(function (require) {
         }
 
         // outgoing data channel
-        var lgc = 0
+        let lgc = 0;
         return function (m) {
             // verify ordering
             if (!m.dict) {
@@ -424,8 +421,8 @@ define(function (require) {
     // send data to zip
     function gzSender(file) {
         // pipe writer into gzip into file
-        var gz = zlib.createGzip()
-        var fstr = fs.createWriteStream(file)
+        const gz = zlib.createGzip();
+        const fstr = fs.createWriteStream(file);
         fstr.on('error', function (err) {
             console.log("Error writing " + file + " " + err)
         })
@@ -436,8 +433,8 @@ define(function (require) {
 
         gz.pipe(fstr)
 
-        var buf = []
-        var total = 0
+        let buf = [];
+        let total = 0;
 
         function flush(end) {
             if (buf.length) {
@@ -449,7 +446,7 @@ define(function (require) {
             }
         }
 
-        var terminated = false
+        let terminated = false;
         process.on('SIGINT', function () {
             terminated = true
             console.log('got sigint, flushing gz')
@@ -474,7 +471,7 @@ define(function (require) {
                 flush(true);
             } else {
                 // we should buffer atleast a megabyte
-                var data = '\x1f' + JSON.stringify(m) + '\x17'
+                const data = '\x1f' + JSON.stringify(m) + '\x17';
                 buf.push(data)
                 total += data.length
                 if (total > 1024 * 1024) flush()
@@ -486,7 +483,7 @@ define(function (require) {
     function browserJSMode(filter, port, bind, root, sender) {
 
         // start the target server
-        var tgt = ioServer()
+        const tgt = ioServer();
         tgt.root = root
         tgt.listen(port, bind)
         //appHttp.watcher = define.watcher()
@@ -497,8 +494,8 @@ define(function (require) {
             sender(m)
         }
 
-        var fileCache = {}
-        var did = 1 // count instrument offset id
+        let fileCache = {};
+        let did = 1; // count instrument offset id
 
         tgt.fileChange = function (f) {
             // lets flush everything
@@ -515,7 +512,7 @@ define(function (require) {
             // cache
             if (fileCache[file]) return fileCache[file].output
             // lets use trace
-            var t = fileCache[file] = instrument(file, data.toString('utf8'), did, filter.opt)
+            const t = fileCache[file] = instrument(file, data.toString('utf8'), did, filter.opt);
             did = t.id
             // send to UI
             sender({ dict: 1, f: file, src: t.input, d: t.d })
@@ -524,9 +521,9 @@ define(function (require) {
     }
 
     function streamParser(dataCb, sideCb) {
-        var last = ""
+        let last = "";
         return function (d) {
-            var data = last + d.toString();
+            let data = last + d.toString();
             last = "";
             data = data.replace(/\x1f(.*?)\x17/g, function (x, m) {
                 try {
@@ -546,7 +543,7 @@ define(function (require) {
     // node server
     function nodeJSMode(filter, file, args, sender) {
         // we start up ourselves with -l
-        var cp = require('child_process')
+        const cp = require('child_process');
         args.unshift(file)
         args.unshift('-l' + filter.stringify())
         args.unshift(process.argv[1])
@@ -555,17 +552,17 @@ define(function (require) {
             args.unshift('--debug-brk')
         }
 
-        var stdio = [process.stdin, process.stdout, 'pipe']
+        const stdio = [process.stdin, process.stdout, 'pipe'];
         //if(process.version.indexOf('v0.8') != -1)	stdio.push('ipc')
 
-        var child = cp.spawn(process.execPath, args, {
+        const child = cp.spawn(process.execPath, args, {
             stdio: stdio
-        })
+        });
 
         // stderr datapath
-        var sp = streamParser(sender, function (d) {
+        const sp = streamParser(sender, function (d) {
             process.stderr.write(d)
-        })
+        });
         if (child.stderr) child.stderr.on('data', sp)
 
         // ipc datapath
@@ -580,7 +577,7 @@ define(function (require) {
 
     function proxyMode(filter, port, bind, proxy, sender) {
         // start the target server
-        var tgt = ioServer()
+        const tgt = ioServer();
         tgt.root = root
         tgt.proxy = url.parse(proxy)
         tgt.listen(port, "0.0.0.0")
@@ -593,8 +590,8 @@ define(function (require) {
             sender(m)
         }
 
-        var fileCache = {}
-        var did = 1 // count instrument offset id
+        const fileCache = {};
+        let did = 1; // count instrument offset id
         tgt.process = function (file, data, type) {
             if (type != "application/javascript") return data
 
@@ -602,7 +599,7 @@ define(function (require) {
             // turn off cache
             // if(fileCache[file]) return fileCache[file].output
             // lets use trace
-            var t = fileCache[file] = instrument(file, data.toString('utf8'), did, filter.opt)
+            const t = fileCache[file] = instrument(file, data.toString('utf8'), did, filter.opt);
             did = t.id
             // send to UI
             sender({ dict: 1, f: file, src: t.input, d: t.d })
@@ -614,14 +611,14 @@ define(function (require) {
 
     function gzPlaybackMode(filter, file, sender) {
         // just output the gz file to sender
-        var rs = fs.createReadStream(file)
-        var gz = zlib.createGunzip()
+        const rs = fs.createReadStream(file);
+        const gz = zlib.createGunzip();
         process.stdout.write("Loading gzipped trace .")
         rs.pipe(gz)
-        var sp = streamParser(function (m) {
+        const sp = streamParser(function (m) {
             if (m.g % 1000 == 0) process.stdout.write(".")
             sender(m)
-        })
+        });
         gz.on('data', sp)
         gz.on('end', function () {
             process.stdout.write("Complete!\n")

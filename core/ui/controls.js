@@ -6,32 +6,32 @@
 
 define(function (require, exports) {
 
-    var ui = require("./ui")
-    var fn = require("./../fn")
-    var cm = require("./controls_mix")
+    var ui = require("./ui");
+    const fn = require("./../fn");
+    const cm = require("./controls_mix");
 
-    var ct = exports
+    const ct = exports;
 
     ct.f1s = ui.gl.sfont("12px Arial")
     ct.f1p = ui.gl.pfont("12px Arial")
 
     // shared style functions
-    var bump = 'mix(vec4(0,0,0,0), n.hc, (0.5 + 0.5 * dot(vec3(1,0,0),normal(0.001, 0.001, n.hm))))'
+    const bump = 'mix(vec4(0,0,0,0), n.hc, (0.5 + 0.5 * dot(vec3(1,0,0),normal(0.001, 0.001, n.hm))))';
 
     // |  bumpmapped button
     // \____________________________________________/
     ct.button = function (g) {
         // parts
-        var b = ui.rect()
-        var t = ui.text()
+        const b = ui.rect();
+        const t = ui.text();
         t._p = b
 
         // behaviorw
         cm.button(b)
 
         // style
-        var bu = '0.3*pow(sin(c.x*P*0.999),(1+4*n.i1)/n.w)*pow(sin(c.y*P*0.98),2/n.h)'
-        var bd = '0.3*((1-n.i0)+1.5*(n.i0)*len(c-0.5)*pow(tsin(len(c-0.5)*5-n.i0),1))*pow(sin(c.x*P*0.999),(1+40*n.i1)/n.w)*pow(sin(c.y*P*0.98),2/n.h)'
+        const bu = '0.3*pow(sin(c.x*P*0.999),(1+4*n.i1)/n.w)*pow(sin(c.y*P*0.98),2/n.h)';
+        const bd = '0.3*((1-n.i0)+1.5*(n.i0)*len(c-0.5)*pow(tsin(len(c-0.5)*5-n.i0),1))*pow(sin(c.x*P*0.999),(1+40*n.i1)/n.w)*pow(sin(c.y*P*0.98),2/n.h)';
         b.f = bump
         t.f = 'sfont(t.deftbg, t.dlgtxt)'
         b.hm = bu
@@ -42,15 +42,15 @@ define(function (require, exports) {
 
         // states
         b.f_ =
-            b.s_ =
-                b.i = function () {
-                    t.a1 = b.a1 = -0.01
-                }
+          b.s_ =
+            b.i = function () {
+                t.a1 = b.a1 = -0.01
+            }
         b.u_ =
-            b.d_ =
-                b.o = function () {
-                    t.a1 = b.a1 = 0.1
-                }
+          b.d_ =
+            b.o = function () {
+                t.a1 = b.a1 = 0.1
+            }
         b.n_ = function () {
             b.a0 = -0.1, b.e0 = { hm: bu }
         }
@@ -78,8 +78,8 @@ define(function (require, exports) {
     ct.vScrollHider = function (g) {
         "no tracegl"
         // parts
-        var b = ui.rect()
-        var k = ui.rect()
+        const b = ui.rect();
+        const k = ui.rect();
         k._p = b
         b.e = k.e = ct.el
 
@@ -96,26 +96,26 @@ define(function (require, exports) {
         b.f = 'mix(vec4(0,0,0,0),vec4(.4,.4,.4,0.1-n.i1),1-smoothstep(0.6,1.0,n.shape(2*(c-.5))) )'
         k.f = 'mix(vec4(0,0,0,0),vec4(.4,.4,.4,1-n.i1),1-smoothstep(0.8,1.0,n.shape(2*(c-.5))) )'
 
-        var hider
-        var inout
+        let hider;
+        let inout;
         // states
         b.i =
-            k.i = function () {
-                b.a1 = k.a1 = -0.01;
-                inout = 1;
-                if (hider) clearTimeout(hider), hider = 0
-            }
+          k.i = function () {
+              b.a1 = k.a1 = -0.01;
+              inout = 1;
+              if (hider) clearTimeout(hider), hider = 0
+          }
         b.o =
-            k.o = function () {
-                if (hider) clearTimeout(hider)
-                hider = setTimeout(function () {
-                    hider = 0
-                    b.a1 = k.a1 = 0.5
-                    ui.redraw(b)
-                }, 1000)
-                inout = 0
-                //b.a1 = k.a1 = 0.1;inout = 0
-            }
+          k.o = function () {
+              if (hider) clearTimeout(hider)
+              hider = setTimeout(function () {
+                  hider = 0
+                  b.a1 = k.a1 = 0.5
+                  ui.redraw(b)
+              }, 1000)
+              inout = 0
+              //b.a1 = k.a1 = 0.1;inout = 0
+          }
         k.n_ = function () {
             k.a0 = -0.3
         }
@@ -161,8 +161,8 @@ define(function (require, exports) {
     ct.hScrollHider = function (g) {
         "no tracegl"
         // parts
-        var b = ui.rect()
-        var k = ui.rect()
+        const b = ui.rect();
+        const k = ui.rect();
         k._p = b
 
         // behavior
@@ -177,26 +177,26 @@ define(function (require, exports) {
         b.f = 'mix(vec4(0,0,0,0),vec4(.5,.5,.5,0.1-n.i1),1-smoothstep(0.8,1.0,n.shape(2*(c-.5))) )'
         k.f = 'mix(vec4(0,0,0,0),vec4(.5,.5,.5,1-n.i1),1-smoothstep(0.8,1.0,n.shape(2*(c-.5))) )'
 
-        var hider
-        var inout
+        let hider;
+        let inout;
         // states
         b.i =
-            k.i = function () {
-                b.a1 = k.a1 = -0.01;
-                inout = 1;
-                if (hider) clearTimeout(hider), hider = 0
-            }
+          k.i = function () {
+              b.a1 = k.a1 = -0.01;
+              inout = 1;
+              if (hider) clearTimeout(hider), hider = 0
+          }
         b.o =
-            k.o = function () {
-                if (hider) clearTimeout(hider)
-                hider = setTimeout(function () {
-                    hider = 0
-                    b.a1 = k.a1 = 0.5
-                    ui.redraw(b)
-                }, 1000)
-                inout = 0
-                //b.a1 = k.a1 = 0.1;inout = 0
-            }
+          k.o = function () {
+              if (hider) clearTimeout(hider)
+              hider = setTimeout(function () {
+                  hider = 0
+                  b.a1 = k.a1 = 0.5
+                  ui.redraw(b)
+              }, 1000)
+              inout = 0
+              //b.a1 = k.a1 = 0.1;inout = 0
+          }
         k.n_ = function () {
             k.a0 = -0.3
         }
@@ -237,8 +237,8 @@ define(function (require, exports) {
     // \____________________________________________/
     ct.vScroll = function (g) {
         // parts
-        var b = ui.rect()
-        var k = ui.rect()
+        const b = ui.rect();
+        const k = ui.rect();
         k._p = b
         b.e = k.e = ct.el
 
@@ -248,8 +248,8 @@ define(function (require, exports) {
         // style
         b.f = 'mix(t.defbg2,t.dlgbg,0.3+0.03*snoise2(vec2(c.x*n.w*0.5,c.y*n.h*0.5)))'
         k.f = bump
-        var bu = 'pow(sin(c.x*P*0.999),1/n.w) * pow(sin(c.y*P*0.999),1/n.h)'
-        var bd = 'pow(sin(c.x*P*0.999),1/n.w) * pow(sin(c.y*P*0.999),1/n.h) + sin((c.y-0.5)*P*(n.i0))'
+        const bu = 'pow(sin(c.x*P*0.999),1/n.w) * pow(sin(c.y*P*0.999),1/n.h)';
+        const bd = 'pow(sin(c.x*P*0.999),1/n.w) * pow(sin(c.y*P*0.999),1/n.h) + sin((c.y-0.5)*P*(n.i0))';
         b.hm = bd
         k.hm = bu
         b.hc = 'mix(t.dlghi, t.dlgbg, n.i1)'
@@ -290,8 +290,8 @@ define(function (require, exports) {
     // \____________________________________________/
     ct.hScroll = function (g) {
         // parts
-        var b = ui.rect()
-        var k = ui.rect()
+        const b = ui.rect();
+        const k = ui.rect();
         k._p = b
 
         // behavior
@@ -300,8 +300,8 @@ define(function (require, exports) {
         // style
         b.f = 'mix(t.defbg2,t.dlgbg,0.3+0.03*snoise2(vec2(c.x*n.w*0.5,c.y*n.h*0.5)))'
         k.f = bump
-        var bu = 'pow(sin(c.x*P*0.999),3/n.w) * pow(sin(c.y*P*0.999),1/n.h)*0.15'
-        var bd = 'pow(sin(c.x*P*0.999),3/n.w) * pow(sin(c.y*P*0.999),1/n.h)*0.15 + sin((c.y-0.5)*P*(n.i0))'
+        const bu = 'pow(sin(c.x*P*0.999),3/n.w) * pow(sin(c.y*P*0.999),1/n.h)*0.15';
+        const bd = 'pow(sin(c.x*P*0.999),3/n.w) * pow(sin(c.y*P*0.999),1/n.h)*0.15 + sin((c.y-0.5)*P*(n.i0))';
         b.hm = bd
         k.hm = bu
         b.hc = 'mix(t.dlghi, t.dlgbg, n.i1)'
@@ -339,7 +339,7 @@ define(function (require, exports) {
     // |  hv scrollbar filler
     // \____________________________________________/
     ct.hvFill = function (g) {
-        var b = ui.rect()
+        const b = ui.rect();
 
         b.f = 'mix(t.defbg2,t.dlgbg,0.3+0.03*snoise2(vec2(c.x*n.w*0.5,c.y*n.h*0.5)))'
         b._x = 'p._x + n.x' // disconnect scrollbar from padding
@@ -352,26 +352,26 @@ define(function (require, exports) {
     // \____________________________________________/
     ct.hvScroll = function (b) {
         //vertical scrollbar
-        var v = b._v_ || (b._v_ = ct.vScroll())
+        const v = b._v_ || (b._v_ = ct.vScroll());
         v._b = b // use front list
         v.l = 1
         v._z = Infinity
         // horiz scrollbar
-        var h = b._h_ || (b._h_ = ct.hScroll())
+        const h = b._h_ || (b._h_ = ct.hScroll());
         h._b = b // use front list
         h.l = 1
         h._z = Infinity
 
-        var sw = 10  // scrollbar width
+        const sw = 10;  // scrollbar width
 
         // scroll corner
-        var c = ct.hvFill({ x: 'p.w_ - ' + sw, y: 'p.h_ - ' + sw, w: sw, h: sw })
+        const c = ct.hvFill({ x: 'p.w_ - ' + sw, y: 'p.h_ - ' + sw, w: sw, h: sw });
         c._b = b
         c.l = 1
 
         function cv() { // compute view
-            var y = b.eval('h')
-            var x = b.eval('w')
+            const y = b.eval('h');
+            const x = b.eval('w');
             v.pg = y
             v.ts = b.vSize + sw
             h.pg = x
@@ -413,8 +413,8 @@ define(function (require, exports) {
     // \____________________________________________/
     ct.vSlider = function (g) {
         // parts
-        var b = ui.rect()
-        var k = ui.rect()
+        const b = ui.rect();
+        const k = ui.rect();
         k._p = b
 
         // behavior
@@ -423,21 +423,21 @@ define(function (require, exports) {
         // style
         k.f = bump
         b.f = 'mix( vec4(0,0,0,0),black, (pow(sin(c.x*P),n.w*4)) )'
-        var bu = '0.75*pow(sin(c.x*P*0.999),(10 + 50*n.i1)/n.w) * pow(sin(c.y*P*0.999),10/n.h)'
-        var bd = '0.75*((1-n.i0)+0.5*(n.i0)*len(c-0.5)*pow(tsin(len(c-0.5)*5-n.i0),1))*pow(sin(c.x*P*0.999),(10 + 50*n.i1)/n.w)*pow(sin(c.y*P*0.999),10/n.h)'
+        const bu = '0.75*pow(sin(c.x*P*0.999),(10 + 50*n.i1)/n.w) * pow(sin(c.y*P*0.999),10/n.h)';
+        const bd = '0.75*((1-n.i0)+0.5*(n.i0)*len(c-0.5)*pow(tsin(len(c-0.5)*5-n.i0),1))*pow(sin(c.x*P*0.999),(10 + 50*n.i1)/n.w)*pow(sin(c.y*P*0.999),10/n.h)';
         k.hm = bu
         b.hc = 'mix(t.dlghi, t.dlgbg, n.i1)'
         k.hc = 'mix(t.dlghi, t.dlgbg, n.i1)'
 
         // states
         k.f_ =
-            k.i = function () {
-                k.a1 = -0.01
-            }
+          k.i = function () {
+              k.a1 = -0.01
+          }
         k.u_ =
-            k.o = function () {
-                k.a1 = 0.1
-            }
+          k.o = function () {
+              k.a1 = 0.1
+          }
         k.n_ = function () {
             k.a0 = -0.1, k.e0 = { hm: bu }
         }
@@ -463,8 +463,8 @@ define(function (require, exports) {
     // \____________________________________________/
     ct.hSlider = function (g) {
         // parts
-        var b = ui.rect()
-        var k = ui.rect()
+        const b = ui.rect();
+        const k = ui.rect();
         k._p = b
 
         // behavior
@@ -473,21 +473,21 @@ define(function (require, exports) {
         // style
         k.f = bump
         b.f = 'mix( vec4(0,0,0,0),black, (pow(sin(c.y*P),n.h*4)) )'
-        var bu = '0.75*pow(sin(c.x*P*0.999),(10 + 10*n.i1)/n.w) * pow(sin(c.y*P*0.999),10/n.h)'
-        var bd = '0.75*((1-n.i0)+0.5*(n.i0)*len(c-0.5)*pow(tsin(len(c-0.5)*5-n.i0),1))*pow(sin(c.x*P*0.999),(10 + 10*n.i1)/n.w)*pow(sin(c.y*P*0.999),10/n.h)'
+        const bu = '0.75*pow(sin(c.x*P*0.999),(10 + 10*n.i1)/n.w) * pow(sin(c.y*P*0.999),10/n.h)';
+        const bd = '0.75*((1-n.i0)+0.5*(n.i0)*len(c-0.5)*pow(tsin(len(c-0.5)*5-n.i0),1))*pow(sin(c.x*P*0.999),(10 + 10*n.i1)/n.w)*pow(sin(c.y*P*0.999),10/n.h)';
         k.hm = bu
         b.hc = 'mix(t.dlghi, t.dlgbg, n.i1)'
         k.hc = 'mix(t.dlghi, t.dlgbg, n.i1)'
 
         // states
         k.f_ =
-            k.i = function () {
-                k.a1 = -0.01
-            }
+          k.i = function () {
+              k.a1 = -0.01
+          }
         k.u_ =
-            k.o = function () {
-                k.a1 = 0.1
-            }
+          k.o = function () {
+              k.a1 = 0.1
+          }
         k.n_ = function () {
             k.a0 = -0.1, k.e0 = { hm: bu }
         }
@@ -512,17 +512,17 @@ define(function (require, exports) {
     // |  item
     // \____________________________________________/
     ct.item = function (t) {
-        var g = fn.named(arguments)
+        const g = fn.named(arguments);
         // parts
-        var b = ui.rect()
+        const b = ui.rect();
         var t = ui.text()
         t._p = b
 
         // style
-        var sb = 'mix(t.deftxt,t.selbg,n.i0)'  // selected base
-        var nb = 't.defbg' // normal base
-        var st = 'sfont( mix(t.deftxt,t.selbg,n.i0), t.seltxt)' // selected text
-        var nt = 'sfont(t.defbg, t.deftxt)' // normal text
+        const sb = 'mix(t.deftxt,t.selbg,n.i0)';  // selected base
+        const nb = 't.defbg'; // normal base
+        const st = 'sfont( mix(t.deftxt,t.selbg,n.i0), t.seltxt)'; // selected text
+        const nt = 'sfont(t.defbg, t.deftxt)'; // normal text
         b.f = nb
         t.f = nt
         t.b = ct.f1s
@@ -558,7 +558,7 @@ define(function (require, exports) {
     // |  label
     // \____________________________________________/
     ct.label = function (g) {
-        var t = ui.text()
+        const t = ui.text();
         t.f = 'sfont(t.defbg, t.deftxt)' // text frag shader
         t.b = ct.f1s // text bitmap
         t.set(g)
@@ -568,7 +568,7 @@ define(function (require, exports) {
     // |  label centered
     // \____________________________________________/
     ct.labelc = function (g) {
-        var t = ui.text()
+        const t = ui.text();
         t.f = 'sfont(t.defbg, t.deftxt)' // text frag shader
         t.b = ct.f1s // text bitmap
         t.x = 'ceil(0.5*p.w - 0.5*n.w)' // center
@@ -580,8 +580,8 @@ define(function (require, exports) {
     // \____________________________________________/
     ct.list = function (g) {
         // parts
-        var b = ui.rect()
-        var v = b._v_ = ct.vscroll()
+        const b = ui.rect();
+        const v = b._v_ = ct.vscroll();
         v._b = b // use front list
         b.l = v.l = 1 // both are layers
 
@@ -612,12 +612,12 @@ define(function (require, exports) {
     // \____________________________________________/
     ct.edit = function (g) {
         // parts
-        var b = ui.rect() // base
-        var t = ui.text() // text
-        var c = ui.rect() // cursor
-        var s = ui.rect() // selection
-        var m = ui.text()	// marked text
-        var e // empty text
+        const b = ui.rect(); // base
+        const t = ui.text(); // text
+        const c = ui.rect(); // cursor
+        const s = ui.rect(); // selection
+        const m = ui.text();	// marked text
+        let e; // empty text
         t._p = c._p = s._p = b
         m._p = s
         b.l = 1
@@ -634,12 +634,12 @@ define(function (require, exports) {
         b.f = bump
         b.h = 24
 
-        var bw = '1-0.5*pow(sin(c.x*P*0.9),1/n.w)*pow(sin(c.y*P*0.9),1/n.h)'
+        const bw = '1-0.5*pow(sin(c.x*P*0.9),1/n.w)*pow(sin(c.y*P*0.9),1/n.h)';
         b.hm = bw
         b.hc = 'mix(t.dlghi, t.dlgbg, n.i0)'
 
-        var bl
-        var foc
+        let bl;
+        let foc;
         b.f_ = function () {
             foc = 1
             m.a0 = -0.05
@@ -703,16 +703,16 @@ define(function (require, exports) {
     // |  combobox
     // \____________________________________________/
     ct.comboBox = function (g) {
-        var e = ct.edit()
+        const e = ct.edit();
     }
 
     // |  dropshadow
     // \____________________________________________/
     ct.dropShadow = function (g) {
         // add dropshadow
-        var e = ui.edge()
+        const e = ui.edge();
         e.set(g)
-        var r = e.radius || 10
+        const r = e.radius || 10;
         e._x = 'p._x - (' + r + ')'
         e._y = 'p._y - (' + r + ')'
         e._w = 'p._w + (' + (2 * r) + ')'
@@ -733,9 +733,9 @@ define(function (require, exports) {
     // \____________________________________________/
     ct.innerShadow = function (g) {
         // add dropshadow
-        var e = ui.edge()
+        const e = ui.edge();
         e.set(g)
-        var r = e.radius || 10
+        const r = e.radius || 10;
         e.l = 1
         e.mx = r
         e.my = r
@@ -752,10 +752,10 @@ define(function (require, exports) {
     // \____________________________________________/
     ct.window = function (g) {
         // parts
-        var b = ui.rect()
-        var c = ui.rect()
-        var t = ui.text()
-        var d = ct.dropShadow()
+        const b = ui.rect();
+        const c = ui.rect();
+        const t = ui.text();
+        const d = ct.dropShadow();
         c._p = b
         d._p = b
         t._p = c
@@ -772,9 +772,9 @@ define(function (require, exports) {
         // style
         b.f = bump
         c.f = bump
-        var bw = 'pow(sin(c.x*P*0.999),2/n.w)*pow(sin(c.y*P*0.99),2/n.h)'
-        var bc = 'pow(sin(c.x*P*0.999),2/n.w)*pow(sin(c.y*P*0.98),2/n.h)+(n.i0)*0.01*(sin((c.y-0.5)*n.h*n.i0*1))'
-        var bu = 'pow(sin(c.x*P*0.999),2/n.w)*pow(sin(c.y*P*0.98),2/n.h)'
+        const bw = 'pow(sin(c.x*P*0.999),2/n.w)*pow(sin(c.y*P*0.99),2/n.h)';
+        const bc = 'pow(sin(c.x*P*0.999),2/n.w)*pow(sin(c.y*P*0.98),2/n.h)+(n.i0)*0.01*(sin((c.y-0.5)*n.h*n.i0*1))';
+        const bu = 'pow(sin(c.x*P*0.999),2/n.w)*pow(sin(c.y*P*0.98),2/n.h)';
         c.hm = bu
         c.hc = 'mix(t.dlghi, t.dlgbg, n.i1)'
         b.hm = bw
@@ -820,9 +820,9 @@ define(function (require, exports) {
 
     ct.hSplit = function (g) {
         // parts
-        var b = ui.group()
+        const b = ui.group();
         b.l = 1
-        var d = ui.rect()
+        const d = ui.rect();
         d._b = b
         d.l = 1
         d.w = 5
@@ -838,10 +838,10 @@ define(function (require, exports) {
             ui.cursor('ew-resize')
         }
         d.u_ =
-            d.o = function () {
-                d.a1 = 0.1;
-                ui.cursor('default')
-            }
+          d.o = function () {
+              d.a1 = 0.1;
+              ui.cursor('default')
+          }
         d.n_ = function () {
             d.a0 = 0.1
         }
@@ -861,9 +861,9 @@ define(function (require, exports) {
 
     ct.vSplit = function (g) {
         // parts
-        var b = ui.group()
+        const b = ui.group();
         b.l = 1
-        var d = ui.rect()
+        const d = ui.rect();
         d._b = b
         d.l = 1
         d.h = 5
@@ -879,10 +879,10 @@ define(function (require, exports) {
             ui.cursor('ns-resize')
         }
         d.u_ =
-            d.o = function () {
-                d.a1 = 0.1;
-                ui.cursor('default')
-            }
+          d.o = function () {
+              d.a1 = 0.1;
+              ui.cursor('default')
+          }
         d.n_ = function () {
             d.a0 = 0.1
         }
@@ -904,10 +904,10 @@ define(function (require, exports) {
             n.w = 15
             n.h = 15
             n.f = ''
-                + 'mix(vec4(0,0,0,0),white,'
-                + 'clamp(pow(pow((1-2*len(c-0.5)),1.0)*(pow(sin(c.x*P),88)*ts(2)+pow(sin(c.y*P),88))*0.5+0.8,4)-0.75,0,1)+'
-                + '0.7*pow(sin(P*len(vec2(pow(2*(c.x-0.5),2),pow(2*(c.y-0.5),2))) -0.3-0.5*ts(2)),4)'
-                + ')'
+              + 'mix(vec4(0,0,0,0),white,'
+              + 'clamp(pow(pow((1-2*len(c-0.5)),1.0)*(pow(sin(c.x*P),88)*ts(2)+pow(sin(c.y*P),88))*0.5+0.8,4)-0.75,0,1)+'
+              + '0.7*pow(sin(P*len(vec2(pow(2*(c.x-0.5),2),pow(2*(c.y-0.5),2))) -0.3-0.5*ts(2)),4)'
+              + ')'
         })
     }
 
@@ -919,14 +919,14 @@ define(function (require, exports) {
             n.w = 100
             n.h = 100
             n.f = ''
-                + 'mix(vec4(0,0,0,0),white,'
-                + '(1-clamp(pow(5*len(c-0.5-vec2(-0.25*ts(1),0)),30*ts(1)),0,1) * '
-                + 'clamp(pow(5*len(c-0.5-vec2(+0.25*ts(1),0)),30*ts(1)),0,1) *  '
-                + 'clamp(pow(5*len(c-0.5-vec2(0,-.17*pow(ts(1),4))),30*ts(1)),0,1) *'
-                + 'clamp(pow(5*len(c-0.5-vec2(0,0)),30*ts(1)),0,1) *'
-                + 'clamp(pow(5*len(c-0.5-vec2(-.12*ts(1),0)),30*ts(1)),0,1) *'
-                + 'clamp(pow(5*len(c-0.5-vec2(+.12*ts(1),0)),30*ts(1)),0,1))'
-                + ')'
+              + 'mix(vec4(0,0,0,0),white,'
+              + '(1-clamp(pow(5*len(c-0.5-vec2(-0.25*ts(1),0)),30*ts(1)),0,1) * '
+              + 'clamp(pow(5*len(c-0.5-vec2(+0.25*ts(1),0)),30*ts(1)),0,1) *  '
+              + 'clamp(pow(5*len(c-0.5-vec2(0,-.17*pow(ts(1),4))),30*ts(1)),0,1) *'
+              + 'clamp(pow(5*len(c-0.5-vec2(0,0)),30*ts(1)),0,1) *'
+              + 'clamp(pow(5*len(c-0.5-vec2(-.12*ts(1),0)),30*ts(1)),0,1) *'
+              + 'clamp(pow(5*len(c-0.5-vec2(+.12*ts(1),0)),30*ts(1)),0,1))'
+              + ')'
         })
     }
 
@@ -934,22 +934,22 @@ define(function (require, exports) {
     // |  horizontal slides with kb nav
     // \____________________________________________/
     ct.slides = function (g) {
-        var b = ui.group()
+        const b = ui.group();
 
-        var fnt_big = ui.gl.pfont("55px Monaco")
-        var fnt_med = ui.gl.pfont("30px Monaco")
+        const fnt_big = ui.gl.pfont("55px Monaco");
+        const fnt_med = ui.gl.pfont("30px Monaco");
 
         //| our slide template
         b.slide = function (g) {
-            var n = ui.rect()
+            const n = ui.rect();
             n.l = 1
             n.b = fnt_big
             n.f = 'mix(black,gray,c.y);'
 
             //| part templates
             n.title = function (t, y) {
-                var g = fn.named(arguments)
-                var n = ui.text()
+                const g = fn.named(arguments);
+                const n = ui.text();
                 n.x = '0.5*p.w - 0.5*n.w' // center
                 n.y = 5
                 n.b = fnt_big
@@ -958,11 +958,11 @@ define(function (require, exports) {
                 return n
             }
 
-            var bc = 0
+            let bc = 0;
             //| bullet
             n.bullet = function (t, y) {
-                var g = fn.named(arguments)
-                var n = ui.text()
+                const g = fn.named(arguments);
+                const n = ui.text();
                 n.x = '0.5*p.w - 0.5*800 + 20'
                 n.y = '0.5*p.h - 0.5*600 + 20 + n.yv*40'
                 n.yv = bc++
@@ -974,7 +974,7 @@ define(function (require, exports) {
 
             // picture frame
             n.pic = function (g) {
-                var n = ui.rect()
+                const n = ui.rect();
                 n.x = '0.5*p.w - 0.5*n.w'
                 n.y = '0.5*p.h - 0.5*n.h'
                 n.w = 800

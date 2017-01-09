@@ -6,34 +6,34 @@
 
 define(function (require) {
 
-    var fn = require("../../core/fn")
-    var ui = require("../../core/ui/ui")
+    const fn = require("../../core/fn");
+    const ui = require("../../core/ui/ui");
 
-    var acorn_tools = require("../../core/acorn_tools")
+    const acorn_tools = require("../../core/acorn_tools");
 
-    var tm = require("../../core/ui/text_mix")
+    const tm = require("../../core/ui/text_mix");
 
     //|  Styling
     //\____________________________________________/
 
-    var ft1 = ui.gl.sfont(
-        navigator.platform.match(/Mac/) ?
-        "12px Menlo" :
-        "12px Lucida Console")
+    const ft1 = ui.gl.sfont(
+      navigator.platform.match(/Mac/) ?
+      "12px Menlo" :
+      "12px Lucida Console");
 
     function codeDb(g) {
 
-        var db = { sh: {} }
+        const db = { sh: {} };
         db.files = {}
 
-        var ls = 0 // leading spaces
-        var lw = 0 // leading width
+        let ls = 0; // leading spaces
+        let lw = 0; // leading width
         function addWhitespace(f, text, fg) {
             // process whitespace and comments
-            var l = text.length
-            var v = f.text.last() || f.addChunk('', c)
+            const l = text.length;
+            let v = f.text.last() || f.addChunk('', c);
             // if n.w contains comments
-            for (var i = 0; i < l; i++) {
+            for (let i = 0; i < l; i++) {
 
                 var c = text.charCodeAt(i)
                 if (c == 32) { // space
@@ -46,7 +46,7 @@ define(function (require) {
                 }
                 else if (c == 9) { // tab
                     // snap to tab boundary
-                    var tw = tabWidth - v.x % tabWidth
+                    const tw = tabWidth - v.x % tabWidth;
                     // output tabline ad tw
                     if (ls && !(v.x % tabWidth)) {
                         v = f.addChunk("\x7f", ctbl.tab), v.x += tabWidth - 1
@@ -55,7 +55,7 @@ define(function (require) {
                     }
                 }
                 else if (c == 10) { // newline
-                    var xold = v.x
+                    const xold = v.x;
                     if (v.x < lw) { // output missing tabs
                         for (v.x = v.x ? tabWidth : 0; v.x < lw; v.x += tabWidth - 1) {
                             v = f.addChunk("\x7f", ctbl.tab)
@@ -91,7 +91,7 @@ define(function (require) {
         }
 
         db.parse = function (name, src) {
-            var f = db.files[name] || (db.files[name] = {})
+            const f = db.files[name] || (db.files[name] = {});
             f.file = name
             // create text storage on file object
             tm.storage(f)
@@ -100,11 +100,11 @@ define(function (require) {
             src = src.replace(/^\#.*?\n/, '\n')
             f.lines = src.replace(/\t/, Array(tabWidth + 1).join(' ')).split(/\n/)
 
-            var t = acorn_tools.parse(src)
+            const t = acorn_tools.parse(src);
             t.tokens.walk(function (n) {
                 if (n.t) {
                     // colorize token
-                    var c = ctbl[n._t.type]
+                    let c = ctbl[n._t.type];
                     if (!c) {
                         if (n._t.binop || n._t.isAssign) {
                             c = ctbl.operator
@@ -120,8 +120,8 @@ define(function (require) {
                     }
                     // process token
                     if (n.t.indexOf('\n') != -1) {
-                        var a = n.t.split(/\n/)
-                        for (var i = 0; i < a.length; i++) {
+                        const a = n.t.split(/\n/);
+                        for (let i = 0; i < a.length; i++) {
                             f.addChunk(a[i], c)
                             if (i < a.length - 1) f.endLine()
                         }
