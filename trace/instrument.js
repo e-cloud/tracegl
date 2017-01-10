@@ -9,6 +9,8 @@ define(require => {
     const acorn = require('../core/acorn');
     const acorn_tools = require('../core/acorn_tools');
     const io_channel = require('../core/io_channel');
+    const dlog = require('../core/debug-helper')
+    const Table = require('cli-table')
 
     const Global_STR = '_$_';
 
@@ -249,13 +251,23 @@ define(require => {
     let head;
 
     function mkHead() {
+        function strip(input) {
+           /* var program = acorn_tools.parse(input)
+            var table = new Table()
+
+            program.tokens.walk(function (n) {
+                table.push(dlog.raw(n))
+            })
+            console.log(table.toString())*/
+            return input
+        }
         // trace impl
         const traceSrc = tracehub.toString().match(/\/\/TRACE[\s\S]*\/\/TRACE/)[0];
         // fetch io channel
         for (const k in define.factory) {
             if (k.includes('core/io_channel')) {
                 const chn = define.factory[k].toString().match(/\/\/CHANNEL(?:\n|\r)([\s\S]*)\/\/CHANNEL/)[1].trim();
-                return `${traceSrc.replace('//CHANNEL', chn)}\n`;
+                return strip(`${traceSrc.replace('//CHANNEL', chn)}\n`)
             }
         }
     }

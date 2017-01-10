@@ -10,7 +10,7 @@ define(function (require, exports, module) {
         for (const k in TokenTypes) {
             // for js scope to use clojure
             (function (k) {
-                Object.defineProperty(proto, k, {
+                Object.defineProperty(proto, k.startsWith('_') ? k.slice(1) : k, {
                     get() {
                         return this._t === TokenTypes[k]
                     }
@@ -26,21 +26,21 @@ define(function (require, exports, module) {
 
         // walker
         walk(cb) {
-            let n = this;
-            const p = n;
-            cb(n)
-            n = n._c
-            while (n && n != p) {
-                cb(n)
-                if (n._c) {
-                    n = n._c
+            let node = this;
+            const parent = node;
+            cb(node)
+            node = node._c
+            while (node && node != parent) {
+                cb(node)
+                if (node._c) {
+                    node = node._c
                 } else {
-                    while (n != p) {
-                        if (n._d) {
-                            n = n._d;
+                    while (node != parent) {
+                        if (node._d) {
+                            node = node._d;
                             break
                         }
-                        n = n._p
+                        node = node._p
                     }
                 }
             }
@@ -144,8 +144,8 @@ define(function (require, exports, module) {
                 // verify this one
                 node = parentStart._e
             } else if (opts.compact && parentStart._e && (
-                type == TokenTypes.name && parentStart._e._t == TokenTypes.dot ||
-                type == TokenTypes.dot && parentStart._e._t == TokenTypes.name)
+              type == TokenTypes.name && parentStart._e._t == TokenTypes.dot ||
+              type == TokenTypes.dot && parentStart._e._t == TokenTypes.name)
             ) {
                 node = parentStart._e
                 node._t = type
@@ -201,19 +201,42 @@ define(function (require, exports, module) {
         }
     }
 
+    const logger = require('./debug-helper')
+
     module.exports.parse = function (input, opts) {
-        const acornOpts = opts
+        const acornOpts = opts || {}
         acornOpts.plugins = {}
 
+        acornOpts.plugins.traceToken = acornOpts.plugins.traceToken || {}
+
         if (opts && opts.compact) {
-            acornOpts.plugins.traceToken = acornOpts.plugins.traceToken || {}
             acornOpts.plugins.traceToken.compact = true
         }
         if (opts && opts.noclose) {
-            acornOpts.plugins.traceToken = acornOpts.plugins.traceToken || {}
             acornOpts.plugins.traceToken.noclose = true
         }
 
-        return acorn.parse(input, acornOpts)
+        const program = acorn.parse(input, acornOpts)
+
+       /* console.log('=================================================================\n=================================================================')
+        const output = []
+        let src = ''
+        program.tokens.walk(function (n) {
+            output.push(logger.gen(n, 25))
+            src += n.t
+            if (n.w.indexOf('\n') !== -1 && !n._c) {
+                if (!(n.t === '}' && n._p._d && n._p._d.t === '}')) {
+                    src += ';'
+                }
+            } else if (n.w.indexOf(' ') != -1) {
+                src += ' '
+            }
+        })
+
+        console.log(output.join('\n'))
+        console.log('=================================================================')
+        console.log(src)*/
+
+        return program
     }
 })
