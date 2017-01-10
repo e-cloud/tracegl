@@ -7,7 +7,7 @@
 define(function (require, exports) {
     "no tracegl"
     const gl = require("./gl");
-    var ui = require("./ui");
+    const ui = require("./ui");
 
     // code text using POINTS
     exports.codeText = ui.shader({

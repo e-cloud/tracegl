@@ -10,7 +10,7 @@ define(function (require, exports, module) {
     const ui = require("../core/ui/ui");
     const tm = require("../core/ui/text_mix");
 
-    function traceDb(o) {
+    function traceDb(inputDb) {
         // we store the trace list and databases
         const db = { sh: {} };
 
@@ -21,8 +21,8 @@ define(function (require, exports, module) {
         db.changed = fn.ps()
 
         // file and line dictionaries
-        db.lineDict = o ? o.lineDict : {} // line dictionary
-        db.fileDict = o ? o.fileDict : {}
+        db.lineDict = inputDb ? inputDb.lineDict : {} // line dictionary
+        db.fileDict = inputDb ? inputDb.fileDict : {}
         db.msgIds = {}
 
         // trace message

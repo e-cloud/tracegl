@@ -146,8 +146,8 @@ function define(id, factory) {
     //PACKEND
 
     // the separate file script loader
-    innerDefine.dling = 0
-    innerDefine.rldid = 0
+    innerDefine.loadingCount = 0
+    innerDefine.reloadId = 0
     const base = basePath(window.location.href);
 
     function innerDefine(id, fac) {
@@ -206,14 +206,10 @@ function define(id, factory) {
         const bpath = basePath(file);
         file = file.replace(/\.\//g, '/')
         scriptElem.type = 'text/javascript'
-        if (cb) {
-            rld = '?' + innerDefine.rldid++
-        } else {
-            rld = ''
-        }
-        scriptElem.src = base + file + (file.indexOf(".js") != -1 ? "" : ".js" ) + rld
+        const reloadQuery = cb ? '?' + innerDefine.reloadId++ : '';
+        scriptElem.src = base + file + (file.indexOf(".js") != -1 ? "" : ".js" ) + reloadQuery
         innerDefine.tags[file] = scriptElem
-        innerDefine.dling++
+        innerDefine.loadingCount++
 
         function load() {
             const _factory = innerDefine.factory._;
@@ -229,11 +225,12 @@ function define(id, factory) {
                       script(input, file)
                   }
               })
+
             if (cb) {
                 cb()
-            } else if (!--innerDefine.dling) {
+            } else if (!--innerDefine.loadingCount) {
                 request(innerDefine.main, '')
-            } // no more deps
+            }
         }
 
         scriptElem.onerror = function () {

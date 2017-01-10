@@ -9,30 +9,30 @@ define(function (require, exports, module) {
 
     const acorn = require('./acorn');
 
-    exports.dump = function (o, t, r) {
-        t = t || ''
-        const a = Array.isArray(o);
-        let s = (a ? '[' : '{');
-        for (const k in o) {
-            if (o.hasOwnProperty(k)) {
+    exports.dump = function (node, tok) {
+        tok = tok || ''
+        const IsArray = Array.isArray(node);
+        let start = (IsArray ? '[' : '{');
+        for (const key in node) {
+            if (node.hasOwnProperty(key)) {
 
-                if (k == 'parent' || k == 'tokens' || k == 'start' || k == 'end' || k == 'token' || k == 'loc') continue
-                if (k == 'token') {
-                    s += '\n' + t + 'token: ' + o[k].t
+                if (key == 'parent' || key == 'tokens' || key == 'start' || key == 'end' || key == 'token' || key == 'loc') continue
+                if (key == 'token') {
+                    start += '\n' + tok + 'token: ' + node[key].t
                     continue
                 }
-                const v = o[k];
-                s += '\n' + t + k + ': '
-                if (typeof v == 'object') {
-                    s += exports.dump(v, t + ' ', r)
+                const value = node[key];
+                start += '\n' + tok + key + ': '
+                if (typeof value == 'object') {
+                    start += exports.dump(value, tok + ' ')
                 }
                 else {
-                    s += v
+                    start += value
                 }
             }
         }
-        s += '\n' + t.slice(1) + (a ? ']' : '}')
-        return s
+        start += '\n' + tok.slice(1) + (IsArray ? ']' : '}')
+        return start
     }
 
     //
@@ -81,39 +81,53 @@ define(function (require, exports, module) {
         CatchClause: { param: 1, guard: 1, body: 1 }
     };
 
+    // walk through the ast tree
     function walkDown(node, walkerMap, parent) {
         if (!node) return
-        const typeWalker = walkerMap[node.type];
-        if (typeWalker) {
-            if (typeWalker(node, parent)) return
+        const traverseFunc = walkerMap[node.type];
+        if (traverseFunc) {
+            if (traverseFunc(node, parent)) return
         }
         const typeMap = walk[node.type];
-        for (let k in typeMap) {
-            const type = typeMap[k]; // type
-            const m = node[k]; // node prop
+        for (const key in typeMap) {
+            const type = typeMap[key]; // type
+            const nodeProp = node[key]; // node prop
             if (type == 2) { // array
-                if (!Array.isArray(m)) {
+                if (!Array.isArray(nodeProp)) {
                     throw new Error("invalid type")
                 }
-                for (let i = 0; i < m.length; i++) {
-                    walkDown(m[i], walkerMap, { up: parent, sub: k, type: node.type, node: node, index: i })
+                for (let i = 0; i < nodeProp.length; i++) {
+                    walkDown(nodeProp[i], walkerMap, {
+                        up: parent,
+                        sub: key,
+                        type: node.type,
+                        node: node,
+                        index: i
+                    })
                 }
             } else if (type == 3) { // keys
-                if (!Array.isArray(m)) {
+                if (!Array.isArray(nodeProp)) {
                     throw new Error("invalid type")
                 }
-                for (let i = 0; i < m.length; i++) {
-                    walkDown(m[i].value, walkerMap, {
+                for (let i = 0; i < nodeProp.length; i++) {
+                    walkDown(nodeProp[i].value, walkerMap, {
                         up: parent,
-                        sub: k,
+                        sub: key,
                         type: node.type,
                         node: node,
                         index: i,
-                        key: m[i].key
+                        key: nodeProp[i].key
                     })
                 }
-            } else { // single  node or value
-                if (m) walkDown(m, walkerMap, { up: parent, sub: k, type: node.type, node: node })
+            } else { // single node or value
+                if (nodeProp) {
+                    walkDown(nodeProp, walkerMap, {
+                        up: parent,
+                        sub: key,
+                        type: node.type,
+                        node: node
+                    })
+                }
             }
         }
     }
@@ -137,7 +151,7 @@ define(function (require, exports, module) {
 
     function stringifyExpression(expr) {
         if (!expr || !expr.type) return ''
-        return sTab[expr.type](expr)
+        return stringifyExpressionMap[expr.type](expr)
     }
 
     function stringifyBlock(b) {
@@ -157,7 +171,7 @@ define(function (require, exports, module) {
         return s
     }
 
-    const sTab = {
+    const stringifyExpressionMap = {
         Literal: function (n) {
             return n.raw
         },
@@ -258,14 +272,16 @@ define(function (require, exports, module) {
             return 'function' + (n.id ? ' ' + stringifyExpression(n.id) : '') + '(' + stringifySeq(n.params) + ')' + stringifyExpression(n.body)
         },
         ObjectExpression: function (n) {
-            let s = '{';
+            let str = '{';
             const b = n.properties;
             for (let i = 0; i < b.length; i++) {
-                if (i) s += ', '
-                s += stringifyExpression(b.key) + ':' + stringifyExpression(b.value)
+                if (i) {
+                    str += ', '
+                }
+                str += stringifyExpression(b.key) + ':' + stringifyExpression(b.value)
             }
-            s += '}'
-            return s
+            str += '}'
+            return str
         },
         MemberExpression: function (n) {
             if (n.computed) {
@@ -301,12 +317,12 @@ define(function (require, exports, module) {
     function nodeProto(proto) {
 
         // property getter type checking
-        for (const k in types) {
+        for (const key in types) {
             (function (k) {
                 proto.__defineGetter__(k, function () {
                     return this._t == types[k]
                 })
-            })(k)
+            })(key)
         }
         // other types
         proto.__defineGetter__('isAssign', function () {
@@ -331,37 +347,37 @@ define(function (require, exports, module) {
             return this.d.parenL ? this.d.d : this.d.d.d
         })
         proto.__defineGetter__('last', function () {
-            let t = this;
-            while (t._d) {
-                t = t._d;
+            let node = this;
+            while (node._d) {
+                node = node._d;
             }
-            return t
+            return node
         })
         proto.__defineGetter__('astParent', function () {
-            let t = this;
-            while (t._d) {
-                t = t._d;
+            let node = this;
+            while (node._d) {
+                node = node._d;
             }
-            return t
+            return node
         })
 
         // walker
         proto.walk = function (cb) {
-            let n = this;
-            const p = n;
-            cb(n)
-            n = n._c
-            while (n && n != p) {
-                cb(n)
-                if (n._c) {
-                    n = n._c
+            let node = this;
+            const parent = node;
+            cb(node)
+            node = node._c
+            while (node && node != parent) {
+                cb(node)
+                if (node._c) {
+                    node = node._c
                 } else {
-                    while (n != p) {
-                        if (n._d) {
-                            n = n._d;
+                    while (node != parent) {
+                        if (node._d) {
+                            node = node._d;
                             break
                         }
-                        n = n._p
+                        node = node._p
                     }
                 }
             }

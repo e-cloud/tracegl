@@ -21,10 +21,11 @@ define(function (require) {
       "12px Menlo" :
       "12px Lucida Console");
 
-    function codeDb(g) {
+    function codeDb() {
 
         const db = { sh: {} };
         db.files = {}
+        let c
 
         let ls = 0; // leading spaces
         let lw = 0; // leading width
@@ -34,8 +35,7 @@ define(function (require) {
             let v = f.text.last() || f.addChunk('', c);
             // if n.w contains comments
             for (let i = 0; i < l; i++) {
-
-                var c = text.charCodeAt(i)
+                c = text.charCodeAt(i)
                 if (c == 32) { // space
                     // are we crossing a tab boundary?
                     if (ls && !(v.x % tabWidth)) {
@@ -49,7 +49,8 @@ define(function (require) {
                     const tw = tabWidth - v.x % tabWidth;
                     // output tabline ad tw
                     if (ls && !(v.x % tabWidth)) {
-                        v = f.addChunk("\x7f", ctbl.tab), v.x += tabWidth - 1
+                        v = f.addChunk("\x7f", ctbl.tab)
+                        v.x += tabWidth - 1
                     } else {
                         v.x += tw
                     }
@@ -65,14 +66,17 @@ define(function (require) {
                     ls = 1
                 } else {
                     // output blue comment thing
-                    if (ls) lw = v.x, ls = 0
+                    if (ls) {
+                        lw = v.x
+                        ls = 0
+                    }
                     v = f.addChunk(text.charAt(i), fg || ctbl.comment)
                 }
             }
         }
 
         // theme lookup
-        var ctbl = {
+        const ctbl = {
             "num": ui.t.codeNumber,
             "regexp": ui.t.codeRegexp,
             "name": ui.t.codeName,
@@ -84,7 +88,7 @@ define(function (require) {
             "operator": ui.t.codeOperator
         }
 
-        var tabWidth = 3
+        const tabWidth = 3
 
         db.fetch = function (name, cb) {
             // if we dont have name,
@@ -97,8 +101,8 @@ define(function (require) {
             tm.storage(f)
             f.font = ft1 // todo centralize font
             f.sh = { text: db.sh.text }
-            src = src.replace(/^\#.*?\n/, '\n')
-            f.lines = src.replace(/\t/, Array(tabWidth + 1).join(' ')).split(/\n/)
+            src = src.replace(/^#.*?\n/, '\n')
+            f.lines = src.replace(/\t/, new Array(tabWidth + 1).join(' ')).split(/\n/)
 
             const t = acorn_tools.parse(src);
             t.tokens.walk(function (n) {
@@ -126,7 +130,10 @@ define(function (require) {
                             if (i < a.length - 1) f.endLine()
                         }
                     } else {
-                        if (ls) lw = f.text.last().x, ls = 0
+                        if (ls) {
+                            lw = f.text.last().x
+                            ls = 0
+                        }
                         f.addChunk(n.t, c)
                     }
                 }

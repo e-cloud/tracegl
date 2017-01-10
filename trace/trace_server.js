@@ -28,15 +28,15 @@ define(function (require) {
 
         const m = require('module').Module.prototype;
         const oldCompile = m._compile;
-        let did = 1;
+        let dataId = 1;
         m._compile = function (content, filename) {
 
             if (filter.active && filter(filename)) {
                 return oldCompile.call(this, content, filename)
             }
             // lets instrument
-            const t = instrument(filename, content, did, filter.opt);
-            did = t.id
+            const t = instrument(filename, content, dataId, filter.opt);
+            dataId = t.id
             // send the dictionary out
             const m = { dict: 1, src: t.input, f: filename, d: t.d };
             if (process.send) {
@@ -342,7 +342,7 @@ define(function (require) {
 
     // send data to UI
     function uiSender(port, bind) {
-        ui = ioServer()
+        const ui = ioServer()
         ui.main = "./trace/trace_client"
         ui.pass = fn.sha1hex("p4ssw0rd")
         if (require.absolute) {

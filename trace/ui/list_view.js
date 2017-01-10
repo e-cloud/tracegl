@@ -21,18 +21,18 @@ define(function (require, exports, module) {
       "12px Lucida Console");
 
     function listView(g) {
-        const b = ui.rect({ f: 't.codeBg' });
+        const view = ui.rect({ f: 't.codeBg' });
 
-        b._v_ = ct.vScrollHider({ h: 'p.h - 10' })
-        b._h_ = ct.hScrollHider({ w: 'p.w - 10' })
+        view._v_ = ct.vScrollHider({ h: 'p.h - 10' })
+        view._h_ = ct.hScrollHider({ w: 'p.w - 10' })
 
-        b.set(g)
-        b.font = font1
+        view.set(g)
+        view.font = font1
         //|  rendering
         //\____________________________________________/
 
         // shaders+-
-        b.sh = {
+        view.sh = {
             lrShadow: ui.rect.drawer({ f: 'mix(vec4(0,0,0,0.3),vec4(0,0,0,0),c.x)' }), // dropshadow
             topShadow: ui.rect.drawer({ f: 'mix(vec4(0,0,0,0.3),vec4(0,0,0,0),c.y)' }),
             text: ui.gl.getShader(ts.codeText), // text
@@ -43,75 +43,75 @@ define(function (require, exports, module) {
             mark: ui.rect.drawer({ f: 't.codeMark' })
         }
         // mix in behaviors
-        tm.viewport(b)
-        tm.cursors(b, { singleCursor: 1, noSelect: 1, cursor: 'default' })
-        tm.drawing(b)
-        tm.storage(b)
+        tm.viewport(view)
+        tm.cursors(view, { singleCursor: 1, noSelect: 1, cursor: 'default' })
+        tm.drawing(view)
+        tm.storage(view)
 
-        b.vps.gx = 0
-        b.vps.gy = 0
+        view.vps.gx = 0
+        view.vps.gy = 0
 
         // connect to a db object
-        if (b.db) {
-            b.text = b.db.text
-            b.db.font = b.font
-            b.db.sh.text = b.sh.text
+        if (view.db) {
+            view.text = view.db.text
+            view.db.font = view.font
+            view.db.sh.text = view.sh.text
 
             let rt = 0;
-            b.db.changed(function () {
-                b.tw = b.db.tw
-                b.th = b.db.th
+            view.db.changed(function () {
+                view.tw = view.db.tw
+                view.th = view.db.th
                 if (!rt) {
                     rt = setTimeout(function () {
                         rt = 0
                         // if the scrollbars are at 'end' we should keep them at the end
-                        b.size()
-                        ui.redraw(b)
+                        view.size()
+                        ui.redraw(view)
                     }, 0)
                 }
             })
         }
 
         // connect cursors
-        if (b.cursor) {
-            b.cursor.linked = b
-            b.vcs = b.cursor.vcs
-            b.dcs = b.cursor.dcs
+        if (view.cursor) {
+            view.cursor.linked = view
+            view.vcs = view.cursor.vcs
+            view.dcs = view.cursor.dcs
             // crosslink the 'view' change event
-            b.viewChange = function (x, y) {
+            view.viewChange = function (x, y) {
                 //b.cursor.view(x, y, 0, 1)
                 fn('here1')
             }
             let last;
-            b.cursor.viewChange = function (x, y) {
+            view.cursor.viewChange = function (x, y) {
                 // alright so we have a cursor selection,
                 // lets fetch the data stored at our first cursor
-                const c = b.dcs.l.first() || b.vcs.l.first();
+                const c = view.dcs.l.first() || view.vcs.l.first();
                 //fn(c!=null, c.d!=null, last!=c.d, b.db.selectTrace !=0)
-                if (c && c.d && last != c.d && b.db.selectTrace) b.db.selectTrace(last = c.d)
-                b.view(x, y, 0, 1)
-                if (b.cursorMove) b.cursorMove()
+                if (c && c.d && last != c.d && view.db.selectTrace) view.db.selectTrace(last = c.d)
+                view.view(x, y, 0, 1)
+                if (view.cursorMove) view.cursorMove()
             }
         }
 
         // if we
-        b.o = function () {
+        view.o = function () {
             // set the view back to our head cursor
-            if (b.linked) {
-                const c = b.vcs.l.first();
+            if (view.linked) {
+                const c = view.vcs.l.first();
                 if (c) {
-                    b.linked.view(0, c.y, 0, 1, 1)
+                    view.linked.view(0, c.y, 0, 1, 1)
                 }
             } else {
-                b.hy = -1
-                ui.redraw(b)
+                view.hy = -1
+                ui.redraw(view)
             }
         }
 
-        b.textHover = function () {
-            if (b.linked && b.linked.cursorMove) b.linked.cursorMove()
-            ui.redraw(b)
-            if (b.linked) ui.redraw(b.linked)
+        view.textHover = function () {
+            if (view.linked && view.linked.cursorMove) view.linked.cursorMove()
+            ui.redraw(view)
+            if (view.linked) ui.redraw(view.linked)
         }
 
         // rendering
@@ -119,53 +119,53 @@ define(function (require, exports, module) {
 
         function layer() {
 
-            ui.view(b, b.vps.o)
+            ui.view(view, view.vps.o)
 
-            if (!b._v_.pg) b.size()
+            if (!view._v_.pg) view.size()
 
             // draw hover cursor
-            const y = b.hy;
-            if (y >= 0) b.sh.hover.rect(b.vps.o.x, b.vps.o.y - b.vps.ss + (y + b.vps.y) * b.vps.sy + b.vps.gy, b.vps.o.w, b.vps.sy)
+            const y = view.hy;
+            if (y >= 0) view.sh.hover.rect(view.vps.o.x, view.vps.o.y - view.vps.ss + (y + view.vps.y) * view.vps.sy + view.vps.gy, view.vps.o.w, view.vps.sy)
 
             if (ly != y) {
                 ly = y
-                if (b.linked) {
-                    b.linked.hy = y
-                    b.linked.view(0, y, 0, 1, 1)
+                if (view.linked) {
+                    view.linked.hy = y
+                    view.linked.view(0, y, 0, 1, 1)
                 }
             }
             // draw selection line
-            var c = b.vcs.l.first()
+            var c = view.vcs.l.first()
             while (c) {
-                b.sh.mark.rect(b.vps.o.x, b.vps.o.y - b.vps.ss + (b.vps.y + c.y) * b.vps.sy + b.vps.gy, b.vps.o.w, b.vps.sy)
+                view.sh.mark.rect(view.vps.o.x, view.vps.o.y - view.vps.ss + (view.vps.y + c.y) * view.vps.sy + view.vps.gy, view.vps.o.w, view.vps.sy)
                 c = c._d
             }
-            var c = b.dcs.l.first()
+            var c = view.dcs.l.first()
             while (c) {
-                b.sh.mark.rect(b.vps.o.x, b.vps.o.y - b.vps.ss + (b.vps.y + c.y) * b.vps.sy + b.vps.gy, b.vps.o.w, b.vps.sy)
+                view.sh.mark.rect(view.vps.o.x, view.vps.o.y - view.vps.ss + (view.vps.y + c.y) * view.vps.sy + view.vps.gy, view.vps.o.w, view.vps.sy)
                 c = c._d
             }
-            b.drawText()
+            view.drawText()
 
             //ui.clip(b.vps.o.x, b.vps.o.y, b.vps.o.w, b.vps.o.h )
-            b.drawShadows()
+            view.drawShadows()
         }
 
-        b.l = layer
+        view.l = layer
 
-        b.show = function () {
-            b.l = layer
-            ui.redraw(b)
+        view.show = function () {
+            view.l = layer
+            ui.redraw(view)
         }
 
-        b.hide = function () {
-            if (b.l !== -1) {
-                b.l = -1
-                ui.redraw(b)
+        view.hide = function () {
+            if (view.l !== -1) {
+                view.l = -1
+                ui.redraw(view)
             }
         }
 
-        return b
+        return view
     }
 
     return listView

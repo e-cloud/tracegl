@@ -100,7 +100,7 @@ define(function (require, exports, module) {
                 const t = n.t; // text
 
                 const m = t && t.length || 0;
-                l = 0
+                let l = 0
                 for (var i = 0; i < m; i++) {
                     var c = t.charCodeAt(i)
                     if (c > 32) l++

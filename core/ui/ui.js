@@ -15,13 +15,10 @@ define(function (require) {
             }
         }
     }
-    var ui = {};
+    const ui = {};
 
     ui.gl = gl
     ui.load = gl.load
-
-    function ui() {
-    }
 
     // |  DOM node API
     // \____________________________________________/

@@ -16,7 +16,6 @@ define(function (require, exports) {
     exports.dark = {
         subpx: 'vec4(0,0,0,1)',
         dlgbg: hexs('808080'),
-        dlgbg: hexs('8F8F94'),
         dlghi: hexs('9996e2'),
         sliderbase: 'vec4(0,0,0,0.1)',
         splitter1: hexs('333333'),

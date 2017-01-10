@@ -6,7 +6,7 @@
 
 define(function (require, exports) {
 
-    var ui = require("./ui");
+    const ui = require("./ui");
     const fn = require("./../fn");
 
     const cm = exports;

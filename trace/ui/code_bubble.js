@@ -15,15 +15,15 @@ define(function (require) {
     //|  Styling
     //\____________________________________________/
 
-    const ft1 = ui.gl.sfont(
+    const font1 = ui.gl.sfont(
       navigator.platform.match(/Mac/) ?
       "12px Menlo" :
       "12px Lucida Console");
 
     function codeBubble(g) {
         // background rect
-        const bg = ui.group({ l: 1 });
-        bg.set(g)
+        const background = ui.group({ l: 1 });
+        background.set(g)
         // bubble border
         const border = ct.innerShadow({
             radius: 10,
@@ -32,16 +32,16 @@ define(function (require) {
             inner: 't.codeBg',
             outer: 'alpha(t.codeBg,0)'
         });
-        border._p = bg
+        border._p = background
         // title area
         const title = ui.rect({ sel: 0, f: 'mix(t.codeHover,t.codeMark,n.sel)', y: 10, h: 30, x: 10, w: 'p.w - 20' });
-        title._p = bg
+        title._p = background
         //title._p = bg
-        bg.title = title
+        background.title = title
 
         // code body
-        const body = bg.body = ui.rect({ f: 't.codeBg', x: 10, y: 40, h: 'p.h - (n.y+10)', w: 'p.w - 20' });
-        body._p = bg
+        const body = background.body = ui.rect({ f: 't.codeBg', x: 10, y: 40, h: 'p.h - (n.y+10)', w: 'p.w - 20' });
+        body._p = background
 
         // scrollbars
         body._v_ = ct.vScrollHider({ h: 'p.h - 10' })
@@ -51,8 +51,8 @@ define(function (require) {
         title._v_ = ct.vScroll({ h: 'p.h - 10' })
         title._h_ = ct.hScroll({ w: 'p.w - 10' })
 
-        title.font = ft1
-        body.font = ft1
+        title.font = font1
+        body.font = font1
         //|  rendering
         //\____________________________________________/
 
@@ -86,8 +86,8 @@ define(function (require) {
         title.s = null
         body.s = null
         // forward scrollbar scroll message
-        title._h_.s = body._h_.s = bg._p.s
-        title._v_.s = body._v_.s = bg._p.s
+        title._h_.s = body._h_.s = background._p.s
+        title._v_.s = body._v_.s = background._p.s
 
         //bg.titleBuf = body.sh.text.alloc(1024)
 
@@ -107,7 +107,8 @@ define(function (require) {
         body.l = function () {
             ui.view(body, body.vps.o)
 
-            if (!body._v_.pg) body.size()
+            if (!body._v_.pg)
+                body.size()
             // update line numbers
             /*
              body.linesUpdate(ui.t.codeLine)
@@ -128,21 +129,21 @@ define(function (require) {
         body.u = function () {
             // dump file/line
             const c = body.vcs.l.first();
-            if (c && bg.clickLine) {
-                bg.clickLine(body.file.file, c.y)
+            if (c && background.clickLine) {
+                background.clickLine(body.file.file, c.y)
             }
             // send rpc to server to open file/line
             // make configurable open using .tracegl
         }
 
         // resets the view to the last line
-        bg.resetLine = function () {
+        background.resetLine = function () {
             body.view(0, body.line, 0, 1, 2)
         }
 
 
         function setTitle(m) {
-            const v = bg._p._p._p._p.hoverView;
+            const v = background._p._p._p._p.hoverView;
             const tdb = body.tdb;
 
             const l = tdb.lineDict[m.i];
@@ -175,7 +176,7 @@ define(function (require) {
         }
 
 
-        bg.setTitle = function (m, tdb) {
+        background.setTitle = function (m, tdb) {
 
             const h = 0;
             body.y = h + 10
@@ -188,15 +189,15 @@ define(function (require) {
         }
 
         // update bubble with content
-        bg.setBody = function (m, tdb, file, line, height) {
+        background.setBody = function (m, tdb, file, line, height) {
             // format trace message in bubble
             body.setStorage(file)
             body.file = file
-            bg.msg = m
+            background.msg = m
             body.tdb = tdb
 
             delete body.vps.o.h // cause height to be recalculated in v_
-            bg.h = height
+            background.h = height
             body.v_()
             body.line = line - 1
             body.view(0, body.line, 0, 1, 2)
@@ -204,7 +205,7 @@ define(function (require) {
             body.mcs.clear()
             // mark booleans from return value message
             const r = m.r;
-            bg.ret_obj = r
+            background.ret_obj = r
             for (const k in r) {
                 var l = tdb.lineDict[k.slice(1)]
                 //fn(r, l)
@@ -315,7 +316,7 @@ define(function (require) {
                             c.jmp = fc
                             c.fg = ui.t.codeCall
                         }
-                        if (bg.prev && bg.prev.msg == fc) {
+                        if (background.prev && background.prev.msg == fc) {
                             c.fg = ui.t.codeSelf
                         }
 
@@ -422,7 +423,7 @@ define(function (require) {
         }
 
         body.o = function () {
-            const v = bg._p._p._p._p.hoverView;
+            const v = background._p._p._p._p.hoverView;
             v.hide()
         }
 
@@ -437,15 +438,15 @@ define(function (require) {
             if (l && l.jmp) {
                 // jump to parent function
                 if (l.jmp === 1) {
-                    if (!bg.next || bg.next.l === -1)return
-                    const sv = bg._p._p._p._p.stackView;
+                    if (!background.next || background.next.l === -1)return
+                    const sv = background._p._p._p._p.stackView;
                     sv.ly = -1
-                    sv.selectFirst(bg.stacky + bg.stackh)
+                    sv.selectFirst(background.stacky + background.stackh)
                 } else if (l.jmp === 2) {
-                    const m = body.tdb.find(bg.msg.u);
-                    if (m) bg._p._p._p._p.selectCall(m.y)
+                    const m = body.tdb.find(background.msg.u);
+                    if (m) background._p._p._p._p.selectCall(m.y)
                 } else {
-                    bg._p._p._p._p.selectCall(l.jmp.y)
+                    background._p._p._p._p.selectCall(l.jmp.y)
                 }
             }
         }
@@ -465,7 +466,7 @@ define(function (require) {
             const tdb = body.tdb;
 
             // when we get a function call, or 'null' we show the hoverview
-            const v = bg._p._p._p._p.hoverView;
+            const v = background._p._p._p._p.hoverView;
             if (!m) { // no hover
                 v.hide()
                 return
@@ -497,7 +498,7 @@ define(function (require) {
             ui.gl.cursor('pointer')
         }
 
-        return bg
+        return background
     }
 
     return codeBubble

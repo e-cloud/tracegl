@@ -9,7 +9,7 @@ define(function (require, exports, module) {
     const fn = require("./../fn");
 
     let gl; // context
-    let cvs; // canvas
+    let canvas; // canvas
     let div; // main div
     const img = {}; // image cache
 
@@ -41,7 +41,7 @@ define(function (require, exports, module) {
               }
         })()
 
-        cvs = document.createElement('canvas')
+        canvas = document.createElement('canvas')
         div = document.body
 
         div.style.margin = '0'
@@ -52,22 +52,22 @@ define(function (require, exports, module) {
         div.style.userSelect = 'none';
         //div.style.cursor = 'none'
         const ratio = window.devicePixelRatio;
-        document.body.appendChild(cvs)
+        document.body.appendChild(canvas)
 
         window.onresize = function () {
-            cvs.style.width = div.offsetWidth - 2
-            cvs.style.height = div.offsetHeight - 2
-            cvs.width = gl.width = (div.offsetWidth - 2) * ratio
-            cvs.height = gl.height = (div.offsetHeight - 2) * ratio
+            canvas.style.width = div.offsetWidth - 2
+            canvas.style.height = div.offsetHeight - 2
+            canvas.width = gl.width = (div.offsetWidth - 2) * ratio
+            canvas.height = gl.height = (div.offsetHeight - 2) * ratio
             gl.viewport(0, 0, gl.width, gl.height)
             gl.resize()
         }
-        cvs.style.width = div.offsetWidth - 2
-        cvs.style.height = div.offsetHeight - 2
-        cvs.width = (div.offsetWidth - 2) * ratio
-        cvs.height = (div.offsetHeight - 2) * ratio
+        canvas.style.width = div.offsetWidth - 2
+        canvas.style.height = div.offsetHeight - 2
+        canvas.width = (div.offsetWidth - 2) * ratio
+        canvas.height = (div.offsetHeight - 2) * ratio
 
-        gl = cvs.getContext && cvs.getContext('experimental-webgl', {
+        gl = canvas.getContext && canvas.getContext('experimental-webgl', {
               antialias: false,
               premultipliedAlpha: false,
               alpha: false,
@@ -115,8 +115,8 @@ define(function (require, exports, module) {
         }
         module.exports = gl
         gl.ratio = ratio
-        gl.width = cvs.width
-        gl.height = cvs.height
+        gl.width = canvas.width
+        gl.height = canvas.height
         gl.mouse_p = fn.ps()
         gl.mouse_m = fn.ps()
         gl.mouse_r = fn.ps()
@@ -212,12 +212,12 @@ define(function (require, exports, module) {
         let dfx;
         let dfy;
         let dfd;
-        cvs.onmousedown = function (e) {
+        canvas.onmousedown = function (e) {
             dfx = e.clientX
             dfy = e.clientY
             setMouse(e)
             gl.mouse_p()
-            cvs.focus()
+            canvas.focus()
             window.focus()
         }
 
@@ -241,7 +241,7 @@ define(function (require, exports, module) {
         }
 
         window.onmouseup =
-          cvs.onmouseup = function (e) {
+          canvas.onmouseup = function (e) {
               dfd = dfx == e.clientX && dfy == e.clientY
               setMouse(e)
               gl.mouse_r()
@@ -509,13 +509,13 @@ define(function (require, exports, module) {
     // |  create a camera feed
     // \____________________________________________/
     gl.camera = function (cb) {
-        const o = document.createElement('video');
-        o.autoplay = 'autoplay';
+        const obj = document.createElement('video');
+        obj.autoplay = 'autoplay';
         if (!window.navigator.webkitGetUserMedia) return
         window.navigator.webkitGetUserMedia({ audio: false, video: true },
           function (s) {
-              o.src = window.webkitURL.createObjectURL(s)
-              cb(o)
+              obj.src = window.webkitURL.createObjectURL(s)
+              cb(obj)
           },
           function (e) {
               fn(e)

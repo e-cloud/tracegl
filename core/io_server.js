@@ -15,63 +15,70 @@ define(function (require) {
 
     function ioServer(ssl) {
 
-        const hs = ssl ? https.createServer(ssl, handler) : http.createServer(handler);
+        const httpServer = ssl ? https.createServer(ssl, handler) : http.createServer(handler);
 
-        const ch = hs.ch = {};
+        const channelMap = httpServer.ch = {};
 
-        hs.root = path.resolve(__dirname, '..')//process.cwd()
-        hs.pass = 'X'
+        httpServer.root = path.resolve(__dirname, '..')//process.cwd()
+        httpServer.pass = 'X'
 
-        hs.send = function (m) {
-            for (const k in ch) {
-                ch[k].send(m)
+        httpServer.send = function (m) {
+            for (const k in channelMap) {
+                channelMap[k].send(m)
             }
         }
 
         function watcher() {
-            let d; // delta
-            const w = {};
+            let delta; // delta
+            const watching = {};
             // watch a file
-            w.watch = function (f) {
-                if (w[f]) return
-                w[f] = fs.watch(f, function () {
-                    if (Date.now() - d < 2000) return
-                    d = Date.now()
-                    if (hs.fileChange) hs.fileChange(f)
-                    console.log("---- " + f + " changed, sending reload to frontend ----")
-                    hs.send({ reload: f })
+            watching.watch = function (file) {
+                if (watching[file]) return
+
+                watching[file] = fs.watch(file, function () {
+                    if (Date.now() - delta < 2000) return
+
+                    delta = Date.now()
+                    if (httpServer.fileChange) {
+                        httpServer.fileChange(file)
+                    }
+                    console.log("---- " + file + " changed, sending reload to frontend ----")
+                    httpServer.send({ reload: file })
                 })
             }
-            return w
+            return watching
         }
 
-        hs.watcher = watcher()
+        httpServer.watcher = watcher()
 
         // process io channel
-        function chan(req) {
+        function channel(req) {
             if (req.url.indexOf('/io_') != 0) return
-            const m = req.url.split('_');
 
-            if (m[2] != hs.pass) return console.log("invalid password in connection", m[2], hs.pass)
+            const match = req.url.split('_');
 
-            let c = ch[m[1]];
-            if (c) return c
+            if (match[2] != httpServer.pass)
+                return console.log("invalid password in connection", match[2], httpServer.pass)
 
-            c = ch[m[1]] = ioChannel(req.url)
+            let _channel = channelMap[match[1]];
+            if (_channel)
+                return _channel
+
+            _channel = channelMap[match[1]] = ioChannel(req.url)
 
             // do not use event pattern overhead
-            c.data = function (d) {
-                hs.data(d, c)
+            _channel.data = function (d) {
+                httpServer.data(d, _channel)
             }
 
-            c.rpc = function (d, r) {
-                if (hs.rpc) hs.rpc(d, r, c)
+            _channel.rpc = function (d, r) {
+                if (httpServer.rpc) httpServer.rpc(d, r, _channel)
             }
-            return c
+            return _channel
         }
 
-        hs.on('upgrade', function (req, sock, head) {
-            const c = chan(req);
+        httpServer.on('upgrade', function (req, sock, head) {
+            const c = channel(req);
             if (c) {
                 c.upgrade(req, sock, head)
             } else {
@@ -100,16 +107,16 @@ define(function (require) {
 
             if (name == '/') {
                 // send out packaged UI
-                if (hs.packaged == 1) {
+                if (httpServer.packaged == 1) {
                     res.writeHead(200, { "Content-Type": "text/html" })
                     res.end(
                       "<html><head><meta http-equiv='Content-Type' CONTENT='text/html; charset=utf-8'><title></title>" +
-                      "</head><body style='background-color:black' define-main='" + hs.main + "'>" +
+                      "</head><body style='background-color:black' define-main='" + httpServer.main + "'>" +
                       "<script src='/core/define.js'></script></body></html>"
                     )
                     return
                 }
-                else if (hs.packaged) {
+                else if (httpServer.packaged) {
                     let pkg = '';
                     const files = {};
 
@@ -130,16 +137,16 @@ define(function (require) {
                         }
                     }
 
-                    findRequires(hs.packaged, define.path(hs.packaged))
+                    findRequires(httpServer.packaged, define.path(httpServer.packaged))
                     // add the define function
                     pkg += "function define(id,fac){\n" +
                       define.outer.toString()
-                        .match(/\/\/PACKSTART([\s\S]*?)\/\/PACKEND/g, '')
+                        .match(/\/\/PACKSTART([\s\S]*?)\/\/PACKEND/g)
                         .join('\n')
                         .replace(/\/\/RELOADER[\s\S]*?\/\/RELOADER/, '') + "\n" +
                       "}\n"
                     pkg += 'define.settings=' + JSON.stringify(define.settings) + ';'
-                    pkg += 'define.factory["' + hs.packaged + '"](define.mkreq("' + hs.packaged + '"))'
+                    pkg += 'define.factory["' + httpServer.packaged + '"](define.mkreq("' + httpServer.packaged + '"))'
                     res.writeHead(200, { "Content-Type": "text/html" })
                     res.end(
                       "<html><head><meta http-equiv='Content-Type' CONTENT='text/html; charset=utf-8'><title></title>" +
@@ -152,21 +159,21 @@ define(function (require) {
             }
 
             if (name == '/favicon.ico') {
-                if (!hs.favicon) {
+                if (!httpServer.favicon) {
                     res.writeHead(404)
                     res.end("file not found")
                     return
                 }
-                if (hs.favicon.indexOf('base64:') == 0) {
-                    name = hs.favicon.slice(7)
+                if (httpServer.favicon.indexOf('base64:') == 0) {
+                    name = httpServer.favicon.slice(7)
                 } else {
                     res.writeHead(200, { "Content-Type": "image/x-icon" })
-                    res.end(new Buffer(hs.favicon, "base64"))
+                    res.end(new Buffer(httpServer.favicon, "base64"))
                     return
                 }
             }
 
-            const file = path.join(hs.root, name);
+            const file = path.join(httpServer.root, name);
 
             fs.exists(file, function (x) {
                 if (!x) {
@@ -183,20 +190,20 @@ define(function (require) {
                     }
                     const ext = file.match(mimeRx);
                     const type = ext && mime[ext[1]] || "text/plain";
-                    if (hs.process) data = hs.process(file, data, type)
+                    if (httpServer.process) data = httpServer.process(file, data, type)
                     res.writeHead(200, { "Content-Type": type })
                     res.write(data)
                     res.end()
                 })
-                if (hs.watcher) hs.watcher.watch(file)
+                if (httpServer.watcher) httpServer.watcher.watch(file)
             })
         }
 
         function proxyServe(req, res) {
             // lets do the request at the other server, and return the response
-            const opt = {
-                hostname: hs.proxy.hostname,
-                port: hs.proxy.port,
+            const reqOption = {
+                hostname: httpServer.proxy.hostname,
+                port: httpServer.proxy.port,
                 method: req.method,
                 path: req.url,
                 headers: req.headers,
@@ -206,68 +213,74 @@ define(function (require) {
             // rip out caching if we are trying to access
             //if(u.pathname.match(/\.js$/i)) isJs = u.pathname
             // turn off gzip
-            delete opt.headers['accept-encoding']
+            delete reqOption.headers['accept-encoding']
             //if(isJs){
-            delete opt.headers['cache-control']
-            delete opt.headers['if-none-match']
-            delete opt.headers['if-modified-since']
-            delete opt.headers['content-security-policy']
+            delete reqOption.headers['cache-control']
+            delete reqOption.headers['if-none-match']
+            delete reqOption.headers['if-modified-since']
+            delete reqOption.headers['content-security-policy']
 
-            opt.headers.host = hs.proxy.hostname
+            reqOption.headers.host = httpServer.proxy.hostname
 
-            req.on('data', function (d) {
-                p_req.write(d)
+            req.on('data', function (data) {
+                reqObj.write(data)
             })
 
             req.on('end', function () {
-                p_req.end()
+                reqObj.end()
             })
 
-            const proto = hs.proxy.protocol == 'https:' ? https : http;
+            const protocol = httpServer.proxy.protocol == 'https:' ? https : http;
 
-            var p_req = proto.request(opt, function (p_res) {
-                if (!isJs && p_res.headers['content-type'] && p_res.headers['content-type'].indexOf('javascript') != -1) {
+            const reqObj = protocol.request(reqOption, function (response) {
+                if (!isJs &&
+                  response.headers['content-type'] &&
+                  response.headers['content-type'].indexOf('javascript') != -1
+                ) {
                     if (u.pathname.match(/\.js$/i)) {
                         isJs = u.pathname
                     } else {
                         isJs = '/unknown.js'
                     }
                 }
-                if (p_res.statusCode == 200 && isJs) {
+
+                if (response.statusCode == 200 && isJs) {
                     let total = "";
                     let output;
-                    if (p_res.headers['content-encoding'] === 'gzip' || p_res.headers['content-encoding'] === 'deflate') {
+                    if (response.headers['content-encoding'] === 'gzip' ||
+                      response.headers['content-encoding'] === 'deflate'
+                    ) {
                         const zlib = require('zlib');
                         const gzip = zlib.createGunzip();
-                        p_res.pipe(gzip)
+                        response.pipe(gzip)
                         output = gzip
                     } else {
-                        output = p_res
+                        output = response
                     }
                     output.on('data', function (d) {
                         total += d.toString()
                     })
                     output.on('end', function () {
-                        const data = hs.process(isJs, total, "application/javascript");
-                        const h = p_res.headers;
-                        delete h['cache-control']
-                        delete h['last-modified']
-                        delete h['etag']
-                        delete h['content-length']
-                        delete h['content-security-policy']
-                        delete h['content-encoding']
+                        const data = httpServer.process(isJs, total, "application/javascript");
+                        const headers = response.headers;
+                        delete headers['cache-control']
+                        delete headers['last-modified']
+                        delete headers['etag']
+                        delete headers['content-length']
+                        delete headers['content-security-policy']
+                        delete headers['content-encoding']
                         //h['content-length'] = data.length
-                        res.writeHead(p_res.statusCode, p_res.headers)
-                        res.write(data, function (err) {
+                        res.writeHead(response.statusCode, response.headers)
+                        res.write(data, function () {
                             res.end()
                         })
                     })
                 } else {
-                    res.writeHead(p_res.statusCode, p_res.headers)
-                    p_res.on('data', function (d) {
+                    res.writeHead(response.statusCode, response.headers)
+                    response.on('data', function (d) {
                         res.write(d)
                     })
-                    p_res.on('end', function () {
+                    response.on('end', function () {
                         res.end()
                     })
                 }
@@ -276,14 +289,14 @@ define(function (require) {
         }
 
         function handler(req, res) {
-            const c = chan(req);
+            const c = channel(req);
             if (c && c.handler(req, res)) return
 
-            if (hs.proxy) return proxyServe(req, res)
+            if (httpServer.proxy) return proxyServe(req, res)
             return staticServe(req, res)
         }
 
-        return hs
+        return httpServer
     }
 
     return ioServer

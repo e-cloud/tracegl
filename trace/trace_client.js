@@ -45,7 +45,7 @@ define(function (require) {
         }
     }
     ui.load(function () {
-
+        let stackView
         const tdb = traceDb();
         const sdb = traceDb(tdb);
         const cdb = codeDb();
@@ -67,9 +67,13 @@ define(function (require) {
                 ui.redraw()
             } else {
                 // we clicked pause, but we wont actually pause untill depth = 1
-                if (paused && !paused_m)    if (m.d == 1) paused_m = paused;
+                if (paused && !paused_m)
+                    if (m.d == 1)
+                        paused_m = paused;
                 // we unpaused, but we wont unpause till we reach a depth = 1
-                if (!paused && paused_m)    if (m.d == 1) paused_m = paused
+                if (!paused && paused_m)
+                    if (m.d == 1)
+                        paused_m = paused
 
                 if (paused_m) return
 
@@ -146,7 +150,8 @@ define(function (require) {
 
             if (rev) {
                 while (m.p) {
-                    m.p.c = m, m = m.p
+                    m.p.c = m
+                    m = m.p
                 }
             }
             while (m && max > 0) {
@@ -160,7 +165,8 @@ define(function (require) {
                 }
 
                 // find available bubble for stack
-                if (b) b = b.next
+                if (b)
+                    b = b.next
                 if (!b) {
                     b = codeBubble({ x: 1, y: y, w: 'p.w', h: 300, _p: bubbleBg })
                     bubbles.add(b);
@@ -251,7 +257,6 @@ define(function (require) {
         var sminiView
         var sbigView
         let hoverView;
-        let sourceView;
         var bubbleBg
         var searchBox
 

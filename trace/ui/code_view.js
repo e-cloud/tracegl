@@ -24,20 +24,20 @@ define(function (require) {
     function codeView(g) {
 
         // background
-        const b = ui.rect({ f: 't.codeBg' });
+        const view = ui.rect({ f: 't.codeBg' });
 
         // scrollbars
-        b._v_ = ct.vScroll({ h: 'p.h - 10' })
-        b._h_ = ct.hScroll({ w: 'p.w - 10' })
+        view._v_ = ct.vScroll({ h: 'p.h - 10' })
+        view._h_ = ct.hScroll({ w: 'p.w - 10' })
 
-        b.set(g)
-        b.font = ft1
+        view.set(g)
+        view.font = ft1
 
         //|  rendering
         //\____________________________________________/
 
         // shaders+-
-        b.sh = {
+        view.sh = {
             text: ui.gl.getShader(ts.codeText), // text
             select: ui.gl.getShader(ts.selectRect), // selection
             cursor: ui.rect.drawer({ f: 't.codeCursor' }), // cursor
@@ -47,35 +47,35 @@ define(function (require) {
         }
 
         // mix in behaviors
-        tm.viewport(b)
-        tm.cursors(b)
-        tm.drawing(b)
+        tm.viewport(view)
+        tm.cursors(view)
+        tm.drawing(view)
 
         // rendering
-        b.l = function () {
-            ui.view(b, b.vps.o)
+        view.l = function () {
+            ui.view(view, view.vps.o)
 
-            if (!b._v_.pg) b.size()
+            if (!view._v_.pg) view.size()
             // update line numbers
-            b.linesUpdate(ui.t.codeLine)
-            b.drawLineMarks()
-            b.drawLines()
+            view.linesUpdate(ui.t.codeLine)
+            view.drawLineMarks()
+            view.drawLines()
 
-            ui.clip(b.vps.o.x + b.vps.gx, b.vps.o.y, b.vps.o.w - b.vps.gx, b.vps.o.h)
+            ui.clip(view.vps.o.x + view.vps.gx, view.vps.o.y, view.vps.o.w - view.vps.gx, view.vps.o.h)
 
             // draw if/else markers
 
-            b.drawSelection()
-            if (b.text) {
-                b.drawText()
+            view.drawSelection()
+            if (view.text) {
+                view.drawText()
             }
-            b.drawCursors()
+            view.drawCursors()
 
-            ui.clip(b.vps.o.x, b.vps.o.y, b.vps.o.w, b.vps.o.h)
-            b.drawShadows()
+            ui.clip(view.vps.o.x, view.vps.o.y, view.vps.o.w, view.vps.o.h)
+            view.drawShadows()
         }
 
-        return b
+        return view
     }
 
     return codeView

@@ -6,82 +6,80 @@
 
 define(function (require, exports) {
 
-    var ui = require("./ui");
+    const ui = require("./ui");
     const fn = require("./../fn");
     const cm = require("./controls_mix");
 
-    const ct = exports;
-
-    ct.f1s = ui.gl.sfont("12px Arial")
-    ct.f1p = ui.gl.pfont("12px Arial")
+    exports.f1s = ui.gl.sfont("12px Arial")
+    exports.f1p = ui.gl.pfont("12px Arial")
 
     // shared style functions
     const bump = 'mix(vec4(0,0,0,0), n.hc, (0.5 + 0.5 * dot(vec3(1,0,0),normal(0.001, 0.001, n.hm))))';
 
     // |  bumpmapped button
     // \____________________________________________/
-    ct.button = function (g) {
+    exports.button = function (g) {
         // parts
-        const b = ui.rect();
-        const t = ui.text();
-        t._p = b
+        const btn = ui.rect();
+        const txt = ui.text();
+        txt._p = btn
 
         // behaviorw
-        cm.button(b)
+        cm.button(btn)
 
         // style
         const bu = '0.3*pow(sin(c.x*P*0.999),(1+4*n.i1)/n.w)*pow(sin(c.y*P*0.98),2/n.h)';
         const bd = '0.3*((1-n.i0)+1.5*(n.i0)*len(c-0.5)*pow(tsin(len(c-0.5)*5-n.i0),1))*pow(sin(c.x*P*0.999),(1+40*n.i1)/n.w)*pow(sin(c.y*P*0.98),2/n.h)';
-        b.f = bump
-        t.f = 'sfont(t.deftbg, t.dlgtxt)'
-        b.hm = bu
+        btn.f = bump
+        txt.f = 'sfont(t.deftbg, t.dlgtxt)'
+        btn.hm = bu
         //t.hc = 'mix(t.defbg2, t.defbg2, n.i1)'
-        b.hc = 'mix(t.dlghi, t.dlgbg, n.i1)'
+        btn.hc = 'mix(t.dlghi, t.dlgbg, n.i1)'
 
-        t.b = ct.f1s
+        txt.b = exports.f1s
 
         // states
-        b.f_ =
-          b.s_ =
-            b.i = function () {
-                t.a1 = b.a1 = -0.01
+        btn.f_ =
+          btn.s_ =
+            btn.i = function () {
+                txt.a1 = btn.a1 = -0.01
             }
-        b.u_ =
-          b.d_ =
-            b.o = function () {
-                t.a1 = b.a1 = 0.1
+        btn.u_ =
+          btn.d_ =
+            btn.o = function () {
+                txt.a1 = btn.a1 = 0.1
             }
-        b.n_ = function () {
-            b.a0 = -0.1, b.e0 = { hm: bu }
+        btn.n_ = function () {
+            btn.a0 = -0.1, btn.e0 = { hm: bu }
         }
-        b.c_ = function () {
-            b.a0 = 0.01, b.e0 = 0, b.hm = bd
+        btn.c_ = function () {
+            btn.a0 = 0.01, btn.e0 = 0, btn.hm = bd
         }
 
         // layout
-        b.h = 24
-        b.y_ = 'n._y + 5'
-        t.x = 'floor(0.5*p.w - 0.5*n.w)'
+        btn.h = 24
+        btn.y_ = 'n._y + 5'
+        txt.x = 'floor(0.5*p.w - 0.5*n.w)'
 
         // properties
-        b.alias('t', t)
-        b.calc('w', function () {
-            return ui.text.pos(t, -1).x + 20
+        btn.alias('t', txt)
+        btn.calc('w', function () {
+            return ui.text.pos(txt, -1).x + 20
         })
-        b.set(g)
+        btn.set(g)
 
-        return b
+        return btn
     }
 
     // |  hiding vertical scrollbar
     // \____________________________________________/
-    ct.vScrollHider = function (g) {
+    exports.vScrollHider = function (g) {
         "no tracegl"
         // parts
         const b = ui.rect();
         const k = ui.rect();
         k._p = b
-        b.e = k.e = ct.el
+        b.e = k.e = exports.el
 
         // behavior
         cm.scroll(b, k, 1)
@@ -158,7 +156,7 @@ define(function (require, exports) {
 
     // |  horizontal scrollbar
     // \____________________________________________/
-    ct.hScrollHider = function (g) {
+    exports.hScrollHider = function (g) {
         "no tracegl"
         // parts
         const b = ui.rect();
@@ -235,12 +233,12 @@ define(function (require, exports) {
     }
     // |  vertical scrollbar
     // \____________________________________________/
-    ct.vScroll = function (g) {
+    exports.vScroll = function (g) {
         // parts
         const b = ui.rect();
         const k = ui.rect();
         k._p = b
-        b.e = k.e = ct.el
+        b.e = k.e = exports.el
 
         // behavior
         cm.scroll(b, k, 1)
@@ -288,7 +286,7 @@ define(function (require, exports) {
 
     // |  horizontal scrollbar
     // \____________________________________________/
-    ct.hScroll = function (g) {
+    exports.hScroll = function (g) {
         // parts
         const b = ui.rect();
         const k = ui.rect();
@@ -338,7 +336,7 @@ define(function (require, exports) {
 
     // |  hv scrollbar filler
     // \____________________________________________/
-    ct.hvFill = function (g) {
+    exports.hvFill = function (g) {
         const b = ui.rect();
 
         b.f = 'mix(t.defbg2,t.dlgbg,0.3+0.03*snoise2(vec2(c.x*n.w*0.5,c.y*n.h*0.5)))'
@@ -350,14 +348,14 @@ define(function (require, exports) {
 
     // | hv scroll mixin
     // \____________________________________________/
-    ct.hvScroll = function (b) {
+    exports.hvScroll = function (b) {
         //vertical scrollbar
-        const v = b._v_ || (b._v_ = ct.vScroll());
+        const v = b._v_ || (b._v_ = exports.vScroll());
         v._b = b // use front list
         v.l = 1
         v._z = Infinity
         // horiz scrollbar
-        const h = b._h_ || (b._h_ = ct.hScroll());
+        const h = b._h_ || (b._h_ = exports.hScroll());
         h._b = b // use front list
         h.l = 1
         h._z = Infinity
@@ -365,7 +363,7 @@ define(function (require, exports) {
         const sw = 10;  // scrollbar width
 
         // scroll corner
-        const c = ct.hvFill({ x: 'p.w_ - ' + sw, y: 'p.h_ - ' + sw, w: sw, h: sw });
+        const c = exports.hvFill({ x: 'p.w_ - ' + sw, y: 'p.h_ - ' + sw, w: sw, h: sw });
         c._b = b
         c.l = 1
 
@@ -411,7 +409,7 @@ define(function (require, exports) {
 
     // |  vertical slider
     // \____________________________________________/
-    ct.vSlider = function (g) {
+    exports.vSlider = function (g) {
         // parts
         const b = ui.rect();
         const k = ui.rect();
@@ -461,7 +459,7 @@ define(function (require, exports) {
 
     // |  horizontal slider
     // \____________________________________________/
-    ct.hSlider = function (g) {
+    exports.hSlider = function (g) {
         // parts
         const b = ui.rect();
         const k = ui.rect();
@@ -511,7 +509,7 @@ define(function (require, exports) {
 
     // |  item
     // \____________________________________________/
-    ct.item = function (t) {
+    exports.item = function (t) {
         const g = fn.named(arguments);
         // parts
         const b = ui.rect();
@@ -525,7 +523,7 @@ define(function (require, exports) {
         const nt = 'sfont(t.defbg, t.deftxt)'; // normal text
         b.f = nb
         t.f = nt
-        t.b = ct.f1s
+        t.b = exports.f1s
 
         // states
         b.p = function () {
@@ -557,20 +555,20 @@ define(function (require, exports) {
 
     // |  label
     // \____________________________________________/
-    ct.label = function (g) {
+    exports.label = function (g) {
         const t = ui.text();
         t.f = 'sfont(t.defbg, t.deftxt)' // text frag shader
-        t.b = ct.f1s // text bitmap
+        t.b = exports.f1s // text bitmap
         t.set(g)
         return t
     }
 
     // |  label centered
     // \____________________________________________/
-    ct.labelc = function (g) {
+    exports.labelc = function (g) {
         const t = ui.text();
         t.f = 'sfont(t.defbg, t.deftxt)' // text frag shader
-        t.b = ct.f1s // text bitmap
+        t.b = exports.f1s // text bitmap
         t.x = 'ceil(0.5*p.w - 0.5*n.w)' // center
         t.set(g)
         return t
@@ -578,10 +576,10 @@ define(function (require, exports) {
 
     // |  list
     // \____________________________________________/
-    ct.list = function (g) {
+    exports.list = function (g) {
         // parts
         const b = ui.rect();
-        const v = b._v_ = ct.vscroll();
+        const v = b._v_ = exports.vscroll();
         v._b = b // use front list
         b.l = v.l = 1 // both are layers
 
@@ -610,7 +608,7 @@ define(function (require, exports) {
 
     // |  edit
     // \____________________________________________/
-    ct.edit = function (g) {
+    exports.edit = function (g) {
         // parts
         const b = ui.rect(); // base
         const t = ui.text(); // text
@@ -670,8 +668,8 @@ define(function (require, exports) {
         b.y_ = 'n._y + 6 + n.ys'
         b.x_ = 'n._x + 5 + n.xs'
 
-        m.b = ct.f1s
-        t.b = ct.f1s
+        m.b = exports.f1s
+        t.b = exports.f1s
         t.f = 'sfont( t.defbg, t.deftxt)'
         m.f = 'sfont2( mix(vec4(1,1,1,1),vec4(0.5,0.5,0.5,1),n.i0), vec4(0,0,0,1), 1.0)'
 
@@ -692,7 +690,7 @@ define(function (require, exports) {
             e._p = b
             e.l = 1
             e.x = 2
-            e.b = ct.f1s
+            e.b = exports.f1s
             e.f = 'sfont( t.defbg, t.deftxt*0.75)'
             e.t = b.empty
         }
@@ -702,13 +700,13 @@ define(function (require, exports) {
 
     // |  combobox
     // \____________________________________________/
-    ct.comboBox = function (g) {
-        const e = ct.edit();
+    exports.comboBox = function (g) {
+        const e = exports.edit();
     }
 
     // |  dropshadow
     // \____________________________________________/
-    ct.dropShadow = function (g) {
+    exports.dropShadow = function (g) {
         // add dropshadow
         const e = ui.edge();
         e.set(g)
@@ -731,7 +729,7 @@ define(function (require, exports) {
 
     // |  dropshadow
     // \____________________________________________/
-    ct.innerShadow = function (g) {
+    exports.innerShadow = function (g) {
         // add dropshadow
         const e = ui.edge();
         e.set(g)
@@ -750,12 +748,12 @@ define(function (require, exports) {
 
     // |  window
     // \____________________________________________/
-    ct.window = function (g) {
+    exports.window = function (g) {
         // parts
         const b = ui.rect();
         const c = ui.rect();
         const t = ui.text();
-        const d = ct.dropShadow();
+        const d = exports.dropShadow();
         c._p = b
         d._p = b
         t._p = c
@@ -780,7 +778,7 @@ define(function (require, exports) {
         b.hm = bw
         b.hc = 'mix(t.dlghi, t.dlgbg, n.i1)'
         t.f = 'sfont(t.defbg, t.deftxt)'
-        t.b = ct.f1s
+        t.b = exports.f1s
 
         // interaction
         c.i = function () {
@@ -818,7 +816,7 @@ define(function (require, exports) {
     // |  hsplit
     // \____________________________________________/
 
-    ct.hSplit = function (g) {
+    exports.hSplit = function (g) {
         // parts
         const b = ui.group();
         b.l = 1
@@ -859,7 +857,7 @@ define(function (require, exports) {
     // |  vsplit
     // \____________________________________________/
 
-    ct.vSplit = function (g) {
+    exports.vSplit = function (g) {
         // parts
         const b = ui.group();
         b.l = 1
@@ -897,7 +895,7 @@ define(function (require, exports) {
     }
     // |  fold
     // \____________________________________________/
-    ct.fold = function (g) {
+    exports.fold = function (g) {
         // +- icon tree icon
         return ui.rect(function (n) {
             n.y = 20
@@ -913,7 +911,7 @@ define(function (require, exports) {
 
     // |  c9
     // \____________________________________________/
-    ct.ico_c9 = function (g) {
+    exports.ico_c9 = function (g) {
         return ui.rect(function (n) {
             n.y = 300
             n.w = 100
@@ -933,7 +931,7 @@ define(function (require, exports) {
 
     // |  horizontal slides with kb nav
     // \____________________________________________/
-    ct.slides = function (g) {
+    exports.slides = function (g) {
         const b = ui.group();
 
         const fnt_big = ui.gl.pfont("55px Monaco");
