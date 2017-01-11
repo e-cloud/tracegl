@@ -3,361 +3,507 @@
 // |  (C) Code.GL 2013
 // \____________________________________________/
 
-define(function(require, exports, module){
+define(function (require, exports, module) {
 
-	if(typeof process !== "undefined"){
+    if (typeof process !== "undefined") {
 
-		var cr = require('crypto')
-		// | Node.JS Path
-		// \____________________________________________/
-		module.exports = function(url){
-			var ch = {}
+        const crypto = require('crypto');
 
-			var pr // poll request
-			var pt // poll timer
-			var nc /*no cache header*/ = {"Content-Type": "text/plain","Cache-Control":"no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0"}
-			var sd = []// send data
-			var ws // websocket
-			var wk // websocket keepalive
-			var st // send timeout
+        module.exports = function (url) {
+            const channels = {};
 
-			function wsClose(){
-				if(ws) ws.destroy(), ws = 0
-				if(wk) clearInterval(wk), wk = 0
-			}
+            let pollRequest; // poll request
+            let pollTimer; // poll timer
+            const noCacheHeader /*no cache header*/ = {
+                "Content-Type": "text/plain",
+                "Cache-Control": "no-cache, private, no-store, must-revalidate, max-stale=0, post-check=0, pre-check=0"
+            };
+            const dataToSend = [];// send data
+            let websocket; // websocket
+            let wsKeepAlive; // websocket keepalive
+            let sendTimeout; // send timeout
 
-			function endPoll(c, d){ // end poll http status code, data
-				if(!pr) return
-				pr.writeHead(c, nc)
-				pr.end(d)
-				pr = null
-			}
+            function wsClose() {
+                if (websocket) {
+                    websocket.destroy()
+                    websocket = 0
+                }
+                if (wsKeepAlive) {
+                    clearInterval(wsKeepAlive)
+                    wsKeepAlive = 0
+                }
+            }
 
-			ch.handler = function(req, res){
-				if(req.url != url) return
-				if(req.method == 'GET'){ // Long poll
-					endPoll(304)
-					if(pt) clearInterval(pt), pt = 0
-					pt = setInterval(function(){endPoll(304)}, 30000)
-					pr = res
-					if(sd.length) endPoll(200, '['+sd.join(',')+']'), sd.length = 0 // we have pending data
-					return 1
-				}
+            function endPoll(statusCode, data) { // end poll http status code, data
+                if (!pollRequest) return
 
-				if(req.method == 'PUT'){ // RPC call
-					var d = ''
-					req.on('data', function(i){ d += i.toString() })
-					req.on('end', function(){
-						if(!ch.rpc) return res.end()
-						d = parse(d)
-						if(!d) return res.end()
-						ch.rpc(d, function(r){
-							res.writeHead(200, nc)
-							res.end(JSON.stringify(r))
-						})
-					})
-					return 1
-				}
+                pollRequest.writeHead(statusCode, noCacheHeader)
+                pollRequest.end(data)
+                pollRequest = null
+            }
 
-				if(req.method == 'POST'){ // Message  
-					var d = ''
-					req.on('data', function(i){ d += i.toString() })
-					req.on('end', function(){
-						res.writeHead(204, nc)
-						res.end()
-						d = parse(d)
-						if(ch.data && d && d.length) for(var i = 0;i<d.length;i++) ch.data(d[i])
-					})
-					return 1
-				}
-			}
+            channels.handler = function (req, res) {
+                if (req.url != url) return
 
-			ch.upgrade = function(req, sock, head){
-				if(req.headers['sec-websocket-version'] != 13) return sock.destroy()
-				wsClose()
-				ws = sock
+                if (req.method == 'GET') { // Long poll
+                    endPoll(304)
+                    if (pollTimer) {
+                        clearInterval(pollTimer)
+                        pollTimer = 0
+                    }
+                    pollTimer = setInterval(function () {
+                        endPoll(304)
+                    }, 30000)
 
-			   // calc key
-				var k = req.headers['sec-websocket-key']
-				var sha1 = cr.createHash('sha1');
-				sha1.update(k + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
-				var v = 'HTTP/1.1 101 Switching Protocols\r\n'+
-					'Upgrade: websocket\r\n'+
-					'Connection: Upgrade\r\n'+
-					'Sec-WebSocket-Accept: ' + sha1.digest('base64') +'\r\n'+
-					'Sec-WebSocket-Protocol: ws\r\n\r\n'
-				ws.write(v)
+                    pollRequest = res
+                    if (dataToSend.length) {
+                        endPoll(200, '[' + dataToSend.join(',') + ']')
+                        dataToSend.length = 0
+                    } // we have pending data
+                    return 1
+                }
 
-				var max = 100000000
-				var h = new Buffer(14) // header
-				var o = new Buffer(10000) // output
-				var s = opcode // state
-				var e = 1// expected
-				var w = 0// written
-				var r // read
-				var i // input
+                if (req.method == 'PUT') { // RPC call
+                    let data = ''
+                    req.on('data', function (i) {
+                        data += i.toString()
+                    })
+                    req.on('end', function () {
+                        if (!channels.rpc) {
+                            return res.end()
+                        }
+                        data = parse(data)
+                        if (!data) {
+                            return res.end()
+                        }
+                        channels.rpc(data, function (r) {
+                            res.writeHead(200, noCacheHeader)
+                            res.end(JSON.stringify(r))
+                        })
+                    })
+                    return 1
+                }
 
-				var m // mask offset
-				var c // mask counter
-				var l // payload len
+                if (req.method == 'POST') { // Message
+                    let data = ''
+                    req.on('data', function (i) {
+                        data += i.toString()
+                    })
+                    req.on('end', function () {
+                        res.writeHead(204, noCacheHeader)
+                        res.end()
+                        data = parse(data)
+                        if (channels.data && data && data.length) {
+                            for (let i = 0; i < data.length; i++) {
+                                channels.data(data[i])
+                            }
+                        }
+                    })
+                    return 1
+                }
+            }
 
-				function err(t){
-					console.log('websock '+t)
-					wsClose()
-				}
+            channels.upgrade = function (req, sock) {
+                if (req.headers['sec-websocket-version'] != 13) {
+                    return sock.destroy()
+                }
+                wsClose()
+                websocket = sock
 
-				function head(){
-					var se = e
-					while(e > 0 && r < i.length && w < h.length) h[w++] = i[r++], e--
-					if(w > h.length) return err("unexpected data in header"+ se + s.toString())
-					return e != 0
-				}
+                // calc key
+                const key = req.headers['sec-websocket-key'];
+                const sha1 = crypto.createHash('sha1');
+                sha1.update(key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+                const v = 'HTTP/1.1 101 Switching Protocols\r\n' +
+                  'Upgrade: websocket\r\n' +
+                  'Connection: Upgrade\r\n' +
+                  'Sec-WebSocket-Accept: ' + sha1.digest('base64') + '\r\n' +
+                  'Sec-WebSocket-Protocol: ws\r\n\r\n';
+                websocket.write(v)
 
-				function data(){
-					while(e > 0 && r < i.length) o[w++] = i[r++] ^ h[m + (c++&3)], e--
-					if(e) return 
-					var d = parse(o.toString('utf8', 0, w))
-					if(ch.data && d && d.length) {
-						for(var j = 0;j<d.length;j++) ch.data(d[j])
-					}
-					return e = 1, w = 0, s = opcode
-				}
+                const max = 100000000;
+                const header = new Buffer(14); // header
+                let outBuf = new Buffer(10000); // output
+                let state = opcode; // state
+                let expected = 1;// expected
+                let written = 0;// written
+                let read; // read
+                let input; // input
 
-				function mask(){
-					if(head()) return
-					if(!l) return e = 1, w = 0, s = opcode
-					m = w - 4
-					w = c = 0
-					e = l
-					if(l > max) return err("buffer size request too large "+l+" > "+max)
-					if(l > o.length) o = new Buffer(l)
-					return s = data
-				}
+                let maskOffset; // mask offset
+                let maskCounter; // mask counter
+                let payloadLen; // payload len
 
-				function len8(){
-					if(head()) return
-					return l = h.readUInt32BE(w - 4), e = 4, s = mask
-				}
+                function err(t) {
+                    console.log('websock ' + t)
+                    wsClose()
+                }
 
-				function len2(){
-					if(head()) return 
-					return l = h.readUInt16BE(w - 2), e = 4, s = mask
-				}
+                function head() {
+                    const sockExpected = expected;
+                    while (
+                    expected > 0 &&
+                    read < input.length &&
+                    written < header.length
+                      ) {
+                        header[written++] = input[read++]
+                        expected--
+                    }
+                    if (written > header.length) {
+                        return err("unexpected data in header" + sockExpected + state.toString())
+                    }
+                    return expected != 0
+                }
 
-				function len1(){
-					if(head()) return
-					if(!(h[w  - 1] & 128)) return err("only masked data")
-					var t = h[w - 1] & 127
-					if(t < 126) return l = t, e = 4, s = mask
-					if(t == 126) return e = 2, s = len2
-					if(t == 127) return e = 8, s = len8
-				}
+                function data() {
+                    while (expected > 0 && read < input.length) {
+                        outBuf[written++] = input[read++] ^ header[maskOffset + (maskCounter++ & 3)]
+                        expected--
+                    }
+                    if (expected) return
 
-				function pong(){
-					if(head()) return
-					if(h[w-1] & 128) return e = 4, l = 0, s = mask 
-					return e = 1, w = 0, s = opcode
-				}
+                    const parsedData = parse(outBuf.toString('utf8', 0, written));
 
-				function opcode(){
-					if(head()) return
-					var f = h[0] & 128
-					var t = h[0] & 15
-					if(t == 1){
-						if(!f) return err("only final frames supported")
-						return e = 1, s = len1
-					}
-					if(t == 8) return wsClose()
-					if(t == 10) return e = 1, s = pong
-					return err("opcode not supported " + t)
-				}
+                    if (channels.data && parsedData && parsedData.length) {
+                        for (let j = 0; j < parsedData.length; j++) {
+                            channels.data(parsedData[j])
+                        }
+                    }
+                    expected = 1
+                    written = 0
+                    return state = opcode
+                }
 
-				ws.on('data', function(d){
-					i = d
-					r = 0
-					while(s());
-				})
+                function mask() {
+                    if (head()) return
+                    if (!payloadLen) {
+                        expected = 1
+                        written = 0
+                        return state = opcode
+                    }
+                    maskOffset = written - 4
+                    written = maskCounter = 0
+                    expected = payloadLen
+                    if (payloadLen > max) {
+                        return err("buffer size request too large " + payloadLen + " > " + max)
+                    }
+                    if (payloadLen > outBuf.length) {
+                        outBuf = new Buffer(payloadLen)
+                    }
 
-				var cw = ws
-				ws.on('close', function(){
-					if(cw == ws) wsClose()
-					o = null
-				})
+                    return state = data
+                }
 
-				// 10 second ping frames
-				var pf = new Buffer(2)
-				pf[0] = 9 | 128
-				pf[1] = 0
-				wk = setInterval(function(){
-					ws.write(pf)
-				}, 10000)
-			}
+                function len8() {
+                    if (head()) return
 
-			function wsWrite(d){
-				var h
-				var b = new Buffer(d)
-				if(b.length < 126){
-					h = new Buffer(2)
-					h[1] = b.length
-				} else if (b.length<=65535){
-					h = new Buffer(4)
-					h[1] = 126
-					h.writeUInt16BE(b.length, 2)
-				} else {
-					h = new Buffer(10)
-					h[1] = 127
-					h[2] = h[3] = h[4] =	h[5] = 0
-					h.writeUInt32BE(b.length, 6)
-				}
-				h[0] = 128 | 1
-				ws.write(h)
-				ws.write(b)
-			}
+                    payloadLen = header.readUInt32BE(written - 4)
+                    expected = 4
+                    return state = mask
+                }
 
-			ch.send = function(m){
-				sd.push(JSON.stringify(m))
-				if(!st) st = setTimeout(function(){
-					st = 0
-					if(ws) wsWrite('['+sd.join(',')+']'), sd.length = 0
-					else
-					if(pr) endPoll(200, '['+sd.join(',')+']'), sd.length = 0
-				}, 0)
-			}
+                function len2() {
+                    if (head()) return
 
-			return ch
-		}
+                    payloadLen = header.readUInt16BE(written - 2)
+                    expected = 4
+                    return state = mask
+                }
 
-		return
-	}
-	// | Browser Path
-	// \____________________________________________/
+                function len1() {
+                    if (head()) return
 
-	module.exports = 
-	//CHANNEL
-	function(url){
-		var ch = {}
+                    if (!(header[written - 1] & 128)) {
+                        return err("only masked data")
+                    }
 
-		var sd = [] // send data
-		var bs = [] // back data
-		var bi = 0 // back interval
-		var ws // websocket
-		var wt // websocket sendtimeout
-		var wr = 0 //websocket retry
-		var sx // send xhr
-		var tm;
+                    const type = header[written - 1] & 127;
 
-		function xsend(d){
-			var d = '[' + sd.join(',') +']'
-			sd.length = 0
-			sx = new XMLHttpRequest()
-			sx.onreadystatechange = function(){
-				if(sx.readyState != 4) return
-				sx = 0
-				if(sd.length > 0) xsend()
-			}
-			sx.open('POST', url)
-			sx.send(d)
-		};
+                    if (type < 126) {
+                        payloadLen = type
+                        expected = 4
+                        return state = mask
+                    }
+                    if (type == 126) {
+                        expected = 2
+                        return state = len2
+                    }
+                    if (type == 127) {
+                        expected = 8
+                        return state = len8
+                    }
+                }
 
-		function wsFlush(){
-			if(ws === 1) {
-				if(!wt){
-					wt = setTimeout(function(){
-						wt = 0
-						wsFlush()
-					},50)
-				}
-				return
-			} else if (!ws){
-				if(!ws) console.log('Websocket flooded, trace data lost')
-			}
-			if(sd.length){
-				var data = '[' + sd.join(',') + ']'
-				sd.length = 0
-				if(bs.length || ws.bufferedAmount > 500000){
-					bs.push(data)
-					if(!bi) bi = setInterval(function(){
-						if(ws && ws.bufferedAmount < 500000)
-							ws.send(bs.shift())
-						if(!ws || !bs.length) clearInterval(bi), bi = 0
-						if(!ws) console.log('Websocket flooded, trace data lost')
-					}, 10)
-				} else ws.send(data)
-			}
-		}
+                function pong() {
+                    if (head()) return
 
-		//| send json message via xhr or websocket
-		ch.send = function(m){
-			sd.push(JSON.stringify(m))
-			if(ws){
-				if(sd.length>10000) wsFlush()
-				if(!wt) wt = setTimeout(function(){
-					wt = 0
-					wsFlush()
-				},0)
-			} else {
-				if(!sx) return xsend()
-			}
-		}
+                    if (header[written - 1] & 128) {
+                        expected = 4
+                        payloadLen = 0
+                        return state = mask
+                    }
+                    expected = 1
+                    written = 0
+                    return state = opcode
+                }
 
-		function poll(){
-			var x = new XMLHttpRequest()
-			x.onreadystatechange = function(){
-				if(x.readyState != 4) return
-				if(x.status == 200 || x.status == 304) poll()
-				else setTimeout(poll, 500)
-				try{ var d = JSON.parse(x.responseText) }catch(e){}
-				if(d && ch.data && d.length) for(var i = 0;i<d.length;i++) ch.data(d[i])
-			}
-			x.open('GET', url)
-			x.send()
-		}
+                function opcode() {
+                    if (head()) return
 
-		ch.rpc = function(m, cb){ // rpc request
-			var x = new XMLHttpRequest()
-			x.onreadystatechange = function(){
-				if(x.readyState != 4) return
-				var d
-				if(x.status == 200 ) try{d = JSON.parse(x.responseText) }catch(e){}
-				if(cb) cb(d)
-			}
-			x.open('PUT', url)
-			x.send(JSON.stringify(m))
-			return x
-		}
+                    const final = header[0] & 128;
+                    const type = header[0] & 15;
+                    if (type == 1) {
+                        if (!final) {
+                            return err("only final frames supported")
+                        }
+                        expected = 1
+                        return state = len1
+                    }
+                    if (type == 8) {
+                        return wsClose()
+                    }
+                    if (type == 10) {
+                        expected = 1
+                        return state = pong
+                    }
+                    return err("opcode not supported " + type)
+                }
 
-		function websock(){
-			var u = 'ws://'+window.location.hostname +':'+window.location.port+''+url
-			var w = new WebSocket(u, "ws")
-			ws = 1
-			w.onopen = function(){
-				ws = w
-			}
-			w.onerror = w.onclose = function(e){
-				if(ws == w){ // we had a connection, retry
-					console.log("Websocket closed, retrying", e)
-					ws = 0
-					websock()
-				} else {
-					console.log("Falling back to polling", e)
-					ws = 0, poll()
-				}
-			}
-			w.onmessage = function(e){
-				var d = parse(e.data)
-				if(d && ch.data) for(var i = 0;i<d.length;i++) ch.data(d[i])
-			}
-		}
-		
-		if(typeof no_websockets !== "undefined" || typeof WebSocket === "undefined") poll()
-		else websock()
-		//poll()
-		return ch
-	}
+                websocket.on('data', function (data) {
+                    input = data
+                    read = 0
+                    while (state()) {
+                    }
+                })
 
-	function parse(d){ // data
-		try{ return JSON.parse(d);	}catch (e){ return }
-	}
+                const currentWS = websocket;
 
-	//CHANNEL
+                websocket.on('close', function () {
+                    if (currentWS == websocket) {
+                        wsClose()
+                    }
+                    outBuf = null
+                })
+
+                // 10 second ping frames
+                const pingBuf = new Buffer(2);
+                pingBuf[0] = 9 | 128
+                pingBuf[1] = 0
+                wsKeepAlive = setInterval(function () {
+                    websocket.write(pingBuf)
+                }, 10000)
+            }
+
+            function wsWrite(d) {
+                let head;
+                const buf = new Buffer(d);
+                if (buf.length < 126) {
+                    head = new Buffer(2)
+                    head[1] = buf.length
+                } else if (buf.length <= 65535) {
+                    head = new Buffer(4)
+                    head[1] = 126
+                    head.writeUInt16BE(buf.length, 2)
+                } else {
+                    head = new Buffer(10)
+                    head[1] = 127
+                    head[2] = head[3] = head[4] = head[5] = 0
+                    head.writeUInt32BE(buf.length, 6)
+                }
+                head[0] = 128 | 1
+                websocket.write(head)
+                websocket.write(buf)
+            }
+
+            channels.send = function (msg) {
+                dataToSend.push(JSON.stringify(msg))
+                if (!sendTimeout) {
+                    sendTimeout = setTimeout(function () {
+                        sendTimeout = 0
+                        if (websocket) {
+                            wsWrite('[' + dataToSend.join(',') + ']')
+                            dataToSend.length = 0
+                        } else if (pollRequest) {
+                            endPoll(200, '[' + dataToSend.join(',') + ']')
+                            dataToSend.length = 0
+                        }
+                    }, 0)
+                }
+            }
+
+            return channels
+        }
+
+        return
+    }
+    // | Browser Path
+    // \____________________________________________/
+
+    module.exports =
+      //CHANNEL
+      function (url) {
+          const channel = {};
+
+          const sendData = []; // send data
+          const backData = []; // back data
+          let backInterval = 0; // back interval
+          let websocketRef; // websocket
+          let socketTimeout; // websocket sendtimeout
+          let sendXhr; // send xhr
+
+          function xsend() {
+              const data = '[' + sendData.join(',') + ']'
+              sendData.length = 0
+              sendXhr = new XMLHttpRequest()
+              sendXhr.onreadystatechange = function () {
+                  if (sendXhr.readyState != 4) return
+
+                  sendXhr = 0
+                  if (sendData.length > 0) {
+                      xsend()
+                  }
+              }
+              sendXhr.open('POST', url)
+              sendXhr.send(data)
+          }
+
+          function wsFlush() {
+              if (websocketRef === 1) {
+                  if (!socketTimeout) {
+                      socketTimeout = setTimeout(function () {
+                          socketTimeout = 0
+                          wsFlush()
+                      }, 50)
+                  }
+                  return
+              } else if (!websocketRef) {
+                  if (!websocketRef) console.log('Websocket flooded, trace data lost')
+              }
+              if (sendData.length) {
+                  const data = '[' + sendData.join(',') + ']';
+                  sendData.length = 0
+                  if (backData.length || websocketRef.bufferedAmount > 500000) {
+                      backData.push(data)
+                      if (!backInterval) {
+                          backInterval = setInterval(function () {
+                              if (websocketRef && websocketRef.bufferedAmount < 500000) {
+                                  websocketRef.send(backData.shift())
+                              }
+                              if (!websocketRef || !backData.length) {
+                                  clearInterval(backInterval)
+                                  backInterval = 0
+                              }
+                              if (!websocketRef) console.log('Websocket flooded, trace data lost')
+                          }, 10)
+                      }
+                  } else {
+                      websocketRef.send(data)
+                  }
+              }
+          }
+
+          //| send json message via xhr or websocket
+          channel.send = function (m) {
+              sendData.push(JSON.stringify(m))
+              if (websocketRef) {
+                  if (sendData.length > 10000) wsFlush()
+                  if (!socketTimeout) {
+                      socketTimeout = setTimeout(function () {
+                          socketTimeout = 0
+                          wsFlush()
+                      }, 0)
+                  }
+              } else {
+                  if (!sendXhr) return xsend()
+              }
+          }
+
+          function poll() {
+              const xhr = new XMLHttpRequest();
+              xhr.onreadystatechange = function () {
+                  if (xhr.readyState != 4) return
+                  if (xhr.status == 200 || xhr.status == 304) {
+                      poll()
+                  } else {
+                      setTimeout(poll, 500)
+                  }
+                  let data
+                  try {
+                      data = JSON.parse(xhr.responseText)
+                  } catch (e) {
+                  }
+                  if (data && channel.data && data.length) {
+                      for (let i = 0; i < data.length; i++) {
+                          channel.data(data[i])
+                      }
+                  }
+              }
+              xhr.open('GET', url)
+              xhr.send()
+          }
+
+          channel.rpc = function (m, cb) { // rpc request
+              const xhr = new XMLHttpRequest();
+              xhr.onreadystatechange = function () {
+                  if (xhr.readyState != 4) return
+                  let d;
+                  if (xhr.status == 200) {
+                      try {
+                          d = JSON.parse(xhr.responseText)
+                      } catch (e) {
+                      }
+                  }
+                  if (cb) cb(d)
+              }
+              xhr.open('PUT', url)
+              xhr.send(JSON.stringify(m))
+              return xhr
+          }
+
+          function openWebSocket() {
+              const _url = 'ws://' + window.location.hostname + ':' + window.location.port + '' + url;
+              const socket = new WebSocket(_url, "ws");
+              websocketRef = 1
+              socket.onopen = function () {
+                  websocketRef = socket
+              }
+              socket.onerror = socket.onclose = function (err) {
+                  if (websocketRef == socket) { // we had a connection, retry
+                      console.log("Websocket closed, retrying", err)
+                      websocketRef = 0
+                      openWebSocket()
+                  } else {
+                      console.log("Falling back to polling", err)
+                      websocketRef = 0
+                      poll()
+                  }
+              }
+              socket.onmessage = function (msg) {
+                  const d = parse(msg.data);
+                  if (d && channel.data) {
+                      for (let i = 0; i < d.length; i++) {
+                          channel.data(d[i])
+                      }
+                  }
+              }
+          }
+
+          if (typeof WebSocket === "undefined") {
+              poll()
+          } else {
+              openWebSocket()
+          }
+          //poll()
+          return channel
+      }
+
+    function parse(data) { // data
+        try {
+            return JSON.parse(data);
+        } catch (err) {
+            return ''
+        }
+    }
+
+    //CHANNEL
 })

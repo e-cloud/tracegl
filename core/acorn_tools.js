@@ -4,312 +4,480 @@
 // | licensed under MPL 2.0 http://www.mozilla.org/MPL/
 // \____________________________________________/
 
-define(function(require, exports, module){
-  "no tracegl"
+define(function (require, exports, module) {
+    "no tracegl"
 
-	var acorn = require('./acorn')
+    const acorn = require('./acorn');
 
-	exports.dump = function(o, t, r){
-		t = t || ''
-		var a = Array.isArray(o)
-		var s = (a?'[':'{')
-		for(var k in o)if(o.hasOwnProperty(k)){
+    exports.dump = function (node, tok) {
+        tok = tok || ''
+        const IsArray = Array.isArray(node);
+        let start = (IsArray ? '[' : '{');
+        for (const key in node) {
+            if (node.hasOwnProperty(key)) {
 
-			if(k == 'parent' || k == 'tokens' || k=='start' || k=='end' || k=='token' || k=='loc') continue
-			if(k == 'token'){
-				s += '\n'+t+'token: '+o[k].t
-				continue
-			}
-			var v = o[k]
-			s += '\n' + t + k+': '
-			if(typeof v == 'object') {
-				s += exports.dump(v, t + ' ', r)
-			}
-			else s += v
-		}
-		s += '\n'+t.slice(1) + (a?']':'}')
-		return s
-	}
+                if (key == 'parent' || key == 'tokens' || key == 'start' || key == 'end' || key == 'token' || key == 'loc') continue
+                if (key == 'token') {
+                    start += '\n' + tok + 'token: ' + node[key].t
+                    continue
+                }
+                const value = node[key];
+                start += '\n' + tok + key + ': '
+                if (typeof value == 'object') {
+                    start += exports.dump(value, tok + ' ')
+                }
+                else {
+                    start += value
+                }
+            }
+        }
+        start += '\n' + tok.slice(1) + (IsArray ? ']' : '}')
+        return start
+    }
 
-	//
-	// AST walker
-	//
+    //
+    // AST walker
+    //
 
-	var walk = {
-		Literal:              {}, // 1 single node
-		Identifier:           {}, // 2 array of nodes
-		Program:              {body:2}, // 3 keyss structure
-		ExpressionStatement:  {expression:1}, // 4 value endpoint
-		BreakStatement:       {},
-		ContinueStatement:    {},
-		DebuggerStatement:    {},
-		DoWhileStatement:     {body:1, test:1},
-		ReturnStatement:      {argument:1},
-		SwitchStatement:      {discriminant:1,cases:2},
-		SwitchCase:           {consequent:2,test:1},
-		WhileStatement:       {test:1, body:1},
-		WithStatement:        {object:1,body:1},
-		EmptyStatement:       {},
-		LabeledStatement:     {body:1,label:4},
-		BlockStatement:       {body:2},
-		ForStatement:         {init:1,test:1,update:1,body:1},
-		ForInStatement:       {left:1,right:1,body:1},
-		VariableDeclaration:  {declarations:2},
-		VariableDeclarator:   {id:4,init:1},
-		SequenceExpression:   {expressions:2},
-		AssignmentExpression: {left:1,right:1},
-		ConditionalExpression:{test:1,consequent:1,alternate:1},
-		LogicalExpression:    {left:1,right:1},
-		BinaryExpression:     {left:1,right:1},
-		UpdateExpression:     {argument:1},
-		UnaryExpression:      {argument:1},
-		CallExpression:       {callee:1,arguments:2},
-		ThisExpression:       {},
-		ArrayExpression:      {elements:2},
-		NewExpression:        {callee:1,arguments:2},
-		FunctionDeclaration:  {id:4,params:2,body:1},
-		FunctionExpression:   {id:4,params:2,body:1},
-		ObjectExpression:     {properties:3},
-		MemberExpression:     {object:1,property:1},
-		IfStatement:          {test:1,consequent:1,alternate:1},
-		ThrowStatement:       {argument:1},
-		TryStatement:         {block:1,handlers:2,finalizer:1},
-		CatchClause:          {param:1,guard:1,body:1}
-	}
+    const walk = {
+        Literal: {}, // 1 single node
+        Identifier: {}, // 2 array of nodes
+        Program: { body: 2 }, // 3 keyss structure
+        ExpressionStatement: { expression: 1 }, // 4 value endpoint
+        BreakStatement: {},
+        ContinueStatement: {},
+        DebuggerStatement: {},
+        DoWhileStatement: { body: 1, test: 1 },
+        ReturnStatement: { argument: 1 },
+        SwitchStatement: { discriminant: 1, cases: 2 },
+        SwitchCase: { consequent: 2, test: 1 },
+        WhileStatement: { test: 1, body: 1 },
+        WithStatement: { object: 1, body: 1 },
+        EmptyStatement: {},
+        LabeledStatement: { body: 1, label: 4 },
+        BlockStatement: { body: 2 },
+        ForStatement: { init: 1, test: 1, update: 1, body: 1 },
+        ForInStatement: { left: 1, right: 1, body: 1 },
+        VariableDeclaration: { declarations: 2 },
+        VariableDeclarator: { id: 4, init: 1 },
+        SequenceExpression: { expressions: 2 },
+        AssignmentExpression: { left: 1, right: 1 },
+        ConditionalExpression: { test: 1, consequent: 1, alternate: 1 },
+        LogicalExpression: { left: 1, right: 1 },
+        BinaryExpression: { left: 1, right: 1 },
+        UpdateExpression: { argument: 1 },
+        UnaryExpression: { argument: 1 },
+        CallExpression: { callee: 1, arguments: 2 },
+        ThisExpression: {},
+        ArrayExpression: { elements: 2 },
+        NewExpression: { callee: 1, arguments: 2 },
+        FunctionDeclaration: { id: 4, params: 2, body: 1 },
+        FunctionExpression: { id: 4, params: 2, body: 1 },
+        ObjectExpression: { properties: 3 },
+        MemberExpression: { object: 1, property: 1 },
+        IfStatement: { test: 1, consequent: 1, alternate: 1 },
+        ThrowStatement: { argument: 1 },
+        TryStatement: { block: 1, handlers: 2, finalizer: 1 },
+        CatchClause: { param: 1, guard: 1, body: 1 }
+    };
 
-	function walkDown(n, o, p, k){
-		if(!n) return
-		var f = o[n.type]
-		if(f){
-			if(f(n, p)) return
-		}
-		var w = walk[n.type]
-		for(var k in w){
-			var t = w[k] // type
-			var m = n[k] // node prop
-			if(t == 2){ // array
-				if(!Array.isArray(m))throw new Error("invalid type")
-				for(var i = 0; i < m.length; i++){
-					walkDown(m[i], o, {up:p, sub:k, type:n.type, node:n, index:i} )
-				}
-			} else if(t == 3){ // keys
-				if(!Array.isArray(m))throw new Error("invalid type")
-				for(var i = 0; i < m.length; i++){
-					walkDown(m[i].value, o, {up:p, sub:k, type:n.type, node:n, index:i, key:m[i].key} )
-				}
-			} else { // single  node or value
-				if(m) walkDown(m, o, {up:p, sub:k, type:n.type, node:n})
-			}
-		}
-	}
+    // walk through the ast tree
+    function walkDown(node, walkerMap, parent) {
+        if (!node) return
+        const traverseFunc = walkerMap[node.type];
+        if (traverseFunc) {
+            if (traverseFunc(node, parent)) return
+        }
+        const typeMap = walk[node.type];
+        for (const key in typeMap) {
+            const type = typeMap[key]; // type
+            const nodeProp = node[key]; // node prop
+            if (type == 2) { // array
+                if (!Array.isArray(nodeProp)) {
+                    throw new Error("invalid type")
+                }
+                for (let i = 0; i < nodeProp.length; i++) {
+                    walkDown(nodeProp[i], walkerMap, {
+                        up: parent,
+                        sub: key,
+                        type: node.type,
+                        node: node,
+                        index: i
+                    })
+                }
+            } else if (type == 3) { // keys
+                if (!Array.isArray(nodeProp)) {
+                    throw new Error("invalid type")
+                }
+                for (let i = 0; i < nodeProp.length; i++) {
+                    walkDown(nodeProp[i].value, walkerMap, {
+                        up: parent,
+                        sub: key,
+                        type: node.type,
+                        node: node,
+                        index: i,
+                        key: nodeProp[i].key
+                    })
+                }
+            } else { // single node or value
+                if (nodeProp) {
+                    walkDown(nodeProp, walkerMap, {
+                        up: parent,
+                        sub: key,
+                        type: node.type,
+                        node: node
+                    })
+                }
+            }
+        }
+    }
 
-	function walkUp(p, o){
-		while(p){
-			var f = o[p.node.type]
-			if(f && f(p.node, p)) break
-			p = p.up
-		}
-	}
-	exports.walkDown = walkDown
-	exports.walkUp = walkUp
+    function walkUp(p, o) {
+        while (p) {
+            const f = o[p.node.type];
+            if (f && f(p.node, p)) break
+            p = p.up
+        }
+    }
 
-	//
-	// AST serializer
-	//
+    exports.walkDown = walkDown
+    exports.walkUp = walkUp
 
-	var sSep
+    //
+    // AST serializer
+    //
 
-	function sExp(e){
-		if(!e || !e.type) return ''
-		return sTab[e.type](e)
-	}
+    let strSeparator;
 
-	function sBlk(b){
-		var s = ''
-		for(var i = 0;i<b.length;i++)	s += sExp(b[i]) + sSep
-		return s
-	}
+    function stringifyExpression(expr) {
+        if (!expr || !expr.type) return ''
+        return stringifyExpressionMap[expr.type](expr)
+    }
 
-	function sSeq(b){
-		var s = ''
-		for(var i = 0;i<b.length;i++){
-			if(i) s += ', '
-			s += sExp(b[i])
-		}
-		return s
-	}
+    function stringifyBlock(b) {
+        let s = '';
+        for (let i = 0; i < b.length; i++) {
+            s += stringifyExpression(b[i]) + strSeparator
+        }
+        return s
+    }
 
-	var sTab = {
-		Literal:              function(n){ return n.raw },
-		Identifier:           function(n){ return n.name },
-		Program:              function(n){ return sBlk(n.body) },
-		ExpressionStatement:  function(n){ return sExp(n.expression) },
-		BreakStatement:       function(n){ return 'break' },
-		ContinueStatement:    function(n){ return 'continue' },
-		DebuggerStatement:    function(n){ return 'debugger' },
-		DoWhileStatement:     function(n){ return 'do'+sExp(n.body)+sSep+'while('+sExp(n.test)+')' },
-		ReturnStatement:      function(n){ return 'return '+sExp(n.argument) },
-		SwitchStatement:      function(n){ return 'switch('+sExp(n.discriminant)+'){'+sBlk(n.cases)+'}' },
-		SwitchCase:           function(n){ return 'case '+sExp(n.test)+':'+sSep+sBlk(n.consequent) },	
-		WhileStatement:       function(n){ return 'while('+sExp(n.test)+')'+sExp(n.body) },
-		WithStatement:        function(n){ return 'with('+sExp(n.object)+')'+sExp(n.body) },
-		EmptyStatement:       function(n){ return '' },
-		LabeledStatement:     function(n){ return sExp(n.label) + ':' + sSep + sExp(n.body) },
-		BlockStatement:       function(n){ return '{'+sSep+sBlk(n.body)+'}' },
-		ForStatement:         function(n){ return 'for('+sExp(n.init)+';'+sExp(n.test)+';'+sExp(n.update)+')'+sExp(n.body) },
-		ForInStatement:       function(n){ return 'for('+sExp(n.left)+' in '+sExp(n.right)+')'+sExp(n.body) },		
-		VariableDeclarator:   function(n){ return sExp(n.id)+' = ' +sExp(n.init) },
-		VariableDeclaration:  function(n){ return 'var '+sSeq(n.declarations) },
-		SequenceExpression:   function(n){ return sSeq(n.expressions) },
-		AssignmentExpression: function(n){ return sExp(n.left)+n.operator+sExp(n.right) },
-		ConditionalExpression:function(n){ return sExp(n.test)+'?'+sExp(n.consequent)+':'+sExp(n.alternate) },
-		LogicalExpression:    function(n){ return sExp(n.left)+n.operator+sExp(n.right) },
-		BinaryExpression:     function(n){ return sExp(n.left)+n.operator+sExp(n.right) },
-		UpdateExpression:     function(n){ return n.prefix?n.operator+sExp(n.argument):sExp(n.argument)+n.operator },
-		UnaryExpression:      function(n){ return n.prefix?n.operator+sExp(n.argument):sExp(n.argument)+n.operator },
-		CallExpression:       function(n){ return sExp(n.callee)+'('+sSeq(n.arguments)+')' },
-		ThisExpression:       function(n){ return 'this' },
-		ArrayExpression:      function(n){ return '['+sSeq(n.elements)+']' },
-		NewExpression:        function(n){ return 'new '+sExp(n.callee)+'('+sSeq(n.arguments)+')' },
-		FunctionDeclaration:  function(n){ return 'function'+(n.id?' '+sExp(n.id):'')+'('+sSeq(n.params)+')'+sExp(n.body) },
-		FunctionExpression:   function(n){ return 'function'+(n.id?' '+sExp(n.id):'')+'('+sSeq(n.params)+')'+sExp(n.body) },
-		ObjectExpression:     function(n){
-			var s = '{'
-			var b = n.properties
-			for(var i = 0;i<b.length;i++){
-				if(i) s += ', '
-				s += sExp(b.key) + ':' + sExp(b.value)
-			}
-			s += '}'
-			return s
-		},
-		MemberExpression:     function(n){
-			if(n.computed)	return sExp(n.object)+'['+sExp(n.property)+']'
-			return sExp(n.object)+'.'+sExp(n.property)
-		},
-		IfStatement:          function(n){ 
-			return 'if('+sExp(n.test)+')' + sExp(n.consequent) + sSep +
-			       (n.alternate ? 'else ' + sExp(n.alternate) + sSep : '') 
-		},
-		ThrowStatement:       function(n){ return 'throw '+sExp(n.argument) },
-		TryStatement:         function(n){ 
-			return 'try '+sExp(n.block)+sSep+sBlk(n.handlers)+sSep+
-			       (n.finalizer? 'finally ' + sBlk(n.finalizer) : '')
-		},
-		CatchClause:          function(n){
-			return 'catch(' + sExp(n.param) + (n.guard?' if '+sExp(n.guard):')') + sExp(n.body)
-		}
-	}
+    function stringifySeq(b) {
+        let s = '';
+        for (let i = 0; i < b.length; i++) {
+            if (i) s += ', '
+            s += stringifyExpression(b[i])
+        }
+        return s
+    }
 
-	function stringify(n, sep){
-		sSep = sep || '\n'
-		return sExp(n)
-	}
+    const stringifyExpressionMap = {
+        Literal: function (n) {
+            return n.raw
+        },
+        Identifier: function (n) {
+            return n.name
+        },
+        Program: function (n) {
+            return stringifyBlock(n.body)
+        },
+        ExpressionStatement: function (n) {
+            return stringifyExpression(n.expression)
+        },
+        BreakStatement: function (n) {
+            return 'break'
+        },
+        ContinueStatement: function (n) {
+            return 'continue'
+        },
+        DebuggerStatement: function (n) {
+            return 'debugger'
+        },
+        DoWhileStatement: function (n) {
+            return 'do' + stringifyExpression(n.body) + strSeparator + 'while(' + stringifyExpression(n.test) + ')'
+        },
+        ReturnStatement: function (n) {
+            return 'return ' + stringifyExpression(n.argument)
+        },
+        SwitchStatement: function (n) {
+            return 'switch(' + stringifyExpression(n.discriminant) + '){' + stringifyBlock(n.cases) + '}'
+        },
+        SwitchCase: function (n) {
+            return 'case ' + stringifyExpression(n.test) + ':' + strSeparator + stringifyBlock(n.consequent)
+        },
+        WhileStatement: function (n) {
+            return 'while(' + stringifyExpression(n.test) + ')' + stringifyExpression(n.body)
+        },
+        WithStatement: function (n) {
+            return 'with(' + stringifyExpression(n.object) + ')' + stringifyExpression(n.body)
+        },
+        EmptyStatement: function (n) {
+            return ''
+        },
+        LabeledStatement: function (n) {
+            return stringifyExpression(n.label) + ':' + strSeparator + stringifyExpression(n.body)
+        },
+        BlockStatement: function (n) {
+            return '{' + strSeparator + stringifyBlock(n.body) + '}'
+        },
+        ForStatement: function (n) {
+            return 'for(' + stringifyExpression(n.init) + ';' + stringifyExpression(n.test) + ';' + stringifyExpression(n.update) + ')' + stringifyExpression(n.body)
+        },
+        ForInStatement: function (n) {
+            return 'for(' + stringifyExpression(n.left) + ' in ' + stringifyExpression(n.right) + ')' + stringifyExpression(n.body)
+        },
+        VariableDeclarator: function (n) {
+            return stringifyExpression(n.id) + ' = ' + stringifyExpression(n.init)
+        },
+        VariableDeclaration: function (n) {
+            return 'var ' + stringifySeq(n.declarations)
+        },
+        SequenceExpression: function (n) {
+            return stringifySeq(n.expressions)
+        },
+        AssignmentExpression: function (n) {
+            return stringifyExpression(n.left) + n.operator + stringifyExpression(n.right)
+        },
+        ConditionalExpression: function (n) {
+            return stringifyExpression(n.test) + '?' + stringifyExpression(n.consequent) + ':' + stringifyExpression(n.alternate)
+        },
+        LogicalExpression: function (n) {
+            return stringifyExpression(n.left) + n.operator + stringifyExpression(n.right)
+        },
+        BinaryExpression: function (n) {
+            return stringifyExpression(n.left) + n.operator + stringifyExpression(n.right)
+        },
+        UpdateExpression: function (n) {
+            return n.prefix ? n.operator + stringifyExpression(n.argument) : stringifyExpression(n.argument) + n.operator
+        },
+        UnaryExpression: function (n) {
+            return n.prefix ? n.operator + stringifyExpression(n.argument) : stringifyExpression(n.argument) + n.operator
+        },
+        CallExpression: function (n) {
+            return stringifyExpression(n.callee) + '(' + stringifySeq(n.arguments) + ')'
+        },
+        ThisExpression: function (n) {
+            return 'this'
+        },
+        ArrayExpression: function (n) {
+            return '[' + stringifySeq(n.elements) + ']'
+        },
+        NewExpression: function (n) {
+            return 'new ' + stringifyExpression(n.callee) + '(' + stringifySeq(n.arguments) + ')'
+        },
+        FunctionDeclaration: function (n) {
+            return 'function' + (n.id ? ' ' + stringifyExpression(n.id) : '') + '(' + stringifySeq(n.params) + ')' + stringifyExpression(n.body)
+        },
+        FunctionExpression: function (n) {
+            return 'function' + (n.id ? ' ' + stringifyExpression(n.id) : '') + '(' + stringifySeq(n.params) + ')' + stringifyExpression(n.body)
+        },
+        ObjectExpression: function (n) {
+            let str = '{';
+            const b = n.properties;
+            for (let i = 0; i < b.length; i++) {
+                if (i) {
+                    str += ', '
+                }
+                str += stringifyExpression(b.key) + ':' + stringifyExpression(b.value)
+            }
+            str += '}'
+            return str
+        },
+        MemberExpression: function (n) {
+            if (n.computed) {
+                return stringifyExpression(n.object) + '[' + stringifyExpression(n.property) + ']'
+            }
+            return stringifyExpression(n.object) + '.' + stringifyExpression(n.property)
+        },
+        IfStatement: function (n) {
+            return 'if(' + stringifyExpression(n.test) + ')' + stringifyExpression(n.consequent) + strSeparator +
+              (n.alternate ? 'else ' + stringifyExpression(n.alternate) + strSeparator : '')
+        },
+        ThrowStatement: function (n) {
+            return 'throw ' + stringifyExpression(n.argument)
+        },
+        TryStatement: function (n) {
+            return 'try ' + stringifyExpression(n.block) + strSeparator + stringifyBlock(n.handlers) + strSeparator +
+              (n.finalizer ? 'finally ' + stringifyBlock(n.finalizer) : '')
+        },
+        CatchClause: function (n) {
+            return 'catch(' + stringifyExpression(n.param) + (n.guard ? ' if ' + stringifyExpression(n.guard) : ')') + stringifyExpression(n.body)
+        }
+    }
 
-	exports.stringify = stringify
+    function stringify(n, sep) {
+        strSeparator = sep || '\n'
+        return stringifyExpression(n)
+    }
 
-	var types = acorn.tokTypes
+    exports.stringify = stringify
 
-	function nodeProto(p){
+    const types = acorn.tokTypes;
 
-		// property getter type checking
-		for(var k in types){
-			(function(k){
-				p.__defineGetter__(k, function(){
-					return this._t == types[k]
-				})
-			})(k)
-		}
-		// other types
-		p.__defineGetter__('isAssign', function(){ return this._t && this._t.isAssign })
-		p.__defineGetter__('isLoop', function(){ return this._t && this._t.isLoop })
-		p.__defineGetter__('prefix', function(){ return this._t && this._t.prefix })
-		p.__defineGetter__('beforeExpr', function(){ return this._t && this._t.beforeExpr })
-		p.__defineGetter__('beforeNewline', function(){ return this.w && this.w.match(/\n/) })
-		p.__defineGetter__('beforeEnd', function(){ return this.w && this.w.match(/\n/) || this.d.semi || this.d.braceR })
-		p.__defineGetter__('fnscope', function(){ return this.d.parenL ? this.d.d : this.d.d.d })
-		p.__defineGetter__('last', function(){ var t = this; while(t._d) t = t._d; return t })
-		p.__defineGetter__('astParent', function(){ var t = this; while(t._d) t = t._d; return t })
-		
-		// walker
-		p.walk = function(cb){
-			var n = this
-			var p = n
-			cb(n)
-			n = n._c
-			while(n && n != p){
-				cb(n)
-				if(n._c) n = n._c
-				else while(n != p){ 
-					if(n._d){ n = n._d; break } 
-					n = n._p 
-				}
-			}
-		}
-	}
+    function nodeProto(proto) {
 
-	function Node(){ }
-	nodeProto(Node.prototype)
+        // property getter type checking
+        for (const key in types) {
+            (function (k) {
+                proto.__defineGetter__(k, function () {
+                    return this._t == types[k]
+                })
+            })(key)
+        }
+        // other types
+        proto.__defineGetter__('isAssign', function () {
+            return this._t && this._t.isAssign
+        })
+        proto.__defineGetter__('isLoop', function () {
+            return this._t && this._t.isLoop
+        })
+        proto.__defineGetter__('prefix', function () {
+            return this._t && this._t.prefix
+        })
+        proto.__defineGetter__('beforeExpr', function () {
+            return this._t && this._t.beforeExpr
+        })
+        proto.__defineGetter__('beforeNewline', function () {
+            return this.w && this.w.match(/\n/)
+        })
+        proto.__defineGetter__('beforeEnd', function () {
+            return this.w && this.w.match(/\n/) || this.d.semi || this.d.braceR
+        })
+        proto.__defineGetter__('fnscope', function () {
+            return this.d.parenL ? this.d.d : this.d.d.d
+        })
+        proto.__defineGetter__('last', function () {
+            let node = this;
+            while (node._d) {
+                node = node._d;
+            }
+            return node
+        })
+        proto.__defineGetter__('astParent', function () {
+            let node = this;
+            while (node._d) {
+                node = node._d;
+            }
+            return node
+        })
 
-	// acorn parse wrapper that also spits out a token tree	
-	exports.parse = function(inpt, opts) {
-		var h = {
-			finishToken:finishToken,
-			initTokenState:initTokenState,
-			tokTree:new Node()
-		}
-		h.tokTree.root = 1
-		h.tokTree.t = h.tokTree.w = ''
+        // walker
+        proto.walk = function (cb) {
+            let node = this;
+            const parent = node;
+            cb(node)
+            node = node._c
+            while (node && node != parent) {
+                cb(node)
+                if (node._c) {
+                    node = node._c
+                } else {
+                    while (node != parent) {
+                        if (node._d) {
+                            node = node._d;
+                            break
+                        }
+                        node = node._p
+                    }
+                }
+            }
+        }
+    }
 
-		if(opts && opts.compact) h.compact = 1
-		if(opts && opts.noclose) h.noclose = 1
+    function Node() {
+        this.id = Node.uuid()
+    }
 
-		var n = acorn.parse(inpt, opts, h)
-		n.tokens = h.tokTree
-		return n
-	}
+    Node.uuid = (function () {
+        let id = 0
+        return function () {
+            return id++
+        }
+    }())
 
-	function initTokenState(hack, tokPos, input){
-		if(tokPos != 0) hack.tokTree.w = input.slice(0, tokPos)
-	}
+    nodeProto(Node.prototype)
 
-	function finishToken(hack, type, val, input, tokStart, tokEnd, tokPos){	
-		var tokTree = hack.tokTree
-		var n
-		if(type == types.eof) return
-		if(type == types.regexp && tokTree._e && tokTree._e._t.binop == 10){
-			// verify this one
-			n = tokTree._e, tokStart -= 1 
-		} else if(hack.compact && tokTree._e && (type == types.name && tokTree._e._t == types.dot || type == types.dot && tokTree._e._t == types.name)){
-			n = tokTree._e
-			n._t = type
-			n.t += input.slice(tokStart, tokEnd)			
-		} else {
-			var n = new Node()
-			var t = tokTree
-			if(t){
-				if(!t._c) t._e = t._c = n
-				else t._e._d = n, n._u = t._e, t._e = n
-			}
-			n._p = t
-			n._t = type
-			n.t = input.slice(tokStart, tokEnd)
-		}
+    // acorn parse wrapper that also spits out a token tree
+    exports.parse = function (inpt, opts) {
+        const hackTool = {
+            finishToken: finishToken,
+            initTokenState: initTokenState,
+            tokTree: new Node()
+        };
+        hackTool.tokTree.root = 1
+        hackTool.tokTree.t = hackTool.tokTree.w = ''
 
-		if(tokEnd != tokPos) n.w = input.slice(tokEnd, tokPos)
-		else n.w = ''
+        if (opts && opts.compact) hackTool.compact = 1
+        if (opts && opts.noclose) hackTool.noclose = 1
 
-		if(type == types.braceL || type == types.bracketL || type == types.parenL){
-			tokTree = n
-		} 
-		else if(type == types.braceR || type == types.bracketR || type == types.parenR){
-			if(hack.noclose){
-				if(!tokTree._e._u) delete tokTree._c, delete tokTree._e
-				else delete tokTree._e._u._d
-			}
-			if(tokTree._p)
-			 	tokTree = tokTree._p
-		} 
-		hack.tokTree = tokTree
-	}
+        const n = acorn.parse(inpt, opts, hackTool);
+        n.tokens = hackTool.tokTree
+        return n
+    }
+
+    function initTokenState(hack, tokPos, input) {
+        if (tokPos != 0) hack.tokTree.w = input.slice(0, tokPos)
+    }
+
+    function finishToken(hack, type, val, input, tokStart, tokEnd, tokPos) {
+        let lastLeftMatch = hack.tokTree;
+        let node
+        if (type == types.eof) {
+            return
+        }
+        if (type == types.regexp && lastLeftMatch._e && lastLeftMatch._e._t.binop == 10) {
+            // verify this one
+            node = lastLeftMatch._e
+        } else if (hack.compact && lastLeftMatch._e &&
+          (
+            type == types.name && lastLeftMatch._e._t == types.dot ||
+            type == types.dot && lastLeftMatch._e._t == types.name
+          )
+        ) {
+            node = lastLeftMatch._e
+            node._t = type
+            node.t += input.slice(tokStart, tokEnd)
+        } else {
+            node = new Node()
+            const llmNode = lastLeftMatch;
+            node._p = llmNode // n._prevLeftMatch
+            node._t = type // n._type
+            node.t = input.slice(tokStart, tokEnd) // n.tokenStr
+            // todo: if may be useless
+            if (llmNode) {
+                if (!llmNode._c) {
+                    llmNode._e = llmNode._c = node // t._c=t._next_identifier
+                } else {
+                    llmNode._e._d = node // t._down
+                    node._u = llmNode._e // t._up
+                    llmNode._e = node // t._end
+                }
+            }
+        }
+
+        if (tokEnd != tokPos) {
+            node.w = input.slice(tokEnd, tokPos)
+        } else {
+            node.w = ''
+        }
+
+        let newLastLeftMatch = lastLeftMatch
+        if (type == types.braceL || type == types.bracketL || type == types.parenL) {
+            newLastLeftMatch = node
+        }
+        else if (type == types.braceR || type == types.bracketR || type == types.parenR) {
+            if (hack.noclose) {
+                if (!lastLeftMatch._e._u) {
+                    delete lastLeftMatch._c
+                    delete lastLeftMatch._e
+                } else {
+                    delete lastLeftMatch._e._u._d
+                }
+            }
+            if (lastLeftMatch._p) {
+                newLastLeftMatch = lastLeftMatch._p
+            }
+        }
+        hack.tokTree = newLastLeftMatch
+    }
 })

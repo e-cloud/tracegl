@@ -4,271 +4,300 @@
 // | licensed under MPL 2.0 http://www.mozilla.org/MPL/
 // \____________________________________________/
 
-define(function(require){
+define(function (require) {
 
-	var http = require("http")
-	var https = require("https")
-	var url = require("url")
-	var path = require("path")
-	var fs = require("fs")
-	var fn = require('./fn')
-	var ioChannel = require('./io_channel')
+    const http = require("http");
+    const https = require("https");
+    const url = require("url");
+    const path = require("path");
+    const fs = require("fs");
+    const ioChannel = require('./io_channel');
 
-	function ioServer(ssl){
+    function ioServer(ssl) {
 
-		var hs = ssl?https.createServer(ssl, handler):http.createServer(handler)
+        const httpServer = ssl ? https.createServer(ssl, handler) : http.createServer(handler);
 
-		var ch = hs.ch = {}
-		
-		hs.root = path.resolve(__dirname,'..')//process.cwd()
-		hs.pass = 'X'
+        const channelMap = httpServer.ch = {};
 
-		hs.send = function(m){
-			for(var k in ch) ch[k].send(m)
-		}
+        httpServer.root = path.resolve(__dirname, '..')//process.cwd()
+        httpServer.pass = 'X'
 
-		function watcher(){
-			var d // delta
-			var w = {}
-			// watch a file
-			w.watch = function(f){
-				if(w[f]) return
-				w[f] = fs.watch(f, function(){
-					if(Date.now() - d < 2000) return
-					d = Date.now()
-					if(hs.fileChange) hs.fileChange(f)
-					console.log("---- "+f+" changed, sending reload to frontend ----")
-					hs.send({reload:f})
-				})
-			}
-			return w
-		}
+        httpServer.send = function (m) {
+            for (const k in channelMap) {
+                channelMap[k].send(m)
+            }
+        }
 
-		hs.watcher = watcher()
+        function watcher() {
+            let delta; // delta
+            const watching = {};
+            // watch a file
+            watching.watch = function (file) {
+                if (watching[file]) return
 
-		// process io channel
-		function chan(req){
-			if(req.url.indexOf('/io_') != 0) return
-			var m = req.url.split('_')
+                watching[file] = fs.watch(file, function () {
+                    if (Date.now() - delta < 2000) return
 
-			if(m[2] != hs.pass) return console.log("invalid password in connection", m[2], hs.pass)		
+                    delta = Date.now()
+                    if (httpServer.fileChange) {
+                        httpServer.fileChange(file)
+                    }
+                    console.log("---- " + file + " changed, sending reload to frontend ----")
+                    httpServer.send({ reload: file })
+                })
+            }
+            return watching
+        }
 
-			var c = ch[m[1]]
-			if(c) return c
+        httpServer.watcher = watcher()
 
-			c = ch[m[1]] = ioChannel(req.url)
+        // process io channel
+        function channel(req) {
+            if (req.url.indexOf('/io_') != 0) return
 
-			// do not use event pattern overhead
-			c.data = function(d){
-				hs.data(d, c)
-			}
+            const match = req.url.split('_');
 
-			c.rpc = function(d, r){
-				if(hs.rpc) hs.rpc(d, r, c)
-			}
-			return c
-		}
+            if (match[2] != httpServer.pass)
+                return console.log("invalid password in connection", match[2], httpServer.pass)
 
-		hs.on('upgrade', function(req, sock, head) { 
-			var c = chan(req)
-			if(c)	c.upgrade(req, sock, head)
-			else sock.destroy()
-		})
+            let _channel = channelMap[match[1]];
+            if (_channel)
+                return _channel
 
-		var mime = {
-			"htm":"text/html",
-			"html":"text/html",
-			"js":"application/javascript",
-			"jpg":"image/jpeg",
-			"jpeg":"image/jpeg",
-			"txt":"text/plain",
-			"css":"text/css",
-			"ico": "image/x-icon",			
-			"png":"image/png",
-			"gif":"image/gif"
-		}
-		var mimeRx = new RegExp("\\.(" + Object.keys(mime).join("|") + ")$")
+            _channel = channelMap[match[1]] = ioChannel(req.url)
 
-		// alright check if we have proxy mode
-		function staticServe(req, res){
+            // do not use event pattern overhead
+            _channel.data = function (d) {
+                httpServer.data(d, _channel)
+            }
 
-			var name = url.parse(req.url).pathname
+            _channel.rpc = function (d, r) {
+                if (httpServer.rpc) httpServer.rpc(d, r, _channel)
+            }
+            return _channel
+        }
 
-			if (name == '/'){
-				// send out packaged UI
-				if(hs.packaged == 1){
-					res.writeHead(200,{"Content-Type":"text/html"})
-					res.end(
-						"<html><head><meta http-equiv='Content-Type' CONTENT='text/html; charset=utf-8'><title></title>"+
-						"</head><body style='background-color:black' define-main='"+hs.main+"'>"+
-						"<script src='/core/define.js'></script></body></html>"
-					)
-					return	
-				}
-				else if(hs.packaged){
-					var pkg = ''
-					var files = {}
-					function findRequires(n, base){
-						if(files[n]) return
-						files[n] = 1
-						var f = define.factory[n]
-						if(!f) console.log('cannot find', n)
-						else {
-							var s = f.toString()
-							s.replace(/require\(['"](.*?)['"]\)/g,function(x, m){
-								if(m.charAt(0)!='.') return m
-								var n = define.norm(m,base)
-								findRequires(n, define.path(n))
-							})
-							pkg += 'define("'+n+'",'+s+')\n'
-						}
-					}
-					findRequires(hs.packaged, define.path(hs.packaged))
-					// add the define function
-					pkg += "function define(id,fac){\n"+
-						define.outer.toString().match(/\/\/PACKSTART([\s\S]*?)\/\/PACKEND/g,'').join('\n').replace(/\/\/RELOADER[\s\S]*?\/\/RELOADER/,'')+"\n"+
-						"}\n"
-					pkg += 'define.settings='+JSON.stringify(define.settings)+';'
-					pkg += 'define.factory["'+hs.packaged+'"](define.mkreq("'+hs.packaged+'"))'
-					res.writeHead(200,{"Content-Type":"text/html"})
-					res.end(
-						"<html><head><meta http-equiv='Content-Type' CONTENT='text/html; charset=utf-8'><title></title>"+
-						"</head><body style='background-color:black'>"+
-						"<script>"+pkg+"</script></body></html>"
-					)	
-					return
-				}	
-				name = 'index.html'
-			}
+        httpServer.on('upgrade', function (req, sock, head) {
+            const c = channel(req);
+            if (c) {
+                c.upgrade(req, sock, head)
+            } else {
+                sock.destroy()
+            }
+        })
 
-			if(name == '/favicon.ico'){
-				if(!hs.favicon){
-					res.writeHead(404)
-					res.end("file not found")
-					return
-				}
-				if(hs.favicon.indexOf('base64:') == 0){
-					name = hs.favicon.slice(7)
-				} else {
-					res.writeHead(200,{"Content-Type":"image/x-icon"})
-					res.end(new Buffer(hs.favicon,"base64"))
-					return
-				}
-			}
+        const mime = {
+            "htm": "text/html",
+            "html": "text/html",
+            "js": "application/javascript",
+            "jpg": "image/jpeg",
+            "jpeg": "image/jpeg",
+            "txt": "text/plain",
+            "css": "text/css",
+            "ico": "image/x-icon",
+            "png": "image/png",
+            "gif": "image/gif"
+        };
+        const mimeRx = new RegExp("\\.(" + Object.keys(mime).join("|") + ")$");
 
-			var file = path.join(hs.root, name)
+        // alright check if we have proxy mode
+        function staticServe(req, res) {
 
-			fs.exists(file, function(x) {
-				if(!x){
-					res.writeHead(404)
-					res.end("file not found")
-					//console.log('cannot find '+file)
-					return
-				}
-				fs.readFile(file, function(err, data) {
-					if(err){
-						res.writeHead(500, {"Content-Type": "text/plain"})
-						res.end(err + "\n")
-						return
-					}
-					var ext = file.match(mimeRx), type = ext && mime[ext[1]] || "text/plain"
-					if(hs.process) data = hs.process(file, data, type)
-					res.writeHead(200, {"Content-Type": type})
-					res.write(data)
-					res.end()
-				})
-				if(hs.watcher) hs.watcher.watch(file)
-			})
-		}
+            let name = url.parse(req.url).pathname;
 
-		function proxyServe(req, res){
-			// lets do the request at the other server, and return the response
-			var opt = {
-				hostname:hs.proxy.hostname,
-				port:hs.proxy.port,
-				method:req.method,
-				path:req.url,
-				headers:req.headers,
-			}
-			var u = url.parse(req.url)
-			var isJs = 0
-			// rip out caching if we are trying to access 
-			//if(u.pathname.match(/\.js$/i)) isJs = u.pathname
-			// turn off gzip
-			delete opt.headers['accept-encoding']
-			//if(isJs){
-			delete opt.headers['cache-control']
-			delete opt.headers['if-none-match']
-			delete opt.headers['if-modified-since']
-			delete opt.headers['content-security-policy']
+            if (name == '/') {
+                // send out packaged UI
+                if (httpServer.packaged == 1) {
+                    res.writeHead(200, { "Content-Type": "text/html" })
+                    res.end(
+                      "<html><head><meta http-equiv='Content-Type' CONTENT='text/html; charset=utf-8'><title></title>" +
+                      "</head><body style='background-color:black' define-main='" + httpServer.main + "'>" +
+                      "<script src='/core/define.js'></script></body></html>"
+                    )
+                    return
+                }
+                else if (httpServer.packaged) {
+                    let pkg = '';
+                    const files = {};
 
-			opt.headers.host = hs.proxy.hostname
+                    function findRequires(n, base) {
+                        if (files[n]) return
+                        files[n] = 1
+                        const f = define.factory[n];
+                        if (!f) {
+                            console.log('cannot find', n)
+                        } else {
+                            const s = f.toString();
+                            s.replace(/require\(['"](.*?)['"]\)/g, function (x, m) {
+                                if (m.charAt(0) != '.') return m
+                                const n = define.norm(m, base);
+                                findRequires(n, define.path(n))
+                            })
+                            pkg += 'define("' + n + '",' + s + ')\n'
+                        }
+                    }
 
-			req.on('data', function(d){
-				p_req.write(d)
-			})
-			
-			req.on('end', function(){
-				p_req.end()
-			})
+                    findRequires(httpServer.packaged, define.path(httpServer.packaged))
+                    // add the define function
+                    pkg += "function define(id,fac){\n" +
+                      define.outer.toString()
+                        .match(/\/\/PACKSTART([\s\S]*?)\/\/PACKEND/g)
+                        .join('\n')
+                        .replace(/\/\/RELOADER[\s\S]*?\/\/RELOADER/, '') + "\n" +
+                      "}\n"
+                    pkg += 'define.settings=' + JSON.stringify(define.settings) + ';'
+                    pkg += 'define.factory["' + httpServer.packaged + '"](define.mkreq("' + httpServer.packaged + '"))'
+                    res.writeHead(200, { "Content-Type": "text/html" })
+                    res.end(
+                      "<html><head><meta http-equiv='Content-Type' CONTENT='text/html; charset=utf-8'><title></title>" +
+                      "</head><body style='background-color:black'>" +
+                      "<script>" + pkg + "</script></body></html>"
+                    )
+                    return
+                }
+                name = 'index.html'
+            }
 
-			var proto = hs.proxy.protocol == 'https:' ? https : http
+            if (name == '/favicon.ico') {
+                if (!httpServer.favicon) {
+                    res.writeHead(404)
+                    res.end("file not found")
+                    return
+                }
+                if (httpServer.favicon.indexOf('base64:') == 0) {
+                    name = httpServer.favicon.slice(7)
+                } else {
+                    res.writeHead(200, { "Content-Type": "image/x-icon" })
+                    res.end(new Buffer(httpServer.favicon, "base64"))
+                    return
+                }
+            }
 
-			var p_req = proto.request(opt, function(p_res){
-				if(!isJs && p_res.headers['content-type'] && p_res.headers['content-type'].indexOf('javascript')!=-1){
-					if(u.pathname.match(/\.js$/i)) isJs = u.pathname
-					else isJs = '/unknown.js'
-				} 
-				if(p_res.statusCode == 200 && isJs){
-					var total = ""
-					var output;
-					if(p_res.headers['content-encoding'] === 'gzip' || p_res.headers['content-encoding'] === 'deflate') {
-						var zlib = require('zlib')
-						var gzip = zlib.createGunzip()
-						p_res.pipe(gzip)
-						output = gzip
-					} else {
-						output = p_res
-					}
-					output.on('data', function(d){
-						total += d.toString()
-					})
-					output.on('end', function(){
-						var data = hs.process(isJs, total, "application/javascript")
-						var h = p_res.headers
-						delete h['cache-control']
-						delete h['last-modified']
-						delete h['etag']
-						delete h['content-length']
-						delete h['content-security-policy']
-						delete h['content-encoding']
-						//h['content-length'] = data.length
- 						res.writeHead(p_res.statusCode, p_res.headers)
-						res.write(data, function(err){
-							res.end()
-						})
-					})
-				} else {
-					res.writeHead(p_res.statusCode, p_res.headers)
-					p_res.on('data',function(d){
-						res.write(d)
-					})
-					p_res.on('end', function(){
-						res.end()
-					})
-				}
-			})	
+            const file = path.join(httpServer.root, name);
 
-		}
+            fs.exists(file, function (x) {
+                if (!x) {
+                    res.writeHead(404)
+                    res.end("file not found")
+                    //console.log('cannot find '+file)
+                    return
+                }
+                fs.readFile(file, function (err, data) {
+                    if (err) {
+                        res.writeHead(500, { "Content-Type": "text/plain" })
+                        res.end(err + "\n")
+                        return
+                    }
+                    const ext = file.match(mimeRx);
+                    const type = ext && mime[ext[1]] || "text/plain";
+                    if (httpServer.process) data = httpServer.process(file, data, type)
+                    res.writeHead(200, { "Content-Type": type })
+                    res.write(data)
+                    res.end()
+                })
+                if (httpServer.watcher) httpServer.watcher.watch(file)
+            })
+        }
 
-		function handler(req, res) {
-			var c = chan(req)
-			if(c && c.handler(req, res)) return
+        function proxyServe(req, res) {
+            // lets do the request at the other server, and return the response
+            const reqOption = {
+                hostname: httpServer.proxy.hostname,
+                port: httpServer.proxy.port,
+                method: req.method,
+                path: req.url,
+                headers: req.headers,
+            };
+            const u = url.parse(req.url);
+            let isJs = 0;
+            // rip out caching if we are trying to access
+            //if(u.pathname.match(/\.js$/i)) isJs = u.pathname
+            // turn off gzip
+            delete reqOption.headers['accept-encoding']
+            //if(isJs){
+            delete reqOption.headers['cache-control']
+            delete reqOption.headers['if-none-match']
+            delete reqOption.headers['if-modified-since']
+            delete reqOption.headers['content-security-policy']
 
-			if(hs.proxy) return proxyServe(req, res)
-			return staticServe(req, res)
-		}
-		return hs
-	}
-	return ioServer
+            reqOption.headers.host = httpServer.proxy.hostname
+
+            req.on('data', function (data) {
+                reqObj.write(data)
+            })
+
+            req.on('end', function () {
+                reqObj.end()
+            })
+
+            const protocol = httpServer.proxy.protocol == 'https:' ? https : http;
+
+            const reqObj = protocol.request(reqOption, function (response) {
+                if (!isJs &&
+                  response.headers['content-type'] &&
+                  response.headers['content-type'].indexOf('javascript') != -1
+                ) {
+                    if (u.pathname.match(/\.js$/i)) {
+                        isJs = u.pathname
+                    } else {
+                        isJs = '/unknown.js'
+                    }
+                }
+
+                if (response.statusCode == 200 && isJs) {
+                    let total = "";
+                    let output;
+                    if (response.headers['content-encoding'] === 'gzip' ||
+                      response.headers['content-encoding'] === 'deflate'
+                    ) {
+                        const zlib = require('zlib');
+                        const gzip = zlib.createGunzip();
+                        response.pipe(gzip)
+                        output = gzip
+                    } else {
+                        output = response
+                    }
+                    output.on('data', function (d) {
+                        total += d.toString()
+                    })
+                    output.on('end', function () {
+                        const data = httpServer.process(isJs, total, "application/javascript");
+                        const headers = response.headers;
+                        delete headers['cache-control']
+                        delete headers['last-modified']
+                        delete headers['etag']
+                        delete headers['content-length']
+                        delete headers['content-security-policy']
+                        delete headers['content-encoding']
+                        //h['content-length'] = data.length
+                        res.writeHead(response.statusCode, response.headers)
+                        res.write(data, function () {
+                            res.end()
+                        })
+                    })
+                } else {
+                    res.writeHead(response.statusCode, response.headers)
+                    response.on('data', function (d) {
+                        res.write(d)
+                    })
+                    response.on('end', function () {
+                        res.end()
+                    })
+                }
+            })
+
+        }
+
+        function handler(req, res) {
+            const c = channel(req);
+            if (c && c.handler(req, res)) return
+
+            if (httpServer.proxy) return proxyServe(req, res)
+            return staticServe(req, res)
+        }
+
+        return httpServer
+    }
+
+    return ioServer
 })
