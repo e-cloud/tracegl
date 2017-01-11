@@ -9,130 +9,124 @@ define(require => {
     const acorn = require('../core/acorn');
     const acorn_tools = require('../core/acorn_tools');
     const io_channel = require('../core/io_channel');
-    const dlog = require('../core/debug-helper')
-    const Table = require('cli-table')
+    const dlog = require('../core/debug-helper');
+    const Table = require('cli-table');
 
     const Global_STR = '_$_';
 
     function tracehub() {
         //TRACE
         try {
-            _$_
-        }
-        catch (error) {
+            _$_;
+        } catch (error) {
             _$_ = {};
             (function () {
                 const isNode = typeof process != 'undefined';
                 const isBrowser = typeof window != 'undefined';
                 const isWorker = !isNode && !isBrowser;
 
-                if (isNode) global._$_ = _$_
+                if (isNode) global._$_ = _$_;
 
                 const max_depth = 1;
                 const max_count = 5;
 
                 function dump(input, depth) {
-                    const t = typeof input;
-                    if (t == 'string') {
+                    const type = typeof input;
+                    if (type == 'string') {
                         if (input.length > 100) {
-                            return input.slice(0, 100) + "..."
+                            return `${input.slice(0, 100)}...`;
                         }
-                        return input
+                        return input;
                     }
-                    if (t == 'boolean') {
-                        return input
+                    if (type == 'boolean') {
+                        return input;
                     }
-                    if (t == 'number') {
+                    if (type == 'number') {
                         if (input === Infinity) {
-                            return "_$_Infinity"
+                            return '_$_Infinity';
                         }
                         if (input == NaN) {
-                            return "_$_NaN"
+                            return '_$_NaN';
                         }
-                        return input
+                        return input;
                     }
-                    if (t == 'function') {
-                        return "_$_function"
+                    if (type == 'function') {
+                        return '_$_function';
                     }
-                    if (t == 'undefined') {
-                        return "_$_undefined"
+                    if (type == 'undefined') {
+                        return '_$_undefined';
                     }
-                    if (t == 'object') {
+                    if (type == 'object') {
                         if (input === null) {
-                            return null
+                            return null;
                         }
                         if (Array.isArray(input)) {
                             if (input.length == 0) {
-                                return []
+                                return [];
                             }
                             if (depth >= max_depth) {
-                                return "_$_[..]"
+                                return '_$_[..]';
                             }
-                            var o = []
+                            var o = [];
                             for (var k = 0; k < input.length && k < max_count; k++) {
                                 const m = input[k];
-                                o[k] = dump(m, depth + 1)
+                                o[k] = dump(m, depth + 1);
                             }
                             if (k < input.length) {
-                                o[k] = "..."
+                                o[k] = '...';
                             }
-                            return o
+                            return o;
                         }
                         if (depth >= max_depth) {
-                            return "_$_{..}"
+                            return '_$_{..}';
                         }
-                        var o = {}
+                        var o = {};
                         let c = 0;
                         try {
                             let pd;
                             for (var k in input) {
                                 if (pd = Object.getOwnPropertyDescriptor(input, k)) {
                                     if (c++ > max_count) {
-                                        o["..."] = 1
-                                        break
+                                        o['...'] = 1;
+                                        break;
                                     }
                                     if (pd.value !== undefined) {
-                                        o[k] = dump(pd.value, depth + 1)
+                                        o[k] = dump(pd.value, depth + 1);
                                     }
                                 }
                             }
-                        }
-                        catch (e) {
-                        }
-                        return o
+                        } catch (e) {}
+                        return o;
                     }
                 }
 
                 const channel = //CHANNEL
-                  0;
+                0;
                 if (isBrowser) {
                     _$_.ch = channel('/io_X_X');
                     _$_.ch.data = function (m) {
-                        if (m.reload) location.reload()
-                    }
+                        if (m.reload) location.reload();
+                    };
                     //_$_.ch = {send : function(){}}
-                    window.onerror = function (error, url, linenr) {
-                    }
+                    window.onerror = function (error, url, linenr) {};
                 } else if (isWorker) {
                     _$_.ch = {
-                        send: function () {
-                        }
-                    }
+                        send() {}
+                    };
                 } else if (isNode) {
                     _$_.ch = {
-                        send: function (m) {
+                        send(m) {
                             try {
                                 if (process.send) {
                                     process.send(m);
                                 } else {
-                                    process.stderr.write('\x1f' + JSON.stringify(m) + '\x17')
+                                    process.stderr.write(`\x1F${JSON.stringify(m)}\x17`);
                                 }
-                            }
-                            catch (e) {
-                                console.log(e, m)
+                            } catch (e) {
+                                console.log(e, m);
                             }
                         }
-                    }
+                    };
                 }
                 const lgc = 0;
                 let depth = 0; // depth
@@ -146,104 +140,115 @@ define(require => {
                 if (typeof global !== 'undefined') {
                     _$_.f = function (i, a, t, u) {
                         if (leftReturn) {
-                            _$_.ch.send(leftReturn, 1)
-                            leftReturn = 0
+                            _$_.ch.send(leftReturn, 1);
+                            leftReturn = 0;
                         }
                         // dump arguments
-                        depth++
+                        depth++;
                         if (!di) {
                             di = global.setTimeout(function () {
-                                di = depth = 0
-                            }, 0)
+                                di = depth = 0;
+                            }, 0);
                         }
-                        const r = { i: i, g: gc++, d: depth, u: u, t: global.Date.now() };
+                        const r = {
+                            i,
+                            g: gc++,
+                            d: depth,
+                            u,
+                            t: global.Date.now()
+                        };
                         if (a) {
-                            r.a = []
+                            r.a = [];
                             for (let j = 0; j < a.length; j++) {
-                                r.a[j] = dump(a[j], 0)
+                                r.a[j] = dump(a[j], 0);
                             }
                         } else {
-                            r.a = null
+                            r.a = null;
                         }
-                        _$_.ch.send(r)
-                        return r.g
-                    }
+                        _$_.ch.send(r);
+                        return r.g;
+                    };
                 } else {
                     _$_.f = function (i, a, t, u) {
                         if (leftReturn) {
-                            _$_.ch.send(leftReturn, 1)
-                            leftReturn = 0
+                            _$_.ch.send(leftReturn, 1);
+                            leftReturn = 0;
                         }
                         // dump arguments
-                        depth++
+                        depth++;
                         if (!di) {
                             di = setTimeout(function () {
-                                di = depth = 0
-                            }, 0)
+                                di = depth = 0;
+                            }, 0);
                         }
-                        const r = { i: i, g: gc++, d: depth, u: u, t: Date.now() };
+                        const r = {
+                            i,
+                            g: gc++,
+                            d: depth,
+                            u,
+                            t: Date.now()
+                        };
                         if (a) {
-                            r.a = []
+                            r.a = [];
                             for (let j = 0; j < a.length; j++) {
-                                r.a[j] = dump(a[j], 0)
+                                r.a[j] = dump(a[j], 0);
                             }
                         } else {
-                            r.a = null
+                            r.a = null;
                         }
-                        _$_.ch.send(r)
-                        return r.g
-                    }
+                        _$_.ch.send(r);
+                        return r.g;
+                    };
                 }
 
                 // callsite annotation for last return
                 _$_.c = function (i, v) {
                     if (!leftReturn) {
-                        return v
+                        return v;
                     }
-                    leftReturn.c = i
-                    _$_.ch.send(leftReturn)
-                    leftReturn = 0
-                    return v
-                }
+                    leftReturn.c = i;
+                    _$_.ch.send(leftReturn);
+                    leftReturn = 0;
+                    return v;
+                };
                 // function exit
                 _$_.e = function (i, r, v, x) {
                     if (leftReturn) {
-                        _$_.ch.send(leftReturn, 1)
-                        leftReturn = 0
+                        _$_.ch.send(leftReturn, 1);
+                        leftReturn = 0;
                     }
                     for (const k in r) {
                         const j = r[k];
                         if (j !== null) {
                             const t = typeof j;
                             if (t == 'undefined' | t == 'function') {
-                                r[k] = '_$_' + t
+                                r[k] = `_$_${t}`;
                             } else if (t == 'object') {
-                                r[k] = dump(j, 0)
+                                r[k] = dump(j, 0);
                             } else if (t == 'number') {
                                 if (j === Infinity) {
-                                    r[k] = '_$_Infinity'
+                                    r[k] = '_$_Infinity';
                                 }
                                 if (j === NaN) {
-                                    r[k] = '_$_NaN'
+                                    r[k] = '_$_NaN';
                                 }
                             }
                         }
                     }
-                    r.g = gc++
-                    r.i = i
-                    r.d = depth
+                    r.g = gc++;
+                    r.i = i;
+                    r.d = depth;
                     if (arguments.length > 2) {
-                        r.v = dump(v, 0)
-                        r.x = x
+                        r.v = dump(v, 0);
+                        r.x = x;
                     }
-                    leftReturn = r
+                    leftReturn = r;
                     if (depth > 0) {
-                        depth--
+                        depth--;
                     }
-                    return v
-                }
-
-            })()
+                    return v;
+                };
+            })();
         }
         //TRACE
     }
@@ -252,22 +257,22 @@ define(require => {
 
     function mkHead() {
         function strip(input) {
-           /* var program = acorn_tools.parse(input)
-            var table = new Table()
-
-            program.tokens.walk(function (n) {
-                table.push(dlog.raw(n))
-            })
-            console.log(table.toString())*/
-            return input
+            /* var program = acorn_tools.parse(input)
+             var table = new Table()
+              program.tokens.walk(function (n) {
+             table.push(dlog.raw(n))
+             })
+             console.log(table.toString())*/
+            return input;
         }
+
         // trace impl
         const traceSrc = tracehub.toString().match(/\/\/TRACE[\s\S]*\/\/TRACE/)[0];
         // fetch io channel
         for (const k in define.factory) {
             if (k.includes('core/io_channel')) {
                 const chn = define.factory[k].toString().match(/\/\/CHANNEL(?:\n|\r)([\s\S]*)\/\/CHANNEL/)[1].trim();
-                return strip(`${traceSrc.replace('//CHANNEL', chn)}\n`)
+                return strip(`${ traceSrc.replace('//CHANNEL', chn) }\n`);
             }
         }
     }
@@ -281,7 +286,7 @@ define(require => {
         try {
             node = acorn.parse(src, { locations: 1 });
         } catch (err) {
-            log(`Parse error instrumenting ${file} ${err}`);
+            log(`Parse error instrumenting ${ file } ${ err }`);
             return {
                 input: src, //cutUp(cuts,src),
                 output: src,
@@ -327,7 +332,10 @@ define(require => {
         // insert a item into the linked list
         function insert(index, value) {
             if (index === undefined) throw new Error();
-            const n = { i: index, v: value };
+            const n = {
+                i: index,
+                v: value
+            };
             linkedList.sorted(n, 'i');
             return n;
         }
@@ -355,7 +363,8 @@ define(require => {
                 }
 
                 dict[id++] = {
-                    x: node.body.loc.start.column, y: node.body.loc.start.line,
+                    x: node.body.loc.start.column,
+                    y: node.body.loc.start.line,
                     ex: node.body.loc.end.column,
                     ey: node.body.loc.end.line,
                     sx: node.loc.start.column,
@@ -366,7 +375,8 @@ define(require => {
             } else {
                 fnHead = insert(node.start, '');
                 dict[id++] = {
-                    x: node.loc.start.column, y: node.loc.start.line,
+                    x: node.loc.start.column,
+                    y: node.loc.start.line,
                     ex: node.loc.end.column,
                     ey: node.loc.end.line,
                     n: name,
@@ -383,19 +393,24 @@ define(require => {
                 let x;
                 let o;
                 if (body.type == 'BlockStatement') {
-                    x = `${Global_STR}b.l${id}++;`;
+                    x = `${ Global_STR }b.l${ id }++;`;
                     o = 1;
                 } else if (body.type == 'ExpressionStatement') {
-                    x = `${Global_STR}b.l${id}++,`;
+                    x = `${ Global_STR }b.l${ id }++,`;
                     o = 0;
                 } else if (body.type == 'EmptyStatement') {
-                    x = `${Global_STR}b.l${id}++`;
+                    x = `${ Global_STR }b.l${ id }++`;
                     o = 0;
                 }
                 if (x) {
                     insert(body.start + o, x);
                     loopIds.push(id);
-                    dict[id++] = { x: startPos.column, y: startPos.line, ex: endPos.column, ey: endPos.line };
+                    dict[id++] = {
+                        x: startPos.column,
+                        y: startPos.line,
+                        ex: endPos.column,
+                        ey: endPos.line
+                    };
                 }
             }
 
@@ -407,7 +422,7 @@ define(require => {
                         // insert ( ) around logical left and right
                         hasLogic = 1;
                         if (n.left.type != 'LogicalExpression') {
-                            insert(n.left.start, `(${Global_STR}b.b${id}=`);
+                            insert(n.left.start, `(${ Global_STR }b.b${ id }=`);
                             insert(n.left.end, ')');
                             dict[id++] = {
                                 x: n.left.loc.start.column,
@@ -417,7 +432,7 @@ define(require => {
                             };
                         }
                         if (n.right.type != 'LogicalExpression') {
-                            insert(n.right.start, `(${Global_STR}b.b${id}=`);
+                            insert(n.right.start, `(${ Global_STR }b.b${ id }=`);
                             insert(n.right.end, ')');
                             dict[id++] = {
                                 x: n.right.loc.start.column,
@@ -473,7 +488,7 @@ define(require => {
                                 }
                             });
                             if (id == 'bind') return;
-                            return name = `${n.callee.type == 'FunctionExpression' ? '()' : id}->`;
+                            return name = `${ n.callee.type == 'FunctionExpression' ? '()' : id }->`;
                         }
                     });
                     instrumentFn(n, name, false, funcId);
@@ -498,10 +513,12 @@ define(require => {
                 },
                 IfStatement(n, p) {
                     const b = n.test;
-                    insert(b.start, `${Global_STR}b.b${id}=`);
+                    insert(b.start, `${ Global_STR }b.b${ id }=`);
                     const m = dict[id++] = {
-                        x: n.loc.start.column, y: n.loc.start.line,
-                        ex: n.test.loc.end.column + 1, ey: n.test.loc.end.line
+                        x: n.loc.start.column,
+                        y: n.loc.start.line,
+                        ex: n.test.loc.end.column + 1,
+                        ey: n.test.loc.end.line
                     };
                     // lets go and split apart all boolean expressions in our test
                     if (logicalExpression(n.test)) {
@@ -514,19 +531,21 @@ define(require => {
                 ConditionalExpression(n, p) {
                     const b = n.test;
                     if (!logicalExpression(n.test)) {
-                        insert(b.start, `${needSemi(p, b.start) ? ';' : ''}(${Global_STR}b.b${id}=`);
+                        insert(b.start, `${ needSemi(p, b.start) ? ';' : '' }(${ Global_STR }b.b${ id }=`);
 
                         insert(b.end, ')');
                         dict[id++] = {
-                            x: b.loc.start.column, y: b.loc.start.line,
-                            ex: b.loc.end.column + 1, ey: b.loc.end.line
+                            x: b.loc.start.column,
+                            y: b.loc.start.line,
+                            ex: b.loc.end.column + 1,
+                            ey: b.loc.end.line
                         };
                     }
                 },
                 SwitchCase(n, p) {
                     const testNode = n.test;
                     if (testNode) {
-                        insert(n.colon, `${Global_STR}b.b${id}=1;`);
+                        insert(n.colon, `${ Global_STR }b.b${ id }=1;`);
                         dict[id++] = {
                             x: n.loc.start.column,
                             y: n.loc.start.line,
@@ -550,14 +569,14 @@ define(require => {
                     }
                 },
                 AssignmentExpression(n, p) {
-                    if (/*n.operator == '='*/n.right.type != 'Literal' && n.right.type != 'FunctionExpression' && n.right.type != 'ObjectExpression') {
+                    if ( /*n.operator == '='*/n.right.type != 'Literal' && n.right.type != 'FunctionExpression' && n.right.type != 'ObjectExpression') {
                         addAssign(n.left.loc, n.right.start);
                     }
                 },
                 CallExpression(n, p) {
                     // only if we are the first of a SequenceExpression
                     if (p.node.type == 'SequenceExpression' && p.node.expressions[0] == n) p = p.up;
-                    insert(n.start, `${needSemi(p, n.start) ? ';' : ''}(${Global_STR}.c(${id},`);
+                    insert(n.start, `${ needSemi(p, n.start) ? ';' : '' }(${ Global_STR }.c(${ id },`);
                     insert(n.end - 1, '))');
                     const a = [];
 
@@ -590,7 +609,7 @@ define(require => {
                 },
                 NewExpression(n, p) {
                     if (p.node.type == 'SequenceExpression' && p.node.expressions[0] == n) p = p.up;
-                    insert(n.start, `${needSemi(p, n.start) ? ';' : ''}(${Global_STR}.c(${id},`);
+                    insert(n.start, `${ needSemi(p, n.start) ? ';' : '' }(${ Global_STR }.c(${ id },`);
                     insert(n.end, '))');
                     const a = [];
 
@@ -620,18 +639,23 @@ define(require => {
                     if (n.argument) {
                         //assignId.push(id)
                         //cut(n.start+6, " "+gs+".b="+gs+"b,"+gs + "["+iid+"][" + (id-iid) + "]=")
-                        insert(n.argument.start, `(${Global_STR}.e(${id},${Global_STR}b,(`);
+                        insert(n.argument.start, `(${ Global_STR }.e(${ id },${ Global_STR }b,(`);
                         insert(n.argument.end, ')))');
                     } else {
-                        insert(n.start + 6, ` ${Global_STR}.e(${id}, ${Global_STR}b)`);
+                        insert(n.start + 6, ` ${ Global_STR }.e(${ id }, ${ Global_STR }b)`);
                     }
-                    dict[id++] = { x: n.loc.start.column, y: n.loc.start.line, ret: funcId, r: 1 };
+                    dict[id++] = {
+                        x: n.loc.start.column,
+                        y: n.loc.start.line,
+                        ret: funcId,
+                        r: 1
+                    };
                     // return object injection
                 },
                 CatchClause(n, p) {
                     // catch clauses need to send out a depth-reset message
                     //cut(n.body.start + 1, gs + '.x('+gs+'d,'+gs+'b.x'+id+'='+ac.stringify(n.param)+');')
-                    insert(n.body.start + 1, `${Global_STR}b.x${id}=${acorn_tools.stringify(n.param)};`);
+                    insert(n.body.start + 1, `${ Global_STR }b.x${ id }=${ acorn_tools.stringify(n.param) };`);
 
                     // lets store the exception as logic value on the catch
                     dict[id++] = {
@@ -644,23 +668,28 @@ define(require => {
             });
 
             function addAssign(mark, inj) {
-                insert(inj, `${Global_STR}b.a${id}=`);
-                dict[id++] = { x: mark.start.column, y: mark.start.line, ex: mark.end.column, ey: mark.end.line };
+                insert(inj, `${ Global_STR }b.a${ id }=`);
+                dict[id++] = {
+                    x: mark.start.column,
+                    y: mark.start.line,
+                    ex: mark.end.column,
+                    ey: mark.end.line
+                };
             }
 
             // write function entry
-            let s = `var ${Global_STR}b={};`;
+            let s = `var ${ Global_STR }b={};`;
             if (loopIds.length) {
-                s = `var ${Global_STR}b={`;
+                s = `var ${ Global_STR }b={`;
                 for (var i = 0; i < loopIds.length; i++) {
                     if (i) s += ',';
-                    s += `l${loopIds[i]}:0`;
+                    s += `l${ loopIds[i] }:0`;
                 }
                 s += '};';
             }
 
             let tryStart = 'try{';
-            let tryEnd = `}catch(x){${Global_STR}.e(${id},${Global_STR}b,x,1);throw x;}`;
+            let tryEnd = `}catch(x){${ Global_STR }.e(${ id },${ Global_STR }b,x,1);throw x;}`;
 
             if (options.nocatch) {
                 tryStart = '';
@@ -668,13 +697,22 @@ define(require => {
             }
 
             if (isRoot) {
-                fnHead.v = `var ${Global_STR}g${funcId}=${Global_STR}.f(${funcId},null,0,0);${s}${tryStart}`;
-                insert(node.end, `;${Global_STR}.e(${id},${Global_STR}b)${tryEnd}`);
-                dict[id++] = { x: node.loc.end.column, y: node.loc.end.line, ret: funcId, root: 1 };
+                fnHead.v = `var ${ Global_STR }g${ funcId }=${ Global_STR }.f(${ funcId },null,0,0);${ s }${ tryStart }`;
+                insert(node.end, `;${ Global_STR }.e(${ id },${ Global_STR }b)${ tryEnd }`);
+                dict[id++] = {
+                    x: node.loc.end.column,
+                    y: node.loc.end.line,
+                    ret: funcId,
+                    root: 1
+                };
             } else {
-                fnHead.v = `var ${Global_STR}g${funcId}=${Global_STR}.f(${funcId},arguments,this,${Global_STR}g${parentId});${s}${tryStart}`;
-                insert(node.body.end - 1, `;${Global_STR}.e(${id},${Global_STR}b)${tryEnd}`);
-                dict[id++] = { x: node.body.loc.end.column, y: node.body.loc.end.line, ret: funcId };
+                fnHead.v = `var ${ Global_STR }g${ funcId }=${ Global_STR }.f(${ funcId },arguments,this,${ Global_STR }g${ parentId });${ s }${ tryStart }`;
+                insert(node.body.end - 1, `;${ Global_STR }.e(${ id },${ Global_STR }b)${ tryEnd }`);
+                dict[id++] = {
+                    x: node.body.loc.end.column,
+                    y: node.body.loc.end.line,
+                    ret: funcId
+                };
             }
         }
     }

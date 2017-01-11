@@ -4,13 +4,13 @@
 // | licensed under MPL 2.0 http://www.mozilla.org/MPL/
 // \____________________________________________/
 
-require("../core/define")
+require('../core/define');
 define(function (require) {
 
-    if (process.version.indexOf('v0.6') != -1 || process.version.indexOf('v0.4') != -1) {
-        console.log("Node version too old, try 0.8 or 0.10")
-        process.exit(-1)
-        return
+    if (process.version.includes('v0.6') || process.version.includes('v0.4')) {
+        console.log('Node version too old, try 0.8 or 0.10');
+        process.exit(-1);
+        return;
     }
 
     const path = require('path');
@@ -21,7 +21,7 @@ define(function (require) {
     const childproc = require('child_process');
 
     // the nodejs loader
-    if (process.argv[2] && process.argv[2].indexOf('-l') == 0) return nodeLoader()
+    if (process.argv[2] && process.argv[2].indexOf('-l') == 0) return nodeLoader();
 
     function nodeLoader() {
         const filter = makeFilter(process.argv[2].slice(2));
@@ -32,24 +32,24 @@ define(function (require) {
         m._compile = function (content, filename) {
 
             if (filter.active && filter(filename)) {
-                return oldCompile.call(this, content, filename)
+                return oldCompile.call(this, content, filename);
             }
             // lets instrument
             const t = instrument(filename, content, dataId, filter.opt);
-            dataId = t.id
+            dataId = t.id;
             // send the dictionary out
             const m = { dict: 1, src: t.input, f: filename, d: t.d };
             if (process.send) {
-                process.send(m)
+                process.send(m);
             } else {
-                process.stderr.write('\x1f' + JSON.stringify(m) + '\x17')
+                process.stderr.write(`\x1F${JSON.stringify(m)}\x17`);
             }
-            return oldCompile.call(this, t.output, filename)
-        }
-        process.argv.splice(1, 2) // remove leading arguments
+            return oldCompile.call(this, t.output, filename);
+        };
+        process.argv.splice(1, 2); // remove leading arguments
         // clear require cache
         for (const k in define.require.cache) {
-            delete define.require.cache[k]
+            delete define.require.cache[k];
         }
         const file = path.resolve(process.argv[1]);
         define.require(file);
@@ -59,23 +59,23 @@ define(function (require) {
     const ssl = require('../core/io_ssl');
     const ioServer = require('../core/io_server');
 
-    function out() {
-        for (let v = Array.prototype.slice.call(arguments), i = 0, c = out.colors; i < v.length; i++) {
-            v[i] = String(v[i]).replace(/~(\w*)~/g, function (m, a) {
-                  return "\x1b[" + (c[a] || 0) + "m";
-              }) + "\x1b[0m";
+    function out(...args) {
+        for (let v = Array.prototype.slice.call(args), i = 0, c = out.colors; i < v.length; i++) {
+            v[i] = `${String(v[i]).replace(/~(\w*)~/g, function (m, a) {
+    return '\x1B[' + (c[a] || 0) + 'm';
+})}\x1B[0m`;
             process.stderr.write(v[i]);
         }
     }
 
     out.colors = {
-        bl: "30", bo: "1", r: "0;31", g: "0;32", y: "0;33", b: "0;34", m: "0;35", c: "0;36",
-        w: "0;37", br: "1;31", bg: "1;32", by: "1;33", bb: "1;34", bm: "1;35", bc: "1;36", bw: "1;37"
-    }
+        bl: '30', bo: '1', r: '0;31', g: '0;32', y: '0;33', b: '0;34', m: '0;35', c: '0;36',
+        w: '0;37', br: '1;31', bg: '1;32', by: '1;33', bb: '1;34', bm: '1;35', bc: '1;36', bw: '1;37'
+    };
 
     function makeFilter(fspec) {
 
-        if (typeof fspec == 'string') fspec = JSON.parse(fspec)
+        if (typeof fspec == 'string') fspec = JSON.parse(fspec);
 
         const _do = init(fspec._do);
         const _no = init(fspec._no);
@@ -84,87 +84,86 @@ define(function (require) {
             const d = [];
             for (let i = 0; i < a.length; i++) {
                 if (a[i].charAt(0) == ':') {
-                    d[i] = a[i].slice(1)
+                    d[i] = a[i].slice(1);
                 } else {
-                    d[i] = new RegExp(a[i].slice(1), "i")
+                    d[i] = new RegExp(a[i].slice(1), 'i');
                 }
             }
-            return d
+            return d;
         }
 
         function match(d, f) {
-            if (!d.length) return 0
+            if (!d.length) return 0;
             for (let i = 0; i < d.length; i++) {
                 if (typeof d[i] == 'string') {
-                    if (f.indexOf(d[i]) != -1) return 2
-                } else if (f.match(d[i])) return 2
+                    if (f.includes(d[i])) return 2;
+                } else if (f.match(d[i])) return 2;
             }
-            return 1
+            return 1;
         }
 
         function f(file) {
-            if (match(_do, file) == 1) return true
-            if (match(_no, file) == 2) return true
-            return false
+            if (match(_do, file) == 1) return true;
+            if (match(_no, file) == 2) return true;
+            return false;
         }
 
-        f.opt = fspec._opt
-        f.active = _do.length || _no.length
+        f.opt = fspec._opt;
+        f.active = _do.length || _no.length;
 
         f.stringify = function () {
-            return JSON.stringify(fspec)
-        }
+            return JSON.stringify(fspec);
+        };
 
-        return f
+        return f;
     }
 
-    out('~~[trace.GL] ~bc~See~w~ your code. \n')
+    out('~~[trace.GL] ~bc~See~w~ your code. \n');
 
     function loadSettings(file) {
-        if (!fs.existsSync(file)) return
+        if (!fs.existsSync(file)) return;
         try {
             const data = fs.readFileSync(file).toString().replace(/\/\*[\s|S]?\*\//g, '').replace(/\/\/.*?\n/g, '');
-            define.settings = JSON.parse(data)
-            define.settingsData = data
-            define.settingsFile = file
-        }
-        catch (e) {
-            console.log("Error reading settings file (" + file + ") ", e)
+            define.settings = JSON.parse(data);
+            define.settingsData = data;
+            define.settingsFile = file;
+        } catch (e) {
+            console.log(`Error reading settings file (${file}) `, e);
         }
     }
 
-    if (!loadSettings(path.resolve(process.cwd(), "tracegl.json")) && !loadSettings("~/tracegl.json") && !loadSettings(path.resolve(path.dirname(__filename), "tracegl.json")) && !define.settings) {
-        loadSettings(path.resolve(path.dirname(__filename), "tracegl.json"))
+    if (!loadSettings(path.resolve(process.cwd(), 'tracegl.json')) && !loadSettings('~/tracegl.json') && !loadSettings(path.resolve(path.dirname(__filename), 'tracegl.json')) && !define.settings) {
+        loadSettings(path.resolve(path.dirname(__filename), 'tracegl.json'));
     }
 
     // argument parse variables
     function processArgs(arg) {
         let sender; // send messages to ui or zip
         let uiport = 2000;
-        let bind = "0.0.0.0";
+        let bind = '0.0.0.0';
         let tgtport = 2080;
         const fspec = { _no: [], _do: [], _opt: {} };
 
         function usage(err) {
-            out('~br~' + err + '\n')
-            out('~w~Usage:\n')
-            out('~w~node tracegl ~c~[flag] ~g~target ~y~[args]\n')
-            out('  ~g~../path/to/wwwroot ~w~Trace browser js via static fileserver\n')
-            out('  ~g~http://proxytarget:port ~w~Trace browser js via proxy\n')
-            out('  ~g~nodefile.js ~y~[args] ~w~Trace Node.js process\n')
-            out('  ~g~trace.gz ~w~Play back trace.gz file\n')
-            out('  ~c~-gz[:trace.gz] ~w~Record trace to gzip file. No trace UI started\n')
-            out('  ~c~-do[/:]match ~w~Only trace filenames containing match. Filters -do set first, then -no\n')
-            out('  ~c~-no[/:]match ~w~Ignore filenames containing match. Replace : with / for a regexp, use double escaped \\\\ \n')
-            out('  ~c~-nolib ~w~Short for -no/jquery.* -no:require.js -no/node\\\\_modules -no/bower\\\\_components \n')
-            out('  ~c~-meteor ~w~Short for -no/jquery.* -no:/packages \n')
-            out('  ~c~-nocatch ~w~Don\'t create exception catching\n')
-            out('  ~c~-bind:0.0.0.0 ~w~Set the hostname to bind our external ports to, default 0.0.0.0\n')
-            out('  ~c~-ui:port ~w~Set trace UI port. default: 2000\n')
-            out('  ~c~-tgt:port ~w~Set browser JS port. default: 2080\n')
-            out('~w~node tracegl.js ~r~[commmand]\n')
-            out('  ~r~-settings ~w~write a .tracegl settings template in the current dir\n')
-            return
+            out(`~br~${err}\n`);
+            out('~w~Usage:\n');
+            out('~w~node tracegl ~c~[flag] ~g~target ~y~[args]\n');
+            out('  ~g~../path/to/wwwroot ~w~Trace browser js via static fileserver\n');
+            out('  ~g~http://proxytarget:port ~w~Trace browser js via proxy\n');
+            out('  ~g~nodefile.js ~y~[args] ~w~Trace Node.js process\n');
+            out('  ~g~trace.gz ~w~Play back trace.gz file\n');
+            out('  ~c~-gz[:trace.gz] ~w~Record trace to gzip file. No trace UI started\n');
+            out('  ~c~-do[/:]match ~w~Only trace filenames containing match. Filters -do set first, then -no\n');
+            out('  ~c~-no[/:]match ~w~Ignore filenames containing match. Replace : with / for a regexp, use double escaped \\\\ \n');
+            out('  ~c~-nolib ~w~Short for -no/jquery.* -no:require.js -no/node\\\\_modules -no/bower\\\\_components \n');
+            out('  ~c~-meteor ~w~Short for -no/jquery.* -no:/packages \n');
+            out('  ~c~-nocatch ~w~Don\'t create exception catching\n');
+            out('  ~c~-bind:0.0.0.0 ~w~Set the hostname to bind our external ports to, default 0.0.0.0\n');
+            out('  ~c~-ui:port ~w~Set trace UI port. default: 2000\n');
+            out('  ~c~-tgt:port ~w~Set browser JS port. default: 2080\n');
+            out('~w~node tracegl.js ~r~[commmand]\n');
+            out('  ~r~-settings ~w~write a .tracegl settings template in the current dir\n');
+            return;
         }
 
         // process arguments
@@ -173,72 +172,69 @@ define(function (require) {
             if (a.charAt(0) == '-') {
                 const d = a.indexOf(':');
                 let b;
-                if (d != -1) b = a.slice(d + 1)
+                if (d != -1) b = a.slice(d + 1);
 
                 if (a.indexOf('-gz') == 0) {
                     if (d != -1) {
-                        sender = gzSender(a.slice(d + 1))
+                        sender = gzSender(a.slice(d + 1));
                     } else {
-                        sender = gzSender('trace.gz')
+                        sender = gzSender('trace.gz');
                     }
-                } else if (a.indexOf('-install') == 0) {
-                } else if (a.indexOf('-ui') == 0) {
-                    if (d == -1) return usage("No port specified")
-                    uiport = parseInt(b)
+                } else if (a.indexOf('-install') == 0) {} else if (a.indexOf('-ui') == 0) {
+                    if (d == -1) return usage('No port specified');
+                    uiport = parseInt(b);
                 } else if (a.indexOf('-tgt') == 0) {
-                    if (d == -1) return usage("No port specified")
-                    tgtport = parseInt(b)
+                    if (d == -1) return usage('No port specified');
+                    tgtport = parseInt(b);
                 } else if (a.indexOf('-no') == 0) {
                     if (a == '-nocatch') {
-                        fspec._opt.nocatch = 1
+                        fspec._opt.nocatch = 1;
                     } else if (a == '-nolib') {
-                        fspec._no.push("/jquery.*")
-                        fspec._no.push(":require.js")
-                        fspec._no.push("/node\\_modules")
-                        fspec._no.push("/bower\\_components")
+                        fspec._no.push('/jquery.*');
+                        fspec._no.push(':require.js');
+                        fspec._no.push('/node\\_modules');
+                        fspec._no.push('/bower\\_components');
                     } else {
-                        fspec._no.push(a.slice(3))
+                        fspec._no.push(a.slice(3));
                     }
                 } else if (a == '-meteor') {
-                    fspec._no.push("/jquery.*")
-                    fspec._no.push("/packages")
+                    fspec._no.push('/jquery.*');
+                    fspec._no.push('/packages');
                 } else if (a.indexOf('-do') == 0) {
-                    fspec._do.push(a.slice(3))
+                    fspec._do.push(a.slice(3));
                 } else if (a.indexOf('-settings') == 0) {
                     if (fs.existsSync('tracegl.json')) {
-                        return out('~r~ERROR: ~~ .tracegl file already exists, remove before creating a new template\n')
+                        return out('~r~ERROR: ~~ .tracegl file already exists, remove before creating a new template\n');
                     }
-                    fs.writeFileSync("tracegl.json", define.settingsData)
-                    return out('~g~OK: ~~ tracegl.jsonl file written in current directory, open it in an editor to modify settings\n')
+                    fs.writeFileSync('tracegl.json', define.settingsData);
+                    return out('~g~OK: ~~ tracegl.jsonl file written in current directory, open it in an editor to modify settings\n');
                 } else if (a.indexOf('-bind') == 0) {
-                    bind = a.slice(6)
+                    bind = a.slice(6);
                 } else {
-                    return usage("Invalid argument " + a)
+                    return usage(`Invalid argument ${a}`);
                 }
             } else {
-                if (!sender) sender = uiSender(uiport, bind)
+                if (!sender) sender = uiSender(uiport, bind);
                 const f = makeFilter(fspec);
 
                 let isfile;
                 try {
-                    isfile = fs.statSync(a).isFile()
-                }
-                catch (e) {
-                }
+                    isfile = fs.statSync(a).isFile();
+                } catch (e) {}
 
                 // execute the right mode
-                if (a.match(/\.gz$/i)) return gzPlaybackMode(f, a, sender)
-                if (a.match(/\.js$/i) || isfile) return nodeJSMode(f, a, arg.slice(i + 1), sender)
-                if (a.match(/^https?/)) return proxyMode(f, tgtport, bind, a, sender)
-                return browserJSMode(f, tgtport, bind, path.resolve(process.cwd(), a), sender)
+                if (a.match(/\.gz$/i)) return gzPlaybackMode(f, a, sender);
+                if (a.match(/\.js$/i) || isfile) return nodeJSMode(f, a, arg.slice(i + 1), sender);
+                if (a.match(/^https?/)) return proxyMode(f, tgtport, bind, a, sender);
+                return browserJSMode(f, tgtport, bind, path.resolve(process.cwd(), a), sender);
 
-                break
+                break;
             }
         }
-        usage("Error, no target specified")
+        usage('Error, no target specified');
     }
 
-    return processArgs(process.argv)
+    return processArgs(process.argv);
 
     // create a file finder
     function fileFinder(root) {
@@ -247,112 +243,112 @@ define(function (require) {
 
         function scan(dir, done) {
             fs.readdir(dir, function (err, list) {
-                if (err) return done(err)
+                if (err) return done(err);
                 let i = 0;
 
                 function next() {
                     let file = list[i++];
-                    if (!file) return done()
-                    file = dir + '/' + file
+                    if (!file) return done();
+                    file = `${dir}/${file}`;
                     fs.stat(file, function (err, stat) {
                         if (stat && stat.isDirectory()) {
-                            scan(file, next)
+                            scan(file, next);
                         } else {
                             const f = file.toLowerCase().split('/');
                             while (f.length) {
-                                scanHash[f.join('/')] = file
-                                f.shift()
+                                scanHash[f.join('/')] = file;
+                                f.shift();
                             }
-                            next()
+                            next();
                         }
-                    })
+                    });
                 }
 
-                next()
-            })
+                next();
+            });
         }
 
         return function (file, found) {
             // open a file in the editor
             fs.stat(file, function (err, stat) {
-                if (!err) return found(null, file)
+                if (!err) return found(null, file);
                 const sp = file.split('/');
-                resolve()
+                resolve();
                 function resolve() {
-                    if (sp.length == 0) { // not found the fast way
+                    if (sp.length == 0) {
+                        // not found the fast way
                         function find() {
                             const f = file.toLowerCase().split('/');
                             while (f.length) {
                                 const sf = scanHash[f.join('/')];
-                                if (sf) return found(null, sf)
-                                f.shift()
+                                if (sf) return found(null, sf);
+                                f.shift();
                             }
-                            return found("Could not match " + file + " to anything in " + root)
+                            return found(`Could not match ${file} to anything in ${root}`);
                         }
 
                         if (!scanHash) {
-                            console.log("Building file find search db from " + root + " ..")
-                            scanHash = {}
-                            scan(root, find)
-                        }
-                        else {
-                            find()
+                            console.log(`Building file find search db from ${root} ..`);
+                            scanHash = {};
+                            scan(root, find);
+                        } else {
+                            find();
                         }
                     } else {
                         const sf = path.resolve(root, sp.join('/'));
                         fs.stat(sf, function (err, stat) {
-                            if (!err) return found(null, sf)
-                            sp.shift()
-                            resolve()
-                        })
+                            if (!err) return found(null, sf);
+                            sp.shift();
+                            resolve();
+                        });
                     }
                 }
-            })
-        }
+            });
+        };
     }
 
     function openEditor(file, line) {
         let ed;
         const s = define.settings;
         if (!s.editors || !(ed = s.editors[process.platform])) {
-            return console.log("No editor settings available for your platform")
+            return console.log('No editor settings available for your platform');
         }
         // lets try all editors
         for (const k in ed) {
             if (fs.existsSync(ed[k].bin)) {
                 // execute editor
-                const rep = { file: file, line: line };
+                const rep = { file, line };
                 const args = ed[k].args;
                 const narg = [];
                 for (let i = 0; i < args.length; i++) {
                     narg[i] = args[i].replace(/\$(\w+)/g, function (m, a) {
-                        if (!a in rep) console.log("Opening editor: argument not supported " + a)
-                        return rep[a]
-                    })
+                        if (!a in rep) console.log(`Opening editor: argument not supported ${a}`);
+                        return rep[a];
+                    });
                 }
-                console.log('Opening ' + file + ' line ' + line + ' with ' + k)
+                console.log(`Opening ${file} line ${line} with ${k}`);
                 const child = childproc.spawn(ed[k].bin, narg, {
                     detached: true,
                     stdio: [process.stdin, process.stdout, process.stderr]
                 });
-                return
+                return;
             }
         }
     }
 
     // send data to UI
     function uiSender(port, bind) {
-        const ui = ioServer()
-        ui.main = "./trace/trace_client"
-        ui.pass = fn.sha1hex("p4ssw0rd")
+        const ui = ioServer();
+        ui.main = './trace/trace_client';
+        ui.pass = fn.sha1hex('p4ssw0rd');
         if (require.absolute) {
-            ui.packaged = require.absolute('./trace_client')
+            ui.packaged = require.absolute('./trace_client');
         } else {
-            ui.packaged = 1
+            ui.packaged = 1;
         }
-        ui.favicon = "base64:site/favicon.ico"
-        ui.listen(port, bind)
-        out("~~[trace.GL]~w~ WebGL trace UI: http://" + bind + ":" + port + "\n")
+        ui.favicon = 'base64:site/favicon.ico';
+        ui.listen(port, bind);
+        out(`~~[trace.GL]~w~ WebGL trace UI: http://${bind}:${port}\n`);
 
         const dict = [];
         let queue = [];
@@ -365,35 +361,34 @@ define(function (require) {
             fs.exists(define.settingsFile, function (exists) {
                 if (exists) {
                     fs.watch(define.settingsFile, function () {
-                        loadSettings(define.settingsFile)
-                        ui.send({ settings: define.settings })
-                        console.log("Reloading settings file " + define.settingsFile)
-                    })
+                        loadSettings(define.settingsFile);
+                        ui.send({ settings: define.settings });
+                        console.log(`Reloading settings file ${define.settingsFile}`);
+                    });
                 }
-            })
+            });
         }
 
         // incoming channel data
         ui.data = function (m, c) {
             if (m.t == 'join') {
                 for (var i = 0; i < dict.length; i++) {
-                    c.send(dict[i])
+                    c.send(dict[i]);
                 }
                 for (var i = 0; i < queue.length; i++) {
-                    c.send(queue[i])
+                    c.send(queue[i]);
                 }
-                joined = true
+                joined = true;
             } else if (m.t == 'open') {
                 finder(m.file, function (err, file) {
-                    if (err) return console.log(err)
-                    openEditor(file, m.line)
-                })
+                    if (err) return console.log(err);
+                    openEditor(file, m.line);
+                });
                 // next up is just eating off
+            } else {
+                console.log('unused message', m);
             }
-            else {
-                console.log('unused message', m)
-            }
-        }
+        };
 
         // outgoing data channel
         let lgc = 0;
@@ -401,21 +396,22 @@ define(function (require) {
             // verify ordering
             if (!m.dict) {
                 if (!lgc) {
-                    lgc = m.g
+                    lgc = m.g;
                 } else {
                     if (lgc + 1 != m.g) {
-                        console.log("Message order error", lgc, m.g)
+                        console.log('Message order error', lgc, m.g);
                     }
-                    lgc = m.g
+                    lgc = m.g;
                 }
-                if (joined && m.d == 1) queue = [] // clear the queue at depth 1
-                queue.push(m)
-            } else {	// keep dictionaries for join
-                dict.push(m)
+                if (joined && m.d == 1) queue = []; // clear the queue at depth 1
+                queue.push(m);
+            } else {
+                // keep dictionaries for join
+                dict.push(m);
             }
             // keep all messages with depth 0
-            if (joined) ui.send(m)
-        }
+            if (joined) ui.send(m);
+        };
     }
 
     // send data to zip
@@ -424,59 +420,58 @@ define(function (require) {
         const gz = zlib.createGzip();
         const fstr = fs.createWriteStream(file);
         fstr.on('error', function (err) {
-            console.log("Error writing " + file + " " + err)
-        })
+            console.log(`Error writing ${file} ${err}`);
+        });
 
         gz.on('error', function (err) {
-            console.log("Error zipping " + file + " " + err)
-        })
+            console.log(`Error zipping ${file} ${err}`);
+        });
 
-        gz.pipe(fstr)
+        gz.pipe(fstr);
 
         let buf = [];
         let total = 0;
 
         function flush(end) {
             if (buf.length) {
-                gz.write(buf.join(''))
+                gz.write(buf.join(''));
                 gz.flush();
                 if (end) gz.end();
-                buf = []
-                total = 0
+                buf = [];
+                total = 0;
             }
         }
 
         let terminated = false;
         process.on('SIGINT', function () {
-            terminated = true
-            console.log('got sigint, flushing gz')
-            process.stdin.resume()
-            flush()
+            terminated = true;
+            console.log('got sigint, flushing gz');
+            process.stdin.resume();
+            flush();
             // wait for the drain, then end and exit
             gz.flush(function () {
                 fstr.end(function () {
-                    console.log("end!")
-                    process.exit(0)
-                })
-            })
+                    console.log('end!');
+                    process.exit(0);
+                });
+            });
         });
 
         process.on('exit', function () {
-            console.log('exit!')
-        })
-
+            console.log('exit!');
+        });
 
         return function (m) {
             if (!m) {
                 flush(true);
             } else {
                 // we should buffer atleast a megabyte
-                const data = '\x1f' + JSON.stringify(m) + '\x17';
-                buf.push(data)
-                total += data.length
-                if (total > 1024 * 1024) flush()
+                const data = `\x1F${JSON.stringify(m)}\x17`;
+                buf.push(data);
+                total += data.length;
+                if (total > 1024 * 1024) flush();
             }
-        }
+        };
     }
 
     // app server
@@ -484,91 +479,90 @@ define(function (require) {
 
         // start the target server
         const tgt = ioServer();
-        tgt.root = root
-        tgt.listen(port, bind)
+        tgt.root = root;
+        tgt.listen(port, bind);
         //appHttp.watcher = define.watcher()
-        out("~~[trace.GL]~w~ Serving browser JS: http://" + bind + ":" + port + "\n")
+        out(`~~[trace.GL]~w~ Serving browser JS: http://${bind}:${port}\n`);
 
         // incoming message, forward to sender
         tgt.data = function (m, c) {
-            sender(m)
-        }
+            sender(m);
+        };
 
         let fileCache = {};
         let did = 1; // count instrument offset id
 
         tgt.fileChange = function (f) {
             // lets flush everything
-            fileCache = {}
-            did = 1
+            fileCache = {};
+            did = 1;
             // send reload message to UI
-            sender({ reload: 1 })
-        }
+            sender({ reload: 1 });
+        };
 
         tgt.process = function (file, data, type) {
-            if (type != "application/javascript") return data
+            if (type != 'application/javascript') return data;
 
-            if (filter.active && filter(file)) return data
+            if (filter.active && filter(file)) return data;
             // cache
-            if (fileCache[file]) return fileCache[file].output
+            if (fileCache[file]) return fileCache[file].output;
             // lets use trace
             const t = fileCache[file] = instrument(file, data.toString('utf8'), did, filter.opt);
-            did = t.id
+            did = t.id;
             // send to UI
-            sender({ dict: 1, f: file, src: t.input, d: t.d })
-            return t.output
-        }
+            sender({ dict: 1, f: file, src: t.input, d: t.d });
+            return t.output;
+        };
     }
 
     function streamParser(dataCb, sideCb) {
-        let last = "";
+        let last = '';
         return function (d) {
             let data = last + d.toString();
-            last = "";
+            last = '';
             data = data.replace(/\x1f(.*?)\x17/g, function (x, m) {
                 try {
-                    dataCb(JSON.parse(m))
+                    dataCb(JSON.parse(m));
+                } catch (e) {
+                    fn(`error in ${e}`, m);
                 }
-                catch (e) {
-                    fn('error in ' + e, m)
-                }
-                return ''
-            })
-            if (data.indexOf('\x1f') != -1) {
+                return '';
+            });
+            if (data.includes('\x1F')) {
                 last = data;
-            } else if (data.length && sideCb) sideCb(data)
-        }
+            } else if (data.length && sideCb) sideCb(data);
+        };
     }
 
     // node server
     function nodeJSMode(filter, file, args, sender) {
         // we start up ourselves with -l
         const cp = require('child_process');
-        args.unshift(file)
-        args.unshift('-l' + filter.stringify())
-        args.unshift(process.argv[1])
+        args.unshift(file);
+        args.unshift(`-l${filter.stringify()}`);
+        args.unshift(process.argv[1]);
         if (process.env.NODE_INSPECT) {
-            args.unshift('--inspect=5858')
-            args.unshift('--debug-brk')
+            args.unshift('--inspect=5858');
+            args.unshift('--debug-brk');
         }
 
         const stdio = [process.stdin, process.stdout, 'pipe'];
         //if(process.version.indexOf('v0.8') != -1)	stdio.push('ipc')
 
         const child = cp.spawn(process.execPath, args, {
-            stdio: stdio
+            stdio
         });
 
         // stderr datapath
         const sp = streamParser(sender, function (d) {
-            process.stderr.write(d)
+            process.stderr.write(d);
         });
-        if (child.stderr) child.stderr.on('data', sp)
+        if (child.stderr) child.stderr.on('data', sp);
 
         // ipc datapath
         child.on('message', function (m) {
-            sender(m)
-        })
+            sender(m);
+        });
 
         /*child.on('exit', function () {
          sender(false);
@@ -578,50 +572,50 @@ define(function (require) {
     function proxyMode(filter, port, bind, proxy, sender) {
         // start the target server
         const tgt = ioServer();
-        tgt.root = root
-        tgt.proxy = url.parse(proxy)
-        tgt.listen(port, "0.0.0.0")
+        tgt.root = root;
+        tgt.proxy = url.parse(proxy);
+        tgt.listen(port, '0.0.0.0');
 
         //appHttp.watcher = define.watcher()
-        out("~~[trace.GL]~w~ Proxying browser JS: http://" + bind + ":" + port + " -> " + proxy + "\n")
+        out(`~~[trace.GL]~w~ Proxying browser JS: http://${bind}:${port} -> ${proxy}\n`);
 
         // incoming message, forward to sender
         tgt.data = function (m, c) {
-            sender(m)
-        }
+            sender(m);
+        };
 
         const fileCache = {};
         let did = 1; // count instrument offset id
         tgt.process = function (file, data, type) {
-            if (type != "application/javascript") return data
+            if (type != 'application/javascript') return data;
 
-            if (filter.active && filter(file)) return data
+            if (filter.active && filter(file)) return data;
             // turn off cache
             // if(fileCache[file]) return fileCache[file].output
             // lets use trace
             const t = fileCache[file] = instrument(file, data.toString('utf8'), did, filter.opt);
-            did = t.id
+            did = t.id;
             // send to UI
-            sender({ dict: 1, f: file, src: t.input, d: t.d })
+            sender({ dict: 1, f: file, src: t.input, d: t.d });
 
             // dump the last 100 chars
-            return t.output
-        }
+            return t.output;
+        };
     }
 
     function gzPlaybackMode(filter, file, sender) {
         // just output the gz file to sender
         const rs = fs.createReadStream(file);
         const gz = zlib.createGunzip();
-        process.stdout.write("Loading gzipped trace .")
-        rs.pipe(gz)
+        process.stdout.write('Loading gzipped trace .');
+        rs.pipe(gz);
         const sp = streamParser(function (m) {
-            if (m.g % 1000 == 0) process.stdout.write(".")
-            sender(m)
+            if (m.g % 1000 == 0) process.stdout.write('.');
+            sender(m);
         });
-        gz.on('data', sp)
+        gz.on('data', sp);
         gz.on('end', function () {
-            process.stdout.write("Complete!\n")
-        })
+            process.stdout.write('Complete!\n');
+        });
     }
-})
+});

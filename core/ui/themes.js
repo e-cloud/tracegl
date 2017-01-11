@@ -6,11 +6,11 @@
 
 define(function (require, exports) {
     function hex(c) {
-        return 'vec4(' + (((c >> 16) & 0xff) / 255) + ',' + (((c >> 8) & 0xff) / 255) + ',' + ((c & 0xff) / 255) + ',1)'
+        return `vec4(${(c >> 16 & 0xff) / 255},${(c >> 8 & 0xff) / 255},${(c & 0xff) / 255},1)`;
     }
 
     function hexs(c) {
-        return hex(parseInt(c, 16))
+        return hex(parseInt(c, 16));
     }
 
     exports.dark = {
@@ -31,15 +31,15 @@ define(function (require, exports) {
         codeHover: hexs('2E2D52'),
         codeSelect: hexs('424171'),
         codeMark: hexs('424171'),
-//		codeMark : hexs('035487'),
-//		codeSelect: hexs('033b6e'),
+        //		codeMark : hexs('035487'),
+        //		codeSelect: hexs('033b6e'),
         codeCursor: hexs('FFFFFF'),
         codeBg2: hexs('4c4c4c'),
         codeCall: hexs('033b6e'),
         codeSelf: hexs('4D55A1'),
         codeArg: hexs('032c54'),
         codeBg: hexs('151426'),
-//		codeBg: hexs('001e3e'),
+        //		codeBg: hexs('001e3e'),
         codeFg: hexs('FFFFFF'),
         codeLineBg: hexs('001625'),
         codeLine: hexs('7a909e'),
@@ -61,12 +61,12 @@ define(function (require, exports) {
         codeExNone: hexs('660000'),
         codeExOnce: hexs('006600'),
         codeExMany: hexs('0B615E')
-    }
+    };
 
     exports.light = {
         subpx: 'vec4(0,0,0,0.4)',
         dlgbg: hexs('FFFFFF'),
-//		dlgbg:  hexs('8F8F94'),
+        //		dlgbg:  hexs('8F8F94'),
         dlghi: hexs('efefef'),
         sliderbase: 'vec4(0,0,0,0.1)',
         splitter1: hexs('5f5f5f'),
@@ -82,14 +82,14 @@ define(function (require, exports) {
         codeHover: hexs('FFF7C2'),
         codeSelect: hexs('d3e2f4'),
         codeMark: hexs('FFED75'),
-//		codeMark : hexs('035487'),
-//		codeSelect: hexs('033b6e'),
+        //		codeMark : hexs('035487'),
+        //		codeSelect: hexs('033b6e'),
         codeCursor: hexs('000000'),
         codeBg2: hexs('ffffff'),
         codeCall: hexs('E0E6FF'),
         codeSelf: hexs('F2D9FC'),
         codeArg: hexs('D9E0FF'),
-//		codeBg: hexs('001e3e'),
+        //		codeBg: hexs('001e3e'),
         codeBg: hexs('ededed'),
         codeFg: hexs('000000'),
         codeLineBg: hexs('d3e2f4'),
@@ -112,5 +112,5 @@ define(function (require, exports) {
         codeExNone: hexs('FFE0E0'),
         codeExOnce: hexs('DDF0CE'),
         codeExMany: hexs('D6FFFE')
-    }
-})
+    };
+});

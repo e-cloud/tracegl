@@ -6,24 +6,24 @@
 
 define(function (require, exports, module) {
 
-    const fn = require("../core/fn");
-    const ui = require("../core/ui/ui");
-    const tm = require("../core/ui/text_mix");
+    const fn = require('../core/fn');
+    const ui = require('../core/ui/ui');
+    const tm = require('../core/ui/text_mix');
 
     function traceDb(inputDb) {
         // we store the trace list and databases
         const db = { sh: {} };
 
         // put a textstore on the db object
-        tm.storage(db)
+        tm.storage(db);
 
         // fire a changed event
-        db.changed = fn.ps()
+        db.changed = fn.ps();
 
         // file and line dictionaries
-        db.lineDict = inputDb ? inputDb.lineDict : {} // line dictionary
-        db.fileDict = inputDb ? inputDb.fileDict : {}
-        db.msgIds = {}
+        db.lineDict = inputDb ? inputDb.lineDict : {}; // line dictionary
+        db.fileDict = inputDb ? inputDb.fileDict : {};
+        db.msgIds = {};
 
         // trace message
         //  i - line index
@@ -70,196 +70,199 @@ define(function (require, exports, module) {
             6: ui.t.codeColor6,
             7: ui.t.codeColor7,
             8: ui.t.codeColor8
-        }
+        };
 
         let last;
         let lgc = 0;
         db.processTrace = function (m) {
 
             if (!lgc) {
-                lgc = m.g
+                lgc = m.g;
             } else {
                 if (lgc + 1 != m.g) {
-                    fn("Message order discontinuity", lgc, m.g)
+                    fn('Message order discontinuity', lgc, m.g);
                 }
-                lgc = m.g
+                lgc = m.g;
             }
 
             // look up trace message
             const l = db.lineDict[m.i];
             if (!l) {
-                fn('got trace without lookup')
-                return
+                fn('got trace without lookup');
+                return;
             }
 
             // make callstack parents
             if (!last) {
-                if (l.n) last = m
+                if (l.n) last = m;
             } else {
                 if (m.d > last.d) {
-                    m.p = last, last = m
-                } else { // depth is equal or less
-                    if (l.ret) { // we are a return/
+                    m.p = last, last = m;
+                } else {
+                    // depth is equal or less
+                    if (l.ret) {
+                        // we are a return/
                         // store us as the return message
                         // check if we can be a return from last
                         if (l.ret != last.i) {
                             const l2 = db.lineDict[l.ret];
-                            var n2 = db.fileDict[l2.fid].longName
-                            var l3 = db.lineDict[last.i]
-                            var n3 = db.fileDict[l3.fid].longName
-                            fn('invalid return', m.i, n2, l2.n, l2.y, n3, l3.n, l3.y)
+                            var n2 = db.fileDict[l2.fid].longName;
+                            var l3 = db.lineDict[last.i];
+                            var n3 = db.fileDict[l3.fid].longName;
+                            fn('invalid return', m.i, n2, l2.n, l2.y, n3, l3.n, l3.y);
                         }
-                        last.r = m
+                        last.r = m;
                         // add return to text search field
-                        last.s += ' ' + db.fmtCall(m).replace(/\f[a-zA-Z0-9]/g, '')
+                        last.s += ` ${db.fmtCall(m).replace(/\f[a-zA-Z0-9]/g, '')}`;
                     } else {
 
                         //var l2 = db.lineDict[l.ret]
-                        var n2 = db.fileDict[l.fid].longName
+                        var n2 = db.fileDict[l.fid].longName;
 
-                        var l3 = db.lineDict[last.i]
-                        var n3 = db.fileDict[l3.fid].longName
+                        var l3 = db.lineDict[last.i];
+                        var n3 = db.fileDict[l3.fid].longName;
                         // non return following
                         //	fn('missed return from', n3, l3.n,l3.y, 'got', m.i, n2, l.n, l.y)
-                        fn(m.i, l)
+                        fn(m.i, l);
                     }
                     // if we are not a  return(m.f)
-                    let d = (last.d - m.d) + 1;
+                    let d = last.d - m.d + 1;
                     while (d > 0 && last) {
-                        last = last.p, d--
+                        last = last.p, d--;
                     }
                     if (l.n) {
-                        m.p = last, last = m
+                        m.p = last, last = m;
                     }
                 }
             }
             // add our line if  we are a function call
             if (l.n) {
-                if (last && last.p) { // store our call on
-                    if (last.p.cs) m.nc = last.p.cs
-                    last.p.cs = m
+                if (last && last.p) {
+                    // store our call on
+                    if (last.p.cs) m.nc = last.p.cs;
+                    last.p.cs = m;
                 }
-                m.y = db.th
+                m.y = db.th;
                 const dp = m.d > 64 ? 64 : m.d;
-                db.addTabs(dp, 1, ui.t.codeTab)
+                db.addTabs(dp, 1, ui.t.codeTab);
                 const t = db.fmtCall(m);
-                db.addFormat((m.d > dp ? '>' : '') + t, db.colors)
-                db.endLine(m)
+                db.addFormat((m.d > dp ? '>' : '') + t, db.colors);
+                db.endLine(m);
                 // keep a ref
-                if (!db.firstMessage) db.firstMessage = m
+                if (!db.firstMessage) db.firstMessage = m;
 
-                db.msgIds[m.g] = m
+                db.msgIds[m.g] = m;
 
                 // chain the closures
                 const u = db.msgIds[m.u];
                 if (u) {
-                    if (u.us) m.nu = u.us
-                    u.us = m
+                    if (u.us) m.nu = u.us;
+                    u.us = m;
                 }
 
-                m.s = t.replace(/\f[a-zA-Z0-9]/g, '')
+                m.s = t.replace(/\f[a-zA-Z0-9]/g, '');
 
-                db.changed()
-                return true
+                db.changed();
+                return true;
             }
-        }
+        };
 
         db.find = function (id) {
-            return db.msgIds[id]
-        }
+            return db.msgIds[id];
+        };
 
         db.addTrace = function (m) {
-            db.addFormat(db.fmtCall(m), db.colors)
-            db.endLine(m)
-        }
+            db.addFormat(db.fmtCall(m), db.colors);
+            db.endLine(m);
+        };
 
-        db.fmt = function (v, lim) {
-            lim = lim || 255
+        db.fmt = function(v, lim = 255) {
             let t = typeof v;
             if (t == 'string') {
                 if (v.indexOf('_$_') == 0) {
-                    v = v.slice(3)
-                    if (v == 'undefined') return '\fn' + v
-                    return '\fv' + v
+                    v = v.slice(3);
+                    if (v == 'undefined') return `\fn${v}`;
+                    return `\fv${v}`;
                 }
-                return '\fs' + JSON.stringify(v)
+                return `\fs${JSON.stringify(v)}`;
             }
-            if (t == 'number') return '\fn' + v
-            if (t == 'boolean') return '\fn' + v
-            if (t == 'undefined') return '\fnundefined'
-            if (!v) return '\fnnull'
+            if (t == 'number') return `\fn${v}`;
+            if (t == 'boolean') return `\fn${v}`;
+            if (t == 'undefined') return '\fnundefined';
+            if (!v) return '\fnnull';
             if (Array.isArray(v)) {
-                var s = '\fi['
+                var s = '\fi[';
                 for (var k in v) {
-                    if (s.length != 3) s += '\fi,'
-                    s += db.fmt(v[k])
+                    if (s.length != 3) s += '\fi,';
+                    s += db.fmt(v[k]);
                 }
-                s += '\fi]'
-                if (s.length > lim) return s.slice(0, lim) + ' \fv...\fi]'
+                s += '\fi]';
+                if (s.length > lim) return `${s.slice(0, lim)} \fv...\fi]`;
             } else {
-                var s = '\fi{'
+                var s = '\fi{';
                 for (var k in v) {
-                    if (s.length != 3) s += '\fi,'
-                    if (k.indexOf(' ') != -1) {
-                        s += '\fs"' + k + '"' + '\fi:'
+                    if (s.length != 3) s += '\fi,';
+                    if (k.includes(' ')) {
+                        s += `\fs"${k}"\fi:`;
                     } else {
-                        s += '\ft' + k + ':'
+                        s += `\ft${k}:`;
                     }
-                    t = typeof v[k]
-                    s += db.fmt(v[k])
+                    t = typeof v[k];
+                    s += db.fmt(v[k]);
                 }
-                s += '\fi}'
-                if (s.length > lim) return s.slice(0, lim) + ' \fv...\fi}'
+                s += '\fi}';
+                if (s.length > lim) return `${s.slice(0, lim)} \fv...\fi}`;
             }
-            return s
-        }
+            return s;
+        };
 
         db.modColor = function (mod) {
             let uid = 0;
             for (let i = 0; i < mod.length; i++) {
-                uid += mod.charCodeAt(i)
+                uid += mod.charCodeAt(i);
             }
-            return (uid) % 8 + 1
-        }
+            return uid % 8 + 1;
+        };
 
         // returns a formatted function traceline
         db.fmtCall = function (m) {
             if (m.x) {
-                return '\faexception ' + (m.v === undefined ? '' : db.fmt(m.v))
+                return `\faexception ${m.v === undefined ? '' : db.fmt(m.v)}`;
             }
             const l = db.lineDict[m.i];
             const mod = db.fileDict[l.fid].shortName;
             const col = db.modColor(mod);
 
-            if (l.ret) { // function return
+            if (l.ret) {
+                // function return
                 const f = db.lineDict[l.ret];
-                return '\fareturn ' + (m.v === undefined ? '' : db.fmt(m.v))
+                return `\fareturn ${m.v === undefined ? '' : db.fmt(m.v)}`;
             } else {
                 const s = [];
                 for (let i = 0; i < l.a.length; i++) {
-                    s.push('\ft' + l.a[i].n + '\fa=' + db.fmt(m.a[i]))
+                    s.push(`\ft${l.a[i].n}\fa=${db.fmt(m.a[i])}`);
                 }
-                return '\f' + col + mod + '\fa \fi' + l.n + '\fi(' + s.join('\fi,') + '\fi)'
+                return `\f${col}${mod}\fa \fi${l.n}\fi(${s.join('\fi,')}\fi)`;
             }
-        }
+        };
 
         // adds a dictionary
         db.addDict = function (m) {
             const d = m.d;
             for (const k in d) {
-                db.lineDict[k] = d[k]
-                db.lineDict[k].fid = fid
+                db.lineDict[k] = d[k];
+                db.lineDict[k].fid = fid;
             }
             let sn = m.f.match(/[\/\\]([^\/\\]*)(?:.js)$/);
-            sn = sn ? sn[1] : m.f
+            sn = sn ? sn[1] : m.f;
             db.fileDict[fid++] = {
                 longName: m.f,
                 shortName: sn
-            }
-        }
+            };
+        };
 
-        return db
+        return db;
     }
 
-    return traceDb
-})
+    return traceDb;
+});
