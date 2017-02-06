@@ -67,54 +67,55 @@ define(require => {
                             if (depth >= max_depth) {
                                 return '_$_[..]';
                             }
-                            var o = [];
+                            var out = [];
                             for (var k = 0; k < input.length && k < max_count; k++) {
                                 const m = input[k];
-                                o[k] = dump(m, depth + 1);
+                                out[k] = dump(m, depth + 1);
                             }
                             if (k < input.length) {
-                                o[k] = '...';
+                                out[k] = '...';
                             }
-                            return o;
+                            return out;
                         }
                         if (depth >= max_depth) {
                             return '_$_{..}';
                         }
-                        var o = {};
-                        let c = 0;
+                        var obj = {};
+                        let count = 0;
                         try {
                             let pd;
                             for (var k in input) {
                                 if (pd = Object.getOwnPropertyDescriptor(input, k)) {
-                                    if (c++ > max_count) {
-                                        o['...'] = 1;
+                                    if (count++ > max_count) {
+                                        obj['...'] = 1;
                                         break;
                                     }
                                     if (pd.value !== undefined) {
-                                        o[k] = dump(pd.value, depth + 1);
+                                        obj[k] = dump(pd.value, depth + 1);
                                     }
                                 }
                             }
                         } catch (e) {}
-                        return o;
+                        return obj;
                     }
                 }
 
                 const channel = //CHANNEL
                 0;
                 if (isBrowser) {
-                    _$_.ch = channel('/io_X_X');
-                    _$_.ch.data = function (m) {
-                        if (m.reload) location.reload();
+                    _$_.channel = channel('/io_X_X');
+                    _$_.channel.data = function (msg) {
+                        if (msg.reload) location.reload();
                     };
-                    //_$_.ch = {send : function(){}}
-                    window.onerror = function (error, url, linenr) {};
+                    //_$_.channel = {send : function(){}}
+                    window.onerror = function (error, url, linenr) {
+                    };
                 } else if (isWorker) {
-                    _$_.ch = {
+                    _$_.channel = {
                         send() {}
                     };
                 } else if (isNode) {
-                    _$_.ch = {
+                    _$_.channel = {
                         send(m) {
                             try {
                                 if (process.send) {
@@ -128,7 +129,6 @@ define(require => {
                         }
                     };
                 }
-                const lgc = 0;
                 let depth = 0; // depth
                 let di = 0;
                 let gc = 1;
@@ -140,7 +140,7 @@ define(require => {
                 if (typeof global !== 'undefined') {
                     _$_.f = function (i, a, t, u) {
                         if (leftReturn) {
-                            _$_.ch.send(leftReturn, 1);
+                            _$_.channel.send(leftReturn, 1);
                             leftReturn = 0;
                         }
                         // dump arguments
@@ -165,13 +165,13 @@ define(require => {
                         } else {
                             r.a = null;
                         }
-                        _$_.ch.send(r);
+                        _$_.channel.send(r);
                         return r.g;
                     };
                 } else {
                     _$_.f = function (i, a, t, u) {
                         if (leftReturn) {
-                            _$_.ch.send(leftReturn, 1);
+                            _$_.channel.send(leftReturn, 1);
                             leftReturn = 0;
                         }
                         // dump arguments
@@ -196,7 +196,7 @@ define(require => {
                         } else {
                             r.a = null;
                         }
-                        _$_.ch.send(r);
+                        _$_.channel.send(r);
                         return r.g;
                     };
                 }
@@ -207,14 +207,14 @@ define(require => {
                         return v;
                     }
                     leftReturn.c = i;
-                    _$_.ch.send(leftReturn);
+                    _$_.channel.send(leftReturn);
                     leftReturn = 0;
                     return v;
                 };
                 // function exit
                 _$_.e = function (i, r, v, x) {
                     if (leftReturn) {
-                        _$_.ch.send(leftReturn, 1);
+                        _$_.channel.send(leftReturn, 1);
                         leftReturn = 0;
                     }
                     for (const k in r) {
@@ -315,29 +315,28 @@ define(require => {
         };
 
         function cutUp(cuts, str) {
-            let s = '';
-            let b = 0;
-            let n = cuts.first();
-            while (n) {
-
-                s += str.slice(b, n.i);
-                s += n.v;
-                b = n.i;
-                n = n._nextSibling;
+            let out = '';
+            let begin = 0;
+            let listNode = cuts.first();
+            while (listNode) {
+                out += str.slice(begin, listNode.i);
+                out += listNode.v;
+                begin = listNode.i;
+                listNode = listNode._nextSibling;
             }
-            s += str.slice(b);
-            return s;
+            out += str.slice(begin);
+            return out;
         }
 
         // insert a item into the linked list
         function insert(index, value) {
             if (index === undefined) throw new Error();
-            const n = {
+            const listNode = {
                 i: index,
                 v: value
             };
-            linkedList.sorted(n, 'i');
-            return n;
+            linkedList.sorted(listNode, 'i');
+            return listNode;
         }
 
         function instrumentFn(node, name, isRoot, parentId) {
@@ -678,14 +677,14 @@ define(require => {
             }
 
             // write function entry
-            let s = `var ${ Global_STR }b={};`;
+            let str = `var ${ Global_STR }b={};`;
             if (loopIds.length) {
-                s = `var ${ Global_STR }b={`;
+                str = `var ${ Global_STR }b={`;
                 for (var i = 0; i < loopIds.length; i++) {
-                    if (i) s += ',';
-                    s += `l${ loopIds[i] }:0`;
+                    if (i) str += ',';
+                    str += `l${ loopIds[i] }:0`;
                 }
-                s += '};';
+                str += '};';
             }
 
             let tryStart = 'try{';
@@ -697,7 +696,7 @@ define(require => {
             }
 
             if (isRoot) {
-                fnHead.v = `var ${ Global_STR }g${ funcId }=${ Global_STR }.f(${ funcId },null,0,0);${ s }${ tryStart }`;
+                fnHead.v = `var ${ Global_STR }g${ funcId }=${ Global_STR }.f(${ funcId },null,0,0);${ str }${ tryStart }`;
                 insert(node.end, `;${ Global_STR }.e(${ id },${ Global_STR }b)${ tryEnd }`);
                 dict[id++] = {
                     x: node.loc.end.column,
@@ -706,7 +705,7 @@ define(require => {
                     root: 1
                 };
             } else {
-                fnHead.v = `var ${ Global_STR }g${ funcId }=${ Global_STR }.f(${ funcId },arguments,this,${ Global_STR }g${ parentId });${ s }${ tryStart }`;
+                fnHead.v = `var ${ Global_STR }g${ funcId }=${ Global_STR }.f(${ funcId },arguments,this,${ Global_STR }g${ parentId });${ str }${ tryStart }`;
                 insert(node.body.end - 1, `;${ Global_STR }.e(${ id },${ Global_STR }b)${ tryEnd }`);
                 dict[id++] = {
                     x: node.body.loc.end.column,

@@ -530,7 +530,7 @@ define(function (require) {
         if (!n._v) return;
         //while(n._v.r) n._v = n._v.r // find last resize
 
-        const vt = n._v.$vt;
+        const vt = n._v.$vertexType;
         const nm = n._i || 1;
         for (const i in vt) {
             const v = n._v[i];
@@ -679,9 +679,9 @@ define(function (require) {
                 s = n._s = v.lo;
             } else {
                 // alloc at top
-                if (v.hi + m > v.$sc) {
+                if (v.hi + m > v.$shaderCount) {
                     // used + num > number of slots
-                    n._v = v = q[id] = sh.alloc(fn.max(v.$sc * 2, v.$sc + m), v);
+                    n._v = v = q[id] = sh.alloc(fn.max(v.$shaderCount * 2, v.$shaderCount + m), v);
                     v.$id = id;
                     v.$n = n;
                 }
@@ -1107,7 +1107,7 @@ define(function (require) {
                 let sh;
                 let b;
                 for (const k in z) {
-                    if (sh = (b = z[k]).$sh) {
+                    if (sh = (b = z[k]).$shader) {
 
                         sh.use();
                         sh.n(b.$n);
@@ -1142,7 +1142,7 @@ define(function (require) {
                     let sh;
                     let b;
                     for (const k in z) {
-                        if (sh = (b = z[k]).$sh) {
+                        if (sh = (b = z[k]).$shader) {
                             sh.use('g');
                             sh.n(b.$n);
                             sh.set(uni);

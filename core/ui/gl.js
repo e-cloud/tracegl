@@ -18,29 +18,30 @@ define(function (require, exports, module) {
     //|  shader object
     //\____________________________________________/
 
-    function Shader() {}
+    function Shader() {
+    }
 
     (function () {
-        let la = 0; // last attribute
+        let lastAttr = 0; // last attribute
         this.use = function (f) {
-            const ss = this.$ss = this.$sf[f || '_']; // selected shader
+            const ss = this.$selectedShader = this.$sf[f || '_']; // selected shader
             this.$ul = ss.ul; // uniform lookup
             gl.useProgram(ss.sp);
-            let ha = 0; // highest attribute
+            let highestAttr = 0; // highest attribute
             for (var i in ss.al) {
                 const a = ss.al[i];
                 gl.enableVertexAttribArray(a);
-                if (a > ha) ha = a;
+                if (a > highestAttr) highestAttr = a;
             }
-            while (la > ha) {
-                gl.disableVertexAttribArray(la--);
+            while (lastAttr > highestAttr) {
+                gl.disableVertexAttribArray(lastAttr--);
             }
-            la = ha;
-            this.$tc = 0; // texture counter
+            lastAttr = highestAttr;
+            this.$textureCounter = 0; // texture counter
             const tl = this.$tl;
             // lets set all texture lookups
             for (var i in tl) {
-                const tc = this.$tc++;
+                const tc = this.$textureCounter++;
                 gl.activeTexture(gl.TEXTURE0 + tc);
                 gl.bindTexture(gl.TEXTURE_2D, tl[i]);
                 gl.uniform1i(this.$ul[i], tc);
@@ -75,15 +76,15 @@ define(function (require, exports, module) {
 
         //|  draw buffer
         this.draw = function (b) {
-            const sd = this.$sd;
-            const ss = this.$ss;
+            const sd = this.$shaderDef;
+            const ss = this.$selectedShader;
             b = b || this.$b;
-            gl.bindBuffer(gl.ARRAY_BUFFER, b.$vb);
-            if (b.up) gl.bufferData(gl.ARRAY_BUFFER, b.$va, gl.STATIC_DRAW);
-            const vt = b.$vt; // vertex types
+            gl.bindBuffer(gl.ARRAY_BUFFER, b.$vertexBuffer);
+            if (b.up) gl.bufferData(gl.ARRAY_BUFFER, b.$vertexArray, gl.STATIC_DRAW);
+            const vt = b.$vertexType; // vertex types
             for (const i in vt) {
                 const t = vt[i];
-                gl.vertexAttribPointer(ss.al[i], t.c, t.t, !t.n, b.$vs, b[i].o);
+                gl.vertexAttribPointer(ss.al[i], t.c, t.t, !t.n, b.$vertexStride, b[i].o);
             }
             if (sd.i) {
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, b.$ib);
@@ -106,10 +107,10 @@ define(function (require, exports, module) {
         const _delib = [];
         //|  allocate buffer
         this.alloc = function (sc, ob) {
-            const sd = this.$sd; // shader def
+            const sd = this.$shaderDef; // shader def
             const ad = this.$ad; // attribute dep
             const an = this.$an; // attribute node lookup
-            let b = {}; // buffer
+            let buffer = {}; // buffer
 
             let vs = 0; // vertex stride
             for (const k in ad) {
@@ -125,54 +126,54 @@ define(function (require, exports, module) {
             }
 
             if (ob) {
-                var x = new Int32Array(ob.$va);
+                var x = new Int32Array(ob.$vertexArray);
                 var y = new Int32Array(va);
-                for (var j = 0, l = ob.$vl >> 2; j < l; j++) {
+                for (var j = 0, l = ob.$vertexBufLen >> 2; j < l; j++) {
                     y[j] = x[j];
                 } // because adding memcpy to a memblock API doesnt make sense...
-                b = ob;
+                buffer = ob;
                 if (sd.i) {
                     // copy index buffer
                     var x = new Int32Array(ob.$ia);
                     var y = new Int32Array(ia);
-                    for (var j = 0, l = ob.$il >> 1; j < l; j++) {
+                    for (var j = 0, l = ob.$indexLen >> 1; j < l; j++) {
                         y[j] = x[j];
                     }
                 }
             } else {
-                b.$vb = _delvb.pop() || gl.createBuffer();
-                if (sd.i) b.$ib = _delib.pop() || gl.createBuffer(); // indexbuffer
-                b.lo = 0; // low used
-                b.hi = 0; // high used
-                b.$us = 0; // status counter
+                buffer.$vertexBuffer = _delvb.pop() || gl.createBuffer();
+                if (sd.i) buffer.$ib = _delib.pop() || gl.createBuffer(); // indexbuffer
+                buffer.lo = 0; // low used
+                buffer.hi = 0; // high used
+                buffer.$us = 0; // status counter
             }
 
             if (sd.i) {
-                b.$ia = ia; // index array
-                b.i = {
+                buffer.$ia = ia; // index array
+                buffer.i = {
                     a: new Uint16Array(ia), // indices
                     i: sd.i,
                     l: sd.l
                 };
-                b.$il = il; // index length
-                b.$ic = sd.i;
+                buffer.$indexLen = il; // index length
+                buffer.$ic = sd.i;
             }
-            b.up = true;
-            b.$sc = sc; // slots
-            b.$va = va; // vertex array
-            b.$vl = vl; // vertex buffer length in bytes
-            b.$vs = vs; // vertex stride in bytes
-            b.$sl = sd.l; // slot length
-            b.$vt = {}; // vertex types
-            b.$sh = this; // shader
+            buffer.up = true;
+            buffer.$shaderCount = sc; // slots
+            buffer.$vertexArray = va; // vertex array
+            buffer.$vertexBufLen = vl; // vertex buffer length in bytes
+            buffer.$vertexStride = vs; // vertex stride in bytes
+            buffer.$sl = sd.l; // slot length
+            buffer.$vertexType = {}; // vertex types
+            buffer.$shader = this; // shader
 
             let o = 0; // offset
-            const vt = b.$vt;
+            const vt = buffer.$vertexType;
             for (const i in ad) {
                 // create arrayviews
                 const t = gt.types[ad[i]]; // look up type
                 vt[i] = t;
-                b[i] = {
+                buffer[i] = {
                     a: new t.a(va, o),
                     t: t, // type
                     s: vs / t.f, // stride
@@ -182,12 +183,12 @@ define(function (require, exports, module) {
                 };
                 o += t.s;
             }
-            return b;
+            return buffer;
         };
 
         this.free = function (b) {
-            _delvb.push(b.$vb);
-            b.$vb = 0;
+            _delvb.push(b.$vertexBuffer);
+            b.$vertexBuffer = 0;
             if (b.$ib) {
                 _delib.push(b.$ib);
                 b.$ib = 0;
@@ -199,7 +200,7 @@ define(function (require, exports, module) {
     const shader_us = {
         0: function (i) {
             return function (t) {
-                const tc = this.$tc++;
+                const tc = this.$textureCounter++;
                 gl.activeTexture(gl.TEXTURE0 + tc);
                 gl.bindTexture(gl.TEXTURE_2D, t);
                 gl.uniform1i(this.$ul[i], tc);
@@ -335,7 +336,7 @@ define(function (require, exports, module) {
 
         // create new shader object
         sh = new Shader();
-        sh.$sd = sd;
+        sh.$shaderDef = sd;
         const ad = sh.$ad = {}; // attribute deps
         const an = sh.$an = {}; // attribute node lookup
         const nu = sh.$nu = {}; // node uniforms
@@ -485,7 +486,8 @@ define(function (require, exports, module) {
         // define uniform setters on shader object
         for (var i in sd.u) {
             if (!(i in ud)) {
-                sh[i] = function () {};
+                sh[i] = function () {
+                };
             }
         }
 
@@ -558,7 +560,7 @@ define(function (require, exports, module) {
 
             const ma = {}; // macro args
 
-            if (p.t.match(/^function/)) {
+            if (p.token.match(/^function/)) {
                 if (a) {
                     // we have args, build up macro args
                     var c = 0; // arg count
@@ -570,7 +572,7 @@ define(function (require, exports, module) {
                     } // count args
                     c = a.length - c - 1; // smear (1,2)->(a,b,c) to (a=1,b=1,c=2)
                     for (var i = p._child; i; i = i._nextSibling) {
-                        if (i.name) ma[i.t] = a[++c < 0 ? 0 : c];
+                        if (i.name) ma[i.token] = a[++c < 0 ? 0 : c];
                     }
                 }
 
@@ -591,7 +593,7 @@ define(function (require, exports, module) {
 
                 let ar; // args
                 if (i._nextSibling && i._nextSibling.parenL) {
-                    ar = expand(i._nextSibling._child, 0, lv, ns), i._nextSibling.t = i._nextSibling._type = '';
+                    ar = expand(i._nextSibling._child, 0, lv, ns), i._nextSibling.token = i._nextSibling._type = '';
                 }
 
                 if (e == 1) {
@@ -601,18 +603,18 @@ define(function (require, exports, module) {
                             ar[j] = `(${ar[j]})`;
                         }
                     }
-                    i.t = `(${expr(f, ar, lv, ns)})`;
+                    i.token = `(${expr(f, ar, lv, ns)})`;
                 } else if (e == 2) {
                     // its a function
-                    var o = i.t.indexOf('.');
-                    if (o != -1) i.t = `${i.t.slice(0, o)}_${i.t.slice(o + 1)}`;
-                    if (!fd[i.t]) {
+                    var o = i.token.indexOf('.');
+                    if (o != -1) i.token = `${i.token.slice(0, o)}_${i.token.slice(o + 1)}`;
+                    if (!fd[i.token]) {
                         // not defined yet
-                        fd[i.t] = 1;
-                        var v = subfn(f, i.t, ns);
+                        fd[i.token] = 1;
+                        var v = subfn(f, i.token, ns);
                         fw += v;
                     }
-                    i.t = `${i.t}(${ar.join(',')})`;
+                    i.token = `${i.token}(${ar.join(',')})`;
                 } else if (e == 3) {
                     // its a function wrapper
                     // lets parse out return type
@@ -622,7 +624,7 @@ define(function (require, exports, module) {
                     if (m[2]) o = m[2].replace(/_/g, ' ');
                     fw += `${v} _fw${wi}(${o}){\n return ${ar[ar.length - 1]};\n}\n`;
                     ar[ar.length - 1] = `_fw${wi++}`;
-                    i.t = expr(f, ar, lv, ns);
+                    i.token = expr(f, ar, lv, ns);
                 } else if (e == 4) {
                     // its a string generator
                     const b = [];
@@ -634,11 +636,11 @@ define(function (require, exports, module) {
                     var v = f(...b);
                     var o = v.indexOf('#');
                     if (o == -1) {
-                        i.t = v;
+                        i.token = v;
                     } else {
                         v = `${v.slice(0, o)}_fw${wi}${v.slice(o + 1)}`;
                         fw += v;
-                        i.t = `_fw${wi}(${ar.join(',')})`;
+                        i.token = `_fw${wi}(${ar.join(',')})`;
                         wi++;
                     }
                 }
@@ -648,100 +650,101 @@ define(function (require, exports, module) {
             function subfn(f, t, ns) {
                 let ce = f._ce;
                 if (!ce) f._ce = ce = f.toString();
-                let p = acorn_tools.parse(tryFixFunc(ce), { noclose: 1, compact: 1, tokens: 1 }).tokens._child;
+                let parent = acorn_tools.parse(tryFixFunc(ce), { noclose: 1, compact: 1, tokens: 1 }).tokens._child;
                 //var p = ep(ce)._child // parse code and fetch first child
 
-                let i; // iterator
-                const lv = {}; // local variables
-                let rt; // return type
+                let iter; // iterator
+                const localVar = {}; // local variables
+                let returnType; // return type
                 // lets parse the args and write the function header
                 //fn(ce,p)
-                while (!p.parenL) {
-                    p = p._nextSibling;
+                while (!parent.parenL) {
+                    parent = parent._nextSibling;
                 } // scan till we have ()
-                let os = '('; // output string
-                for (i = p._child; i; i = i._nextSibling) {
-                    if (i.name) {
-                        var j = i.t.indexOf('_');
-                        var k = i.t.slice(j + 1);
-                        var y = i.t.slice(0, j);
-                        os += `${(os != '(' ? ',' : '') + y} ${k}`;
-                        lv[k] = y;
+                let outStr = '('; // output string
+                for (iter = parent._child; iter; iter = iter._nextSibling) {
+                    if (iter.name) {
+                        var j = iter.token.indexOf('_');
+                        var k = iter.token.slice(j + 1);
+                        var y = iter.token.slice(0, j);
+                        outStr += `${(outStr != '(' ? ',' : '') + y} ${k}`;
+                        localVar[k] = y;
                     }
                 }
-                os = `${t + os})`;
+                outStr = `${t + outStr})`;
 
-                while (p && !p.braceL) {
-                    p = p._nextSibling;
+                while (parent && !parent.braceL) {
+                    parent = parent._nextSibling;
                 } // skip to the function body
-                i = p;
+                iter = parent;
 
-                while (i) {
-                    while (i.braceL) {
-                        os += '{\n';
-                        if (!i._child) {
+                while (iter) {
+                    while (iter.braceL) {
+                        outStr += '{\n';
+                        if (!iter._child) {
+                            // todo
                             s += '}\n';
                             break;
                         }
-                        i = i._child;
+                        iter = iter._child;
                     }
-                    if (i.name && i._nextSibling && i._nextSibling.semi) {
+                    if (iter.name && iter._nextSibling && iter._nextSibling.semi) {
                         // empty define
-                        var o = i.t.indexOf('_');
+                        var o = iter.token.indexOf('_');
 
                         let y;
-                        var k = i.t.slice(o + 1);
-                        if (o != 0 && gt.types[y = i.t.slice(0, o)]) {
-                            lv[k] = y; // define it
+                        var k = iter.token.slice(o + 1);
+                        if (o != 0 && gt.types[y = iter.token.slice(0, o)]) {
+                            localVar[k] = y; // define it
                         } else {
-                            y = i.t, k = '';
+                            y = iter.token, k = '';
                         }
-                        os += `${y} ${k};`;
-                        i = i._nextSibling;
-                    } else if (i.name && i._nextSibling && i._nextSibling.isAssign) {
+                        outStr += `${y} ${k};`;
+                        iter = iter._nextSibling;
+                    } else if (iter.name && iter._nextSibling && iter._nextSibling.isAssign) {
                         // assign define
-                        var o = i.t.indexOf('_');
+                        var o = iter.token.indexOf('_');
 
                         var y;
-                        var k = i.t.slice(o + 1);
-                        if (o != 0 && gt.types[y = i.t.slice(0, o)]) {
-                            lv[k] = y; // define it
+                        var k = iter.token.slice(o + 1);
+                        if (o != 0 && gt.types[y = iter.token.slice(0, o)]) {
+                            localVar[k] = y; // define it
                         } else {
-                            y = i.t, k = '';
+                            y = iter.token, k = '';
                         }
                         // output stuff and following expression
                         // find end ;
-                        var j = i;
+                        var j = iter;
                         while (j && !j.semi) {
                             j = j._nextSibling;
                         }
                         if (!j) throw new Error('assignment without terminating ; found');
-                        os += `${y} ${k} ${i._nextSibling.t} ${expand(i._nextSibling._nextSibling, j, lv, ns)};`;
-                        i = j;
-                    } else if (i.name && i._nextSibling && i._nextSibling.parenL) {
-                        var o = i.t.indexOf('_');
+                        outStr += `${y} ${k} ${iter._nextSibling.token} ${expand(iter._nextSibling._nextSibling, j, localVar, ns)};`;
+                        iter = j;
+                    } else if (iter.name && iter._nextSibling && iter._nextSibling.parenL) {
+                        var o = iter.token.indexOf('_');
                         var y;
-                        if (o != 0 && gt.types[y = i.t.slice(0, o)]) {
-                            var k = i.t.slice(o + 1);
-                            lv[k] = y, k += ` = ${y}`;
-                            os += `${y} ${k}(${expand(i._nextSibling._child, 0, lv, ns).join(',')});\n`;
-                            i = i._nextSibling;
+                        if (o != 0 && gt.types[y = iter.token.slice(0, o)]) {
+                            var k = iter.token.slice(o + 1);
+                            localVar[k] = y, k += ` = ${y}`;
+                            outStr += `${y} ${k}(${expand(iter._nextSibling._child, 0, localVar, ns).join(',')});\n`;
+                            iter = iter._nextSibling;
                         } else if (y == 'return') {
-                            var k = i.t.slice(o + 1);
-                            if (rt && k != rt) throw new Error(`please use one return type in ${t}`);
-                            rt = k;
-                            os += `return ${k}(${expand(i._nextSibling._child, 0, lv, ns).join(',')});\n`;
-                            i = i._nextSibling;
+                            var k = iter.token.slice(o + 1);
+                            if (returnType && k != returnType) throw new Error(`please use one return type in ${t}`);
+                            returnType = k;
+                            outStr += `return ${k}(${expand(iter._nextSibling._child, 0, localVar, ns).join(',')});\n`;
+                            iter = iter._nextSibling;
                         } else {
-                            os += expand(i, i._nextSibling._nextSibling, lv, ns)[0];
-                            i = i._nextSibling;
+                            outStr += expand(iter, iter._nextSibling._nextSibling, localVar, ns)[0];
+                            iter = iter._nextSibling;
                         }
-                    } else if (i.if && i._nextSibling.parenL) {
-                        os += `;\n${i.t}(${expand(i._nextSibling._child, 0, lv, ns).join(',')})`;
-                        i = i._nextSibling;
-                    } else if (i.for && i._nextSibling.parenL) {
+                    } else if (iter.if && iter._nextSibling.parenL) {
+                        outStr += `;\n${iter.token}(${expand(iter._nextSibling._child, 0, localVar, ns).join(',')})`;
+                        iter = iter._nextSibling;
+                    } else if (iter.for && iter._nextSibling.parenL) {
                         // for loop
-                        const p1 = i._nextSibling._child;
+                        const p1 = iter._nextSibling._child;
 
                         let p2;
                         let p3;
@@ -755,26 +758,26 @@ define(function (require, exports, module) {
                             p3 = p3._nextSibling;
                         }
                         // init decl from p1
-                        var o = p1.t.indexOf('_');
+                        var o = p1.token.indexOf('_');
                         if (!p1 || !p2 || !p3 || o == -1) throw new Error('for loop without init declaration');
-                        var k = p1.t.slice(o + 1);
-                        var y = p1.t.slice(0, o);
-                        lv[k] = y;
-                        p1.t = k;
-                        os += `for(${y} ${expand(p1, p2, lv, ns)};${expand(p2._nextSibling, p3, lv, ns)};${expand(p3._nextSibling, 0, lv, ns)})`;
-                        i = i._nextSibling._nextSibling;
+                        var k = p1.token.slice(o + 1);
+                        var y = p1.token.slice(0, o);
+                        localVar[k] = y;
+                        p1.token = k;
+                        outStr += `for(${y} ${expand(p1, p2, localVar, ns)};${expand(p2._nextSibling, p3, localVar, ns)};${expand(p3._nextSibling, 0, localVar, ns)})`;
+                        iter = iter._nextSibling._nextSibling;
                     } else {
-                        os += `${i.t} `;
+                        outStr += `${iter.token} `;
                     }
-                    while (i && !i._nextSibling && i != p) {
-                        i = i._parent || i._b, os += ';\n}\n';
+                    while (iter && !iter._nextSibling && iter != parent) {
+                        iter = iter._parent || iter._b, outStr += ';\n}\n';
                     }
-                    if (i) i = i._nextSibling;
+                    if (iter) iter = iter._nextSibling;
                 }
-                if (!rt) throw new Error(`no returntype for ${t}`);
-                os = `${rt} ${os}`;
+                if (!returnType) throw new Error(`no returntype for ${t}`);
+                outStr = `${returnType} ${outStr}`;
 
-                return os;
+                return outStr;
             }
 
             function expand(i, x, lv, ns) {
@@ -783,124 +786,127 @@ define(function (require, exports, module) {
                 let os = ''; // output string
                 while (i && i != x) {
                     // integer bypass
-                    if (i.t == '+' && i._nextSibling && i._nextSibling.num && (!i._prevSibling || i._prevSibling.t == '=')) {
-                        i.t = '', i._nextSibling._type = {};
+                    if (i.token == '+' && i._nextSibling && i._nextSibling.num && (!i._prevSibling || i._prevSibling.token == '=')) {
+                        i.token = '', i._nextSibling._type = {};
                     } else // auto float
-                        if (i.num && !i.t.includes('.')) {
-                            i.t += '.';
-                        } else if (i.name) {
-                            var o;
-                            var t = (o = i.t.indexOf('.')) != -1 ? i.t.slice(0, o) : i.t;
+                    if (i.num && !i.token.includes('.')) {
+                        i.token += '.';
+                    } else if (i.name) {
+                        var o;
+                        var t = (o = i.token.indexOf('.')) != -1 ? i.token.slice(0, o) : i.token;
 
-                            if (t in ma) {
-                                i.t = ma[t];
-                            } // expand macro arg
-                            else if (o == 0) {} // property
-                                else if (lv && t in lv) {} // local variable
-                                    else if (t in pd) {} // previously defined
-                                        else if (t in sd.d) // define
-                                                {
-                                                    pd[t] = oh += `#define ${t} ${sd.d[t]}\n`;
-                                                } else if (t in gt.cv4) // color
-                                                {
-                                                    pd[t] = oh += `#define ${t} ${gt.cv4[t]}\n`;
-                                                } else if (t == 't' && o != -1) {
-                                                // theme palette access
-                                                var k = i.t.slice(o + 1);
-                                                if (!sd.t) throw new Error(`theme object not supplied to compiler for ${i.t}`);
-                                                if (!(k in sd.t)) throw new Error(`color not defined in theme: ${i.t}`);
-                                                if (!('T' in ud)) {
-                                                    // set up T uniform
-                                                    pd.T = ud.T = 'sampler2D';
-                                                    tl.T = sd.t;
-                                                    oh += 'uniform sampler2D T;\n';
-                                                }
-                                                i.t = `texture2D(T,vec2(${sd.t[k]},0))`;
-                                            } else if (t in sd.u) // uniform
-                                                {
-                                                    pd[t] = ud[t] = sd.u[t], oh += `uniform ${ud[t]} ${t};\n`;
-                                                } else if (t in sd.a) {
-                                                // attribute
-                                                in_f ? fa[t] = ad[t] = sd.a[t] : ad[t] = sd.a[t];
-                                            } else if (t == 'n' || t == 'p') {
-                                                let n2 = ns;
-                                                var k = i.t.slice(o + 1);
-                                                if (t == 'p') {
-                                                    n2 = {
-                                                        np: `P${ns.np}`, // node parent
-                                                        dp: ns.dp + 1, // depth
-                                                        n: ns.n._parent || ns.n._b // n
-                                                    };
-                                                    tc[k] = 1;
-                                                } else {
-                                                    tc[k] = 0;
-                                                }
-                                                const j = n2.n[k];
-                                                const to = typeof j;
-                                                gl.regvar(k); // hook to allow ui node prototype to update
-                                                const is_tex = j instanceof WebGLTexture;
-                                                if (to == 'function' || to == 'string') {
-                                                    subexpr(i, j, lv, n2);
-                                                } else if (to == 'object' && !is_tex) {// its an animating property
-
-                                                } else {
-                                                    if (n2.n.l || is_tex) {
-                                                        // make it a node uniform
-                                                        var lu = { d: n2.dp || 0, k: k };
-                                                        k = n2.np + k;
-                                                        if (is_tex) {
-                                                            if (!tn) tn = sh.$tn = {}; // texture n ref
-                                                            tn[k] = lu;
-                                                        }
-                                                        if (!pd[k]) {
-                                                            nu[k] = lu;
-                                                            pd[k] = ud[k] = is_tex ? 'sampler2D' : sd.y[k] || 'float';
-                                                            oh += `uniform ${ud[k]} ${k};\n`;
-                                                        }
-                                                        i.t = k;
-                                                    } else {
-                                                        // attribute dep
-                                                        var lu = { d: n2.dp, k: k };
-                                                        k = n2.np + k;
-                                                        an[k] = lu;
-                                                        i.t = k;
-                                                        in_f ? fa[k] = ad[k] = sd.y[k] || 'float' : ad[k] = sd.y[k] || 'float';
-                                                    }
-                                                }
-                                            } else if (t in sd.x) {
-                                                // use expression value
-                                                var o = sd.x[t];
-                                                oh += `${o.t} ${t};\n`;
-                                                ob += `${t} = ${expr(o.c, 0, lv, ns)};\n`;
-                                                pd[t] = 1;
-                                            } else if (ns.n.e && t in ns.n.e) // node ext lib
-                                                {
-                                                    subexpr(i, ns.n.e[t], lv, ns);
-                                                } else if (t in sd.e) {
-                                                subexpr(i, sd.e[t], lv, ns);
-                                            } // glsl expression
-                                            else if (!(t in gt.types || t in gt.builtin)) {
-                                                    // undefined
-                                                    //fn(cq.dump(ri))
-                                                    throw new Error(`undefined variable used:${t} in ${f}`);
-                                                }
-                        } else if (i.string) {
-                            if (!in_f) throw new Error('texture not supported in vertex shader');
-                            if (!(i.t in ts)) {
-                                var o = ts[i.t] = `_${ti++}`;
-                                ud[o] = 'sampler2D';
-                                var t = i.t.slice(1, -1);
-                                tl[o] = gl.loadImage(t); // use
-                                oh += `uniform sampler2D ${o};\n`;
+                        if (t in ma) {
+                            i.token = ma[t];
+                        } // expand macro arg
+                        else if (o == 0) {
+                        } // property
+                        else if (lv && t in lv) {
+                        } // local variable
+                        else if (t in pd) {
+                        } // previously defined
+                        else if (t in sd.d) // define
+                        {
+                            pd[t] = oh += `#define ${t} ${sd.d[t]}\n`;
+                        } else if (t in gt.cv4) // color
+                        {
+                            pd[t] = oh += `#define ${t} ${gt.cv4[t]}\n`;
+                        } else if (t == 't' && o != -1) {
+                            // theme palette access
+                            var k = i.token.slice(o + 1);
+                            if (!sd.t) throw new Error(`theme object not supplied to compiler for ${i.token}`);
+                            if (!(k in sd.t)) throw new Error(`color not defined in theme: ${i.token}`);
+                            if (!('T' in ud)) {
+                                // set up T uniform
+                                pd.T = ud.T = 'sampler2D';
+                                tl.T = sd.t;
+                                oh += 'uniform sampler2D T;\n';
                             }
-                            i.t = ts[i.t];
+                            i.token = `texture2D(T,vec2(${sd.t[k]},0))`;
+                        } else if (t in sd.u) // uniform
+                        {
+                            pd[t] = ud[t] = sd.u[t], oh += `uniform ${ud[t]} ${t};\n`;
+                        } else if (t in sd.a) {
+                            // attribute
+                            in_f ? fa[t] = ad[t] = sd.a[t] : ad[t] = sd.a[t];
+                        } else if (t == 'n' || t == 'p') {
+                            let n2 = ns;
+                            var k = i.token.slice(o + 1);
+                            if (t == 'p') {
+                                n2 = {
+                                    np: `P${ns.np}`, // node parent
+                                    dp: ns.dp + 1, // depth
+                                    n: ns.n._parent || ns.n._b // n
+                                };
+                                tc[k] = 1;
+                            } else {
+                                tc[k] = 0;
+                            }
+                            const j = n2.n[k];
+                            const to = typeof j;
+                            gl.regvar(k); // hook to allow ui node prototype to update
+                            const is_tex = j instanceof WebGLTexture;
+                            if (to == 'function' || to == 'string') {
+                                subexpr(i, j, lv, n2);
+                            } else if (to == 'object' && !is_tex) {// its an animating property
+
+                            } else {
+                                if (n2.n.l || is_tex) {
+                                    // make it a node uniform
+                                    var lu = { d: n2.dp || 0, k: k };
+                                    k = n2.np + k;
+                                    if (is_tex) {
+                                        if (!tn) tn = sh.$tn = {}; // texture n ref
+                                        tn[k] = lu;
+                                    }
+                                    if (!pd[k]) {
+                                        nu[k] = lu;
+                                        pd[k] = ud[k] = is_tex ? 'sampler2D' : sd.y[k] || 'float';
+                                        oh += `uniform ${ud[k]} ${k};\n`;
+                                    }
+                                    i.token = k;
+                                } else {
+                                    // attribute dep
+                                    var lu = { d: n2.dp, k: k };
+                                    k = n2.np + k;
+                                    an[k] = lu;
+                                    i.token = k;
+                                    in_f ? fa[k] = ad[k] = sd.y[k] || 'float' : ad[k] = sd.y[k] || 'float';
+                                }
+                            }
+                        } else if (t in sd.x) {
+                            // use expression value
+                            var o = sd.x[t];
+                            oh += `${o.t} ${t};\n`;
+                            ob += `${t} = ${expr(o.c, 0, lv, ns)};\n`;
+                            pd[t] = 1;
+                        } else if (ns.n.e && t in ns.n.e) // node ext lib
+                        {
+                            subexpr(i, ns.n.e[t], lv, ns);
+                        } else if (t in sd.e) {
+                            subexpr(i, sd.e[t], lv, ns);
+                        } // glsl expression
+                        else if (!(t in gt.types || t in gt.builtin)) {
+                            // undefined
+                            //fn(cq.dump(ri))
+                            throw new Error(`undefined variable used:${t} in ${f}`);
                         }
+                    } else if (i.string) {
+                        if (!in_f) throw new Error('texture not supported in vertex shader');
+                        if (!(i.token in ts)) {
+                            var o = ts[i.token] = `_${ti++}`;
+                            ud[o] = 'sampler2D';
+                            var t = i.token.slice(1, -1);
+                            tl[o] = gl.loadImage(t); // use
+                            oh += `uniform sampler2D ${o};\n`;
+                        }
+                        i.token = ts[i.token];
+                    }
                     if (i.comma) {
                         ea.push(os), os = '';
                     } else if (i.parenL) {
                         os += `(${expand(i._child, null, lv, ns).join(',')})`;
                     } else {
-                        os += i.t;
+                        os += i.token;
                     }
 
                     i = i._nextSibling;
@@ -931,7 +937,7 @@ define(function (require, exports, module) {
         let i; // iterator
         let m = {}; // macro args
 
-        if (p.t.match(/^function/)) {
+        if (p.token.match(/^function/)) {
             if (a) {
                 // we have args, build up macro args
                 var c = 0; // arg count
@@ -943,7 +949,7 @@ define(function (require, exports, module) {
                 } // count args
                 c = a.length - c - 1; // smear (1,2)->(a,b,c) to (a=1,b=1,c=2)
                 for (i = p._child; i; i = i._nextSibling) {
-                    if (i.name) m[i.t] = a[++c < 0 ? 0 : c];
+                    if (i.name) m[i.token] = a[++c < 0 ? 0 : c];
                 }
             }
 
@@ -965,20 +971,20 @@ define(function (require, exports, module) {
             }
             let a; // args
             if (i._nextSibling && i._nextSibling.parenL) {
-                a = expand(i._nextSibling._child), i._nextSibling.t = i._nextSibling._type = '';
+                a = expand(i._nextSibling._child), i._nextSibling.token = i._nextSibling._type = '';
                 for (let j = 0; j < a.length; j++) {
                     a[j] = `(${a[j]})`;
                 }
             }
 
             if (e == 1) {
-                i.t = `(${js_expr(f, a, un, el, rd)})`;
+                i.token = `(${js_expr(f, a, un, el, rd)})`;
             } // its a macro
             else if (e == 2) {
-                    throw new Error('cant use function wrappers in JS expressions');
-                } else if (e == 3) {
-                    throw new Error('cant use sub functions in JS expressions');
-                } else if (e == 4) i.t = f(...a);
+                throw new Error('cant use function wrappers in JS expressions');
+            } else if (e == 3) {
+                throw new Error('cant use sub functions in JS expressions');
+            } else if (e == 4) i.token = f(...a);
         }
 
         function expand(i) {
@@ -986,42 +992,42 @@ define(function (require, exports, module) {
             const a = []; // args we collect for macros
             let s = ''; // string concatenator
             while (i) {
-                if (i.num && !i.t.includes('.')) {
-                    i.t += '.';
+                if (i.num && !i.token.includes('.')) {
+                    i.token += '.';
                 } else if (i.name) {
                     let o;
-                    const t = (o = i.t.indexOf('.')) != -1 ? i.t.slice(0, o) : i.t;
+                    const t = (o = i.token.indexOf('.')) != -1 ? i.token.slice(0, o) : i.token;
 
                     if (t in m) {
-                        i.t = m[t];
+                        i.token = m[t];
                     } // expand macro arg
                     else if (t in un) {
-                            // uniform
-                            i.t = `__u.${i.t}`;
-                        } else if (t == 'n' || t == 'p') {
-                            // node reference
-                            const k = i.t.slice(o + 1);
-                            i.t = `${t}_${k}`;
-                            if (!rd[`${t}_${k}`]) {
-                                rd.b += `var ${t}_${k} = __x(${t},${t}.${k}, __u, __e);\n`;
-                                rd[`${t}_${k}`] = 1;
-                            }
-                        } else if (t in el) {
-                            subexpr(i, el[t]); // glsl expression
-                        } else if (t in gt.builtin) {
-                            // builtin
-                            i.t = `__b.${i.t}`;
-                        } else {
-                            fn(un);
-                            throw new Error(`undefined variable used in JS expression:(${t})`);
+                        // uniform
+                        i.token = `__u.${i.token}`;
+                    } else if (t == 'n' || t == 'p') {
+                        // node reference
+                        const k = i.token.slice(o + 1);
+                        i.token = `${t}_${k}`;
+                        if (!rd[`${t}_${k}`]) {
+                            rd.b += `var ${t}_${k} = __x(${t},${t}.${k}, __u, __e);\n`;
+                            rd[`${t}_${k}`] = 1;
                         }
+                    } else if (t in el) {
+                        subexpr(i, el[t]); // glsl expression
+                    } else if (t in gt.builtin) {
+                        // builtin
+                        i.token = `__b.${i.token}`;
+                    } else {
+                        fn(un);
+                        throw new Error(`undefined variable used in JS expression:(${t})`);
+                    }
                 } else if (i.string) throw new Error('texture not supported in JS expressions');
                 if (i.comma) {
                     a.push(s), s = '';
                 } else if (i.parenL) {
                     s += `(${expand(i._child).join(',')})`;
                 } else {
-                    s += i.t;
+                    s += i.token;
                 }
                 i = i._nextSibling;
             }
@@ -1558,7 +1564,7 @@ define(function (require, exports, module) {
                 gl[`__${k}`] = gl[k];
                 function gldump(k) {
                     const v = `__${k}`;
-                    gl[k] = function(...args) {
+                    gl[k] = function (...args) {
                         const s = [];
                         let t;
 

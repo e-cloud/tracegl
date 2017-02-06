@@ -63,11 +63,11 @@ define(function (require, exports, module) {
         }
 
         get beforeNewline() {
-            return this.w && this.w.match(/\n/);
+            return this.whitespace && this.whitespace.match(/\n/);
         }
 
         get beforeEnd() {
-            return this.w && this.w.match(/\n/) || this.d.semi || this.d.braceR;
+            return this.whitespace && this.whitespace.match(/\n/) || this.d.semi || this.d.braceR;
         }
 
         get fnscope() {
@@ -75,19 +75,19 @@ define(function (require, exports, module) {
         }
 
         get last() {
-            let t = this;
-            while (t._nextSibling) {
-                t = t._nextSibling;
+            let node = this;
+            while (node._nextSibling) {
+                node = node._nextSibling;
             }
-            return t;
+            return node;
         }
 
         get astParent() {
-            let t = this;
-            while (t._nextSibling) {
-                t = t._nextSibling;
+            let node = this;
+            while (node._nextSibling) {
+                node = node._nextSibling;
             }
-            return t;
+            return node;
         }
     }
 
@@ -107,9 +107,9 @@ define(function (require, exports, module) {
             return function () {
                 this.tokTree = new Node();
                 this.tokTree.root = 1;
-                this.tokTree.t = this.tokTree.w = ''; // .whitespace
+                this.tokTree.token = this.tokTree.whitespace = ''; // .whitespace
                 if (this.start !== 0) {
-                    this.tokTree.w = this.input.slice(0, this.start);
+                    this.tokTree.whitespace = this.input.slice(0, this.start);
                 }
 
                 const program = originFn.call(this);
@@ -145,7 +145,7 @@ define(function (require, exports, module) {
             } else if (opts.compact && parentStart._lastChild && (type == TokenTypes.name && parentStart._lastChild._type == TokenTypes.dot || type == TokenTypes.dot && parentStart._lastChild._type == TokenTypes.name)) {
                 node = parentStart._lastChild;
                 node._type = type;
-                node.t += input.slice(tokStart, tokEnd);
+                node.token += input.slice(tokStart, tokEnd);
             } else {
                 // node._child = n._child
                 // node._nextSibling = n._nextSibling
@@ -153,11 +153,11 @@ define(function (require, exports, module) {
                 // node._parent = n._parentStart
                 // node._prevSibling = n._prevSibling
                 // node._type = n._type
-                // node.t = n.tokenStr
+                // node.token = n.tokenStr
                 node = new Node();
                 node._parent = parentStart;
                 node._type = type;
-                node.t = input.slice(tokStart, tokEnd);
+                node.token = input.slice(tokStart, tokEnd);
                 // todo: if may be useless
                 if (parentStart) {
                     if (!parentStart._child) {
@@ -171,9 +171,9 @@ define(function (require, exports, module) {
             }
 
             if (tokEnd != tokPos) {
-                node.w = input.slice(tokEnd, tokPos);
+                node.whitespace = input.slice(tokEnd, tokPos);
             } else {
-                node.w = '';
+                node.whitespace = '';
             }
 
             let newParentStart = parentStart;
@@ -218,9 +218,9 @@ define(function (require, exports, module) {
          let src = ''
          program.tokens.walk(function (n) {
              output.push(logger.gen(n, 25))
-             src += n.t
+             src += n.token
              if (n.w.indexOf('\n') !== -1 && !n._child) {
-                 if (!(n.t === '}' && n._parent._nextSibling && n._parent._nextSibling.t === '}')) {
+                 if (!(n.token === '}' && n._parent._nextSibling && n._parent._nextSibling.token === '}')) {
                      src += ';'
                  }
              } else if (n.w.indexOf(' ') != -1) {

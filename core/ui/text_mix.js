@@ -880,7 +880,7 @@ define(function (require, exports) {
             if (y <= v) u = c.x, v = c.y, x = c.u, y = c.v; //, cf = 1
 
             // allocate enough vertexbuffer
-            if (!c.vb || c.vb.$sc < y - v + 1) {
+            if (!c.vb || c.vb.$shaderCount < y - v + 1) {
                 c.vb = b.sh.select.alloc((y - v + 1) * 2, c.vb);
             }
             // set up locals

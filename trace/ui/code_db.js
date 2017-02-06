@@ -105,14 +105,14 @@ define(function (require) {
 
             const t = acorn_tools.parse(src);
             t.tokens.walk(function (n) {
-                if (n.t) {
+                if (n.token) {
                     // colorize token
                     let c = ctbl[n._type.label];
                     if (!c) {
                         if (n._type.binop || n._type.isAssign) {
                             c = ctbl.operator;
                         } else if (n._type.keyword) {
-                            if (n.t == 'var' || n.t == 'function') {
+                            if (n.token == 'var' || n.token == 'function') {
                                 c = ctbl.var;
                             } else {
                                 c = ctbl.keyword;
@@ -122,8 +122,8 @@ define(function (require) {
                         }
                     }
                     // process token
-                    if (n.t.includes('\n')) {
-                        const a = n.t.split(/\n/);
+                    if (n.token.includes('\n')) {
+                        const a = n.token.split(/\n/);
                         for (let i = 0; i < a.length; i++) {
                             f.addChunk(a[i], c);
                             if (i < a.length - 1) f.endLine();
@@ -133,10 +133,10 @@ define(function (require) {
                             lw = f.text.last().x;
                             ls = 0;
                         }
-                        f.addChunk(n.t, c);
+                        f.addChunk(n.token, c);
                     }
                 }
-                addWhitespace(f, n.w);
+                addWhitespace(f, n.whitespace);
             });
             //b.size()
             return f;

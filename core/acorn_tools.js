@@ -17,7 +17,7 @@ define(function (require, exports, module) {
 
                 if (key == 'parent' || key == 'tokens' || key == 'start' || key == 'end' || key == 'token' || key == 'loc') continue;
                 if (key == 'token') {
-                    start += `\n${tok}token: ${node[key].t}`;
+                    start += `\n${tok}token: ${node[key].token}`;
                     continue;
                 }
                 const value = node[key];
