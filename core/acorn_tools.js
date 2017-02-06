@@ -42,7 +42,7 @@ define(function (require, exports, module) {
     const walk = {
         Literal: {}, // 1 single node
         Identifier: {}, // 2 array of nodes
-        Program: { body: 2 }, // 3 keyss structure
+        Program: { body: 2 }, // 3 key structure
         ExpressionStatement: { expression: 1 }, // 4 value endpoint
         ClassDeclaration: { id: 1, superClass: 1, body: 1 },
         ClassExpression: { id: 1, superClass: 1, body: 1 },
@@ -102,7 +102,7 @@ define(function (require, exports, module) {
             if (type == 2) {
                 // array
                 if (!Array.isArray(nodeProp)) {
-                    throw new Error('invalid type');
+                    throw new Error(`invalid type: ${node.type}`);
                 }
                 for (let i = 0; i < nodeProp.length; i++) {
                     walkDown(nodeProp[i], walkerMap, {
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
             } else if (type == 3) {
                 // keys
                 if (!Array.isArray(nodeProp)) {
-                    throw new Error('invalid type');
+                    throw new Error(`invalid type: ${node.type}`);
                 }
                 for (let i = 0; i < nodeProp.length; i++) {
                     walkDown(nodeProp[i].value, walkerMap, {
