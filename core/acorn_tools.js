@@ -73,7 +73,7 @@ define(function (require, exports, module) {
         ObjectExpression: { properties: 2 },
         ReturnStatement: { argument: 1 },
         SequenceExpression: { expressions: 2 },
-        SpreadElement: { argument: 2 },
+        SpreadElement: { argument: 1 },
         SwitchCase: { consequent: 2, test: 1 },
         SwitchStatement: { discriminant: 1, cases: 2 },
         TemplateLiteral: { quasis: 2, expressions: 2 },
