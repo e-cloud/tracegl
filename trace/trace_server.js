@@ -6,13 +6,6 @@
 
 require('../core/define');
 define(function (require) {
-
-    if (process.version.includes('v0.6') || process.version.includes('v0.4')) {
-        console.log('Node version too old, try 0.8 or 0.10');
-        process.exit(-1);
-        return;
-    }
-
     const path = require('path');
     const fs = require('fs');
     const url = require('url');
@@ -140,7 +133,7 @@ define(function (require) {
     function processArgs(arg) {
         let sender; // send messages to ui or zip
         let uiport = 2000;
-        let bind = '0.0.0.0';
+        let bind = 'localhost';
         let tgtport = 2080;
         const fspec = { _no: [], _do: [], _opt: {} };
 
@@ -158,7 +151,7 @@ define(function (require) {
             out('  ~c~-nolib ~w~Short for -no/jquery.* -no:require.js -no/node\\\\_modules -no/bower\\\\_components \n');
             out('  ~c~-meteor ~w~Short for -no/jquery.* -no:/packages \n');
             out('  ~c~-nocatch ~w~Don\'t create exception catching\n');
-            out('  ~c~-bind:0.0.0.0 ~w~Set the hostname to bind our external ports to, default 0.0.0.0\n');
+            out('  ~c~-bind:localhost ~w~Set the hostname to bind our external ports to, default localhost\n');
             out('  ~c~-ui:port ~w~Set trace UI port. default: 2000\n');
             out('  ~c~-tgt:port ~w~Set browser JS port. default: 2080\n');
             out('~w~node tracegl.js ~r~[commmand]\n');
@@ -575,7 +568,7 @@ define(function (require) {
         const tgt = ioServer();
         tgt.root = root;
         tgt.proxy = url.parse(proxy);
-        tgt.listen(port, '0.0.0.0');
+        tgt.listen(port, bind);
 
         //appHttp.watcher = define.watcher()
         out(`~~[trace.GL]~w~ Proxying browser JS: http://${bind}:${port} -> ${proxy}\n`);
