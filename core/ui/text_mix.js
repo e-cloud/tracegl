@@ -168,7 +168,7 @@ define(function (require, exports) {
     exports.cursors = function(b, opt = {}) {
         function curSet() {
             const set = Object.create(curSet.prototype);
-            set.l = fn.list('_u', '_d');
+            set.l = fn.list('_prevSibling', '_nextSibling');
             return set;
         }
 
@@ -216,7 +216,7 @@ define(function (require, exports) {
                 o.v = Infinity;
                 o.y = -Infinity;
                 while (c) {
-                    const n = c._d;
+                    const n = c._nextSibling;
                     o.l.rm(c);
 
                     let cu = c.u;
@@ -228,7 +228,7 @@ define(function (require, exports) {
                     if ((cv - cy || cu - cx) > 0) cu = c.x, cv = c.y, cx = c.u, cy = c.v, cf = 1;
                     let d = s.l.first();
                     while (d) {
-                        const m = d._d;
+                        const m = d._nextSibling;
                         // order points
                         let du = d.u;
                         let dv = d.v;
@@ -288,7 +288,7 @@ define(function (require, exports) {
                     }
                     if (i == y) break;
                     i += d;
-                    c = c._d;
+                    c = c._nextSibling;
                 }
             };
 
@@ -298,7 +298,7 @@ define(function (require, exports) {
                     let c = this.l.first();
                     while (c) {
                         c[n](...args);
-                        c = c._d;
+                        c = c._nextSibling;
                     }
                 };
             }
@@ -318,7 +318,7 @@ define(function (require, exports) {
                 while (c) {
                     if (a) a += '\n';
                     a += c.copy();
-                    c = c._d;
+                    c = c._nextSibling;
                 }
                 return a;
             };
@@ -350,7 +350,7 @@ define(function (require, exports) {
 
         (function (p) {
 
-            p.pool = fn.list('_u', '_d');
+            p.pool = fn.list('_prevSibling', '_nextSibling');
 
             // select an AST node
             p.select = function (n) {
@@ -656,7 +656,7 @@ define(function (require, exports) {
                 var c = b.mcs.l.first();
                 while (c) {
                     if (c.inRange(x, y)) mh = c;
-                    c = c._d;
+                    c = c._nextSibling;
                 }
                 b.markerHover(mh);
                 if (!mh) ui.gl.cursor(opt.cursor || 'text');
@@ -754,18 +754,18 @@ define(function (require, exports) {
             let t = b.tvc || b.text.first();
             const h = b.vps.o.h / b.vps.sy;
             if (t) {
-                while (t._u && t.y > -b.vps.y) {
-                    t = t._u;
+                while (t._prevSibling && t.y > -b.vps.y) {
+                    t = t._prevSibling;
                 } // scan up
-                while (t._d && t.y < -b.vps.y - 255) {
-                    t = t._d;
+                while (t._nextSibling && t.y < -b.vps.y - 255) {
+                    t = t._nextSibling;
                 } // scan down
                 b.tvc = t;
             }
             while (t && b.vps.y + t.y < h) {
                 s.ps(b.vps.x, b.vps.y + t.y, b.vps.o.x + b.vps.gx, b.vps.o.y + b.vps.gy);
                 s.draw(t);
-                t = t._d;
+                t = t._nextSibling;
             }
         };
 
@@ -785,7 +785,7 @@ define(function (require, exports) {
                     s.fg(ui.t.codeSelect);
                 }
                 if (c.vb) s.draw(c.vb);
-                c = c._d;
+                c = c._nextSibling;
             }
 
             s.fg(ui.t.codeSelect);
@@ -795,7 +795,7 @@ define(function (require, exports) {
                 //if(c.fg) s.fg(c.fg)
                 //else
                 if (c.vb) s.draw(c.vb);
-                c = c._d;
+                c = c._nextSibling;
             }
 
             // draw selection
@@ -805,7 +805,7 @@ define(function (require, exports) {
                 //else
                 //s.fg(ui.t.codeSelect)
                 if (c.vb) s.draw(c.vb);
-                c = c._d;
+                c = c._nextSibling;
             }
         };
 
@@ -814,14 +814,14 @@ define(function (require, exports) {
             const s = b.sh.cursor;
             while (c) {
                 s.rect(b.vps.o.x + b.vps.gx + (b.vps.x + c.x) * b.vps.sx, b.vps.o.y - b.vps.ss + (b.vps.y + c.y) * b.vps.sy + b.vps.gy, 1, b.vps.sy);
-                c = c._d;
+                c = c._nextSibling;
             }
 
             // draw cursors
             var c = b.dcs.l.first();
             while (c) {
                 s.rect(b.vps.o.x + b.vps.gx + (b.vps.x + c.x) * b.vps.sx, b.vps.o.y - b.vps.ss + (b.vps.y + c.y) * b.vps.sy + b.vps.gy, 1, b.vps.sy);
-                c = c._d;
+                c = c._nextSibling;
             }
         };
 
@@ -832,13 +832,13 @@ define(function (require, exports) {
             const s = b.sh.line;
             while (c) {
                 s.rect(b.vps.o.x, b.vps.o.y - b.vps.ss + (c.y + b.vps.y) * b.vps.sy + b.vps.gy, b.vps.gx - 4, b.vps.sy);
-                c = c._d;
+                c = c._nextSibling;
             }
             // visible line carets next to cursor
             var c = b.dcs.l.first();
             while (c) {
                 s.rect(b.vps.o.x, b.vps.o.y - b.vps.ss + (c.y + b.vps.y) * b.vps.sy + b.vps.gy, b.vps.gx - 4, b.vps.sy);
-                c = c._d;
+                c = c._nextSibling;
             }
         };
 
@@ -900,11 +900,11 @@ define(function (require, exports) {
             // we should start to find c.v from b.tvc
             let t = b.tvc || b.text.first();
             if (t) {
-                while (t._u && t.y > v) {
-                    t = t._u;
+                while (t._prevSibling && t.y > v) {
+                    t = t._prevSibling;
                 } // scan up
-                while (t._d && t.y + t.l < v) {
-                    t = t._d;
+                while (t._nextSibling && t.y + t.l < v) {
+                    t = t._nextSibling;
                 } // scan down
             }
 
@@ -962,7 +962,7 @@ define(function (require, exports) {
                     if (xt) break;
                 }
                 j += l;
-                t = t._d;
+                t = t._nextSibling;
             }
             // set our cursorpos to xs or xe
             if (c.y <= c.v) {
@@ -1017,7 +1017,7 @@ define(function (require, exports) {
 
         // initialize storage values
         blockSize = 250 * 20 || blockSize;
-        b.text = fn.list('_u', '_d');
+        b.text = fn.list('_prevSibling', '_nextSibling');
         b.tw = 0;
         b.th = 0;
         b.tvc = null;

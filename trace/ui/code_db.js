@@ -107,11 +107,11 @@ define(function (require) {
             t.tokens.walk(function (n) {
                 if (n.t) {
                     // colorize token
-                    let c = ctbl[n._t.label];
+                    let c = ctbl[n._type.label];
                     if (!c) {
-                        if (n._t.binop || n._t.isAssign) {
+                        if (n._type.binop || n._type.isAssign) {
                             c = ctbl.operator;
-                        } else if (n._t.keyword) {
+                        } else if (n._type.keyword) {
                             if (n.t == 'var' || n.t == 'function') {
                                 c = ctbl.var;
                             } else {

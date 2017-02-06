@@ -139,12 +139,12 @@ define(function (require, exports, module) {
             var c = view.vcs.l.first();
             while (c) {
                 view.sh.mark.rect(view.vps.o.x, view.vps.o.y - view.vps.ss + (view.vps.y + c.y) * view.vps.sy + view.vps.gy, view.vps.o.w, view.vps.sy);
-                c = c._d;
+                c = c._nextSibling;
             }
             var c = view.dcs.l.first();
             while (c) {
                 view.sh.mark.rect(view.vps.o.x, view.vps.o.y - view.vps.ss + (view.vps.y + c.y) * view.vps.sy + view.vps.gy, view.vps.o.w, view.vps.sy);
-                c = c._d;
+                c = c._nextSibling;
             }
             view.drawText();
 

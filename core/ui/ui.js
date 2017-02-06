@@ -62,10 +62,10 @@ define(function (require) {
         _g: 'groupid',
 
         // dom hyper tree
-        _p: 'parent',
-        _c: 'child',
-        _u: 'up',
-        _d: 'down',
+        _parent: 'parent',
+        _child: 'child',
+        _prevSibling: 'up',
+        _nextSibling: 'down',
         _l: 'left',
         _r: 'right',
         _f: 'front',
@@ -73,8 +73,8 @@ define(function (require) {
         // z order
         _z: 'zorder',
 
-        _e: 'end', // last node added
-        _t: 'type',
+        _lastChild: 'end', // last node added
+        _type: 'type',
 
         // render
         _q: 'qbuf',
@@ -183,8 +183,8 @@ define(function (require) {
     const node_vs = {};
 
     function Node() {
-        this._p = ui.p;
-        if (this._p) l_i.add(this);
+        this._parent = ui.p;
+        if (this._parent) l_i.add(this);
     }
 
     (function (p) {
@@ -466,15 +466,15 @@ define(function (require) {
             // build up DOM
             if (n._b) {
                 var p = n._b;
-                if (p._f) p._f._u = n, n._d = p._f;
+                if (p._f) p._f._prevSibling = n, n._nextSibling = p._f;
                 p._f = n;
-                delete n._p; // back overrides parent
-            } else if (n._p) {
-                var p = n._p;
-                if (p._e) {
-                    n._u = p._e, p._e = p._e._d = n; // append node
+                delete n._parent; // back overrides parent
+            } else if (n._parent) {
+                var p = n._parent;
+                if (p._lastChild) {
+                    n._prevSibling = p._lastChild, p._lastChild = p._lastChild._nextSibling = n; // append node
                 } else {
-                    p._c = p._e = n;
+                    p._child = p._lastChild = n;
                 }
                 // call add event on parent
                 if (p.a_) p.a_(n);
@@ -482,10 +482,10 @@ define(function (require) {
 
             //automatic z = tree depth
             if (!n._z) {
-                var p = n._p || n._b;
+                var p = n._parent || n._b;
                 let z = 0;
                 while (p && !p.l) {
-                    p = p._p || p._b;
+                    p = p._parent || p._b;
                     z++;
                 }
                 n._z = z;
@@ -493,9 +493,9 @@ define(function (require) {
 
             // set up layering
             if (n.l) {
-                var p = n._p || n._b;
+                var p = n._parent || n._b;
                 while (p && !p.l) {
-                    p = p._p || p._b;
+                    p = p._parent || p._b;
                 }
                 if (!p._0) p._0 = fn.list('_1', '_2');
                 p._0.sorted(n, '_z');
@@ -503,13 +503,13 @@ define(function (require) {
 
             // setup pickid
             if (!n._g) {
-                var p = n._p || n._b;
+                var p = n._parent || n._b;
                 while (p) {
                     if (p._g) {
                         n._g = p._g;
                         break;
                     }
-                    p = p._p || p._b;
+                    p = p._parent || p._b;
                 }
             }
 
@@ -541,7 +541,7 @@ define(function (require) {
                 const k = ln.k; // key on that node
                 let p = n;
                 while (d) {
-                    p = p._p || p._b, d--;
+                    p = p._parent || p._b, d--;
                 } // go to parent
                 if (p != n) {
                     // mark our dependency on the parent
@@ -576,7 +576,7 @@ define(function (require) {
                 var d = l.ld;
                 let p = n;
                 while (d > 0) {
-                    p = p._p || p._b, d--;
+                    p = p._parent || p._b, d--;
                 }
                 p = p[l.k];
                 id += `|${p && p.id || 0}`;
@@ -602,7 +602,7 @@ define(function (require) {
                     if (!n._v.$us) n._v.hi = n._v.lo = 0;
                 } else {
                     // keep slot, but clear data
-                    n._t.clear(n);
+                    n._type.clear(n);
                     const o = n._o || (n._o = {}); // slot by id
                     var k = n._k || (n._k = {}); // written buffers by id
                     o[n._v.$id] = n._s; // cache old slot
@@ -622,7 +622,7 @@ define(function (require) {
             // find/make new vertexbuffer
             var l = n; // layer node
             while (!l.l) {
-                l = l._p || l._b; // find it
+                l = l._parent || l._b; // find it
                 if (!l) throw new Error('trying to execute node without a container');
             }
 
@@ -703,9 +703,9 @@ define(function (require) {
 
         if (n._0) n._0.each(freelayer);
         // remove ourself from our parent layer
-        let p = n._p || n._b;
+        let p = n._parent || n._b;
         while (!p.l) {
-            p = p._p || p._b;
+            p = p._parent || p._b;
         }
         p._0.rm(n);
     }
@@ -728,7 +728,7 @@ define(function (require) {
             v.lo += m;
         } // at the bottom
         else {
-                n._t.clear(n);
+                n._type.clear(n);
             } // else in the middle somewhere
         if (!v.$us) v.hi = v.lo = 0; // no used left
 
@@ -750,16 +750,16 @@ define(function (require) {
 
     // |  unhook node, leave all refs node->tree
     function unhook(n) {
-        let p = n._p;
+        let p = n._parent;
         if (!p) {
             p = n._b;
-            if (p && p._f == n) p._f = n._d;
+            if (p && p._f == n) p._f = n._nextSibling;
         } else {
-            if (p._e == n) p._e = n._u;
-            if (p._c == n) p._c = n._d;
+            if (p._lastChild == n) p._lastChild = n._prevSibling;
+            if (p._child == n) p._child = n._nextSibling;
         }
-        if (n._u) n._u._d = n._d;
-        if (n._d) n._d._u = n._u;
+        if (n._prevSibling) n._prevSibling._nextSibling = n._nextSibling;
+        if (n._nextSibling) n._nextSibling._prevSibling = n._prevSibling;
     }
 
     // |  remove (destroy) a dom node
@@ -768,7 +768,7 @@ define(function (require) {
         // remove childnode
         unhook(n);
         // notify parent
-        if (n._p && n._p.r_) n._p.r_(n);
+        if (n._parent && n._parent.r_) n._parent.r_(n);
 
         // optimally walk non layer tree
         var i = n;
@@ -779,17 +779,17 @@ define(function (require) {
                 freenode(i);
             }
 
-            if (!i.l && i._c) {
-                i = i._c;
+            if (!i.l && i._child) {
+                i = i._child;
             } else if (i._f) {
                 i = i._f;
-            } else if (i != n && i._d) {
-                i = i._d;
+            } else if (i != n && i._nextSibling) {
+                i = i._nextSibling;
             } else {
-                while (i && !i._d && i != n) {
-                    i = i._p || i._b;
+                while (i && !i._nextSibling && i != n) {
+                    i = i._parent || i._b;
                 }
-                if (i != n) i = i._d;
+                if (i != n) i = i._nextSibling;
             }
         } while (i != n);
 
@@ -804,24 +804,24 @@ define(function (require) {
                 if (l_a[k].has(i)) l_a[k].rm(i);
             }
 
-            if (i._c) {
-                i = i._c;
+            if (i._child) {
+                i = i._child;
             } else if (i._f) {
                 i = i._f;
-            } else if (i != n && i._d) {
-                i = i._d;
+            } else if (i != n && i._nextSibling) {
+                i = i._nextSibling;
             } else {
-                while (i && !i._d && i != n) {
-                    i = i._p || i._b;
+                while (i && !i._nextSibling && i != n) {
+                    i = i._parent || i._b;
                 }
-                if (i != n) i = i._d;
+                if (i != n) i = i._nextSibling;
             }
         } while (i != n);
 
         // remove tree refs
-        delete n._u;
-        delete n._d;
-        //delete n._p
+        delete n._prevSibling;
+        delete n._nextSibling;
+        //delete n._parent
         //delete n._b
     };
 
@@ -829,12 +829,12 @@ define(function (require) {
     // \____________________________________________/
     ui.count = function (n, c) {
         if (c > 0) {
-            while (c && n._d) {
-                n = n._d, c--;
+            while (c && n._nextSibling) {
+                n = n._nextSibling, c--;
             }
         } else {
-            while (c && n._u) {
-                n = n._u, c++;
+            while (c && n._prevSibling) {
+                n = n._prevSibling, c++;
             }
         }
         return n;
@@ -843,14 +843,14 @@ define(function (require) {
     // |  first item
     // \____________________________________________/
     ui.first = function (n) {
-        return n._p._c;
+        return n._parent._child;
     };
 
     // |  last item
     // \____________________________________________/
     ui.last = function (n) {
-        while (n._d) {
-            n = n._d;
+        while (n._nextSibling) {
+            n = n._nextSibling;
         }
         return n;
     };
@@ -860,9 +860,9 @@ define(function (require) {
     ui.top = function (n) {
         if (!n.l) throw new Error('cannot top non layer node');
         // find parent layer
-        let p = n._p || n._b;
+        let p = n._parent || n._b;
         while (p && !p.l) {
-            p = p._p || n._b;
+            p = p._parent || n._b;
         }
         if (!p._0) p._0 = fn.list('_1', '_2');
         if (p._0.has(n)) p._0.rm(n);
@@ -900,39 +900,39 @@ define(function (require) {
     // |  focus next item
     // \____________________________________________/
     ui.focus_next = function () {
-        let n = ui.foc._d;
+        let n = ui.foc._nextSibling;
         while (n) {
             if (n.f_) {
                 ui.focus(n);
                 return;
             }
-            n = n._d;
+            n = n._nextSibling;
         }
-        if (!n) n = ui.foc._p._c;
+        if (!n) n = ui.foc._parent._child;
         while (n) {
             if (n.f_) {
                 ui.focus(n);
                 return;
             }
-            n = n._d;
+            n = n._nextSibling;
         }
     };
 
     // |  focus previous item
     // \____________________________________________/
     ui.focus_prev = function () {
-        let n = ui.foc._u;
+        let n = ui.foc._prevSibling;
         while (n) {
             if (n.f_) {
                 ui.focus(n);
                 return;
             }
-            n = n._u;
+            n = n._prevSibling;
         }
         if (!n) {
-            n = ui.foc._p._c;
-            while (n._d) {
-                n = n._d;
+            n = ui.foc._parent._child;
+            while (n._nextSibling) {
+                n = n._nextSibling;
             }
         }
         while (n) {
@@ -940,7 +940,7 @@ define(function (require) {
                 ui.focus(n);
                 return;
             }
-            n = n._u;
+            n = n._prevSibling;
         }
     };
 
@@ -949,7 +949,7 @@ define(function (require) {
     gl.keydown(function () {
         ui.key = gl.key;
         if (ui.keydown) ui.keydown();
-        if (!ui.foc) ui.foc = root._c;
+        if (!ui.foc) ui.foc = root._child;
         if (ui.foc) {
             if (!ui.bubble(ui.foc, 'k')) {
                 if (ui.key.i == 'tab') {
@@ -971,7 +971,7 @@ define(function (require) {
         var p = n;
         while (p) {
             if (p._m) break;
-            p = p._p || p._b;
+            p = p._parent || p._b;
         }
         if (!p) return;
         if (n[e]) {
@@ -980,10 +980,10 @@ define(function (require) {
                 return 1;
             } else if (n[e](n)) return 1;
         }
-        var p = n._p;
+        var p = n._parent;
         while (p) {
             if (p[e] && p[e](n)) return 1;
-            p = p._p;
+            p = p._parent;
         }
     };
     ui.cursor = gl.cursor;
@@ -1281,18 +1281,18 @@ define(function (require) {
 
         for (const k in l_a) {
             const _a = k;
-            const _t = l_a[k].t;
+            const _type = l_a[k].t;
             const _r = l_a[k].r;
-            const _e = l_a[k].e;
+            const _lastChild = l_a[k].e;
             n = l_a[k].first();
             while (n) {
-                if (uni.u >= n[_t] + Math.abs(n[_a])) {
+                if (uni.u >= n[_type] + Math.abs(n[_a])) {
                     const m = n[_r];
                     l_a[k].rm(n);
                     //delete n[_a]
-                    if (n[_e]) {
-                        e = n[_e];
-                        delete n[_e];
+                    if (n[_lastChild]) {
+                        e = n[_lastChild];
+                        delete n[_lastChild];
                         n.set(e);
                     }
                     n = m;
@@ -1340,7 +1340,7 @@ define(function (require) {
     // \____________________________________________/
     ui.redraw = function (n) {
         while (n && !n.g_) {
-            n = n._p;
+            n = n._parent;
         }
         if (!n) {
             dirty.y1 = 0;
@@ -1375,7 +1375,7 @@ define(function (require) {
     ui.dump = function (n, dv) {
         let s = '';
         fn.walk(n, null, function (n, z) {
-            s += Array(z + 1).join(' ') + n._t._t;
+            s += Array(z + 1).join(' ') + n._type._type;
 
             // lets build up our vertexbuffers
             if (n._v) {

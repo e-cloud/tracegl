@@ -42,11 +42,11 @@ define(function () {
         if (!func) {
             func = convertArgumentsToObject.caller;
         }
-        if (!func._c) {
-            func._c = func.toString();
+        if (!func._child) {
+            func._child = func.toString();
         }
         if (!func._n) {
-            func._n = func._c.match(/function.*?\((.*?)\)/)[1].split(',');
+            func._n = func._child.match(/function.*?\((.*?)\)/)[1].split(',');
         }
         const names = func._n;
         if (args.length > names.length) {
@@ -828,17 +828,17 @@ define(function () {
                 traverse(node, z);
             }
 
-            if (node._c) {
-                node = node._c;
+            if (node._child) {
+                node = node._child;
                 z++;
-            } else if (node._d) {
-                node = node._d;
+            } else if (node._nextSibling) {
+                node = node._nextSibling;
             } else {
-                while (node && !node._d && node != parentNode) {
-                    node = node._p;
+                while (node && !node._nextSibling && node != parentNode) {
+                    node = node._parent;
                     z--;
                 }
-                if (node) node = node._d;
+                if (node) node = node._nextSibling;
             }
         }
     }

@@ -62,7 +62,7 @@ define(function (require, exports, module) {
                 let d = v.d;
                 const k = v.k;
                 while (d > 0) {
-                    p = p._p || p._b, d--;
+                    p = p._parent || p._b, d--;
                 }
                 const t = typeof p[k];
                 if (t == 'string') {
@@ -252,8 +252,8 @@ define(function (require, exports, module) {
     // fingerprint this function against a domtree node n
     function fnid(f, n) {
         if (!n || n.q) return f;
-        let c = f._c;
-        if (!c) f._c = c = f.toString().replace(/[;\s\r\n]*/g, '');
+        let c = f._child;
+        if (!c) f._child = c = f.toString().replace(/[;\s\r\n]*/g, '');
         const i = fnid_o[c];
         const tc = fnid_tc[i];
         if (!tc) return '@'; // not compiled yet
@@ -263,7 +263,7 @@ define(function (require, exports, module) {
             let v = tc[k];
             let p = n;
             while (v > 0) {
-                p = n._p || n._b, v--, s += '^';
+                p = n._parent || n._b, v--, s += '^';
             }
             const j = p[k];
             const t = typeof j;
@@ -468,7 +468,7 @@ define(function (require, exports, module) {
              for(k in fnid_tc){
              var o = ''
              for(l in fnid_tc[k])o += l+':'+fnid_tc[k][l]+' '
-             fn(k+' -> '+o + ' ' + fnid_rc[k]._c)
+             fn(k+' -> '+o + ' ' + fnid_rc[k]._child)
              }*/
         }
 
@@ -545,7 +545,7 @@ define(function (require, exports, module) {
             // function, args, local variables, nodestruct
             if (!f) return a[0];
 
-            var c = f._c || (f._c = f.toString().replace(/[;\s\r\n]*/g, ''));
+            var c = f._child || (f._child = f.toString().replace(/[;\s\r\n]*/g, ''));
 
             // lets id-ify the function
             let id = f._i;
@@ -554,7 +554,7 @@ define(function (require, exports, module) {
             const tc = fnid_tc[id] || (fnid_tc[id] = {}); // trace cache
             fnid_rc[id] = f;
 
-            let p = acorn_tools.parse(tryFixFunc(c), { noclose: 1, compact: 1 }).tokens._c;
+            let p = acorn_tools.parse(tryFixFunc(c), { noclose: 1, compact: 1 }).tokens._child;
 
             const ma = {}; // macro args
 
@@ -563,35 +563,35 @@ define(function (require, exports, module) {
                     // we have args, build up macro args
                     var c = 0; // arg count
                     while (!p.parenL) {
-                        p = p._d;
+                        p = p._nextSibling;
                     } // scan till we have ()
-                    for (var i = p._c; i; i = i._d) {
+                    for (var i = p._child; i; i = i._nextSibling) {
                         if (i.name) c++;
                     } // count args
                     c = a.length - c - 1; // smear (1,2)->(a,b,c) to (a=1,b=1,c=2)
-                    for (var i = p._c; i; i = i._d) {
+                    for (var i = p._child; i; i = i._nextSibling) {
                         if (i.name) ma[i.t] = a[++c < 0 ? 0 : c];
                     }
                 }
 
                 while (p && !p.braceL) {
-                    p = p._d;
+                    p = p._nextSibling;
                 } // skip to the function body
             } else {
-                p = p._p; // skip back up
+                p = p._parent; // skip back up
             }
 
             function subexpr(i, f, lv, ns) {
                 // iter parse, function, local variables,  nodestruct
-                const c = f._c || (f._c = f.toString().replace(/[;\s\r\n]*/g, ''));
-                let e = f._e;
+                const c = f._child || (f._child = f.toString().replace(/[;\s\r\n]*/g, ''));
+                let e = f._lastChild;
                 if (!e) {
-                    f._e = e = c.includes('_fw_') ? 3 : c.includes('return_') ? 2 : c.includes('return') ? 4 : 1;
+                    f._lastChild = e = c.includes('_fw_') ? 3 : c.includes('return_') ? 2 : c.includes('return') ? 4 : 1;
                 }
 
                 let ar; // args
-                if (i._d && i._d.parenL) {
-                    ar = expand(i._d._c, 0, lv, ns), i._d.t = i._d._t = '';
+                if (i._nextSibling && i._nextSibling.parenL) {
+                    ar = expand(i._nextSibling._child, 0, lv, ns), i._nextSibling.t = i._nextSibling._type = '';
                 }
 
                 if (e == 1) {
@@ -648,8 +648,8 @@ define(function (require, exports, module) {
             function subfn(f, t, ns) {
                 let ce = f._ce;
                 if (!ce) f._ce = ce = f.toString();
-                let p = acorn_tools.parse(tryFixFunc(ce), { noclose: 1, compact: 1, tokens: 1 }).tokens._c;
-                //var p = ep(ce)._c // parse code and fetch first child
+                let p = acorn_tools.parse(tryFixFunc(ce), { noclose: 1, compact: 1, tokens: 1 }).tokens._child;
+                //var p = ep(ce)._child // parse code and fetch first child
 
                 let i; // iterator
                 const lv = {}; // local variables
@@ -657,10 +657,10 @@ define(function (require, exports, module) {
                 // lets parse the args and write the function header
                 //fn(ce,p)
                 while (!p.parenL) {
-                    p = p._d;
+                    p = p._nextSibling;
                 } // scan till we have ()
                 let os = '('; // output string
-                for (i = p._c; i; i = i._d) {
+                for (i = p._child; i; i = i._nextSibling) {
                     if (i.name) {
                         var j = i.t.indexOf('_');
                         var k = i.t.slice(j + 1);
@@ -672,20 +672,20 @@ define(function (require, exports, module) {
                 os = `${t + os})`;
 
                 while (p && !p.braceL) {
-                    p = p._d;
+                    p = p._nextSibling;
                 } // skip to the function body
                 i = p;
 
                 while (i) {
                     while (i.braceL) {
                         os += '{\n';
-                        if (!i._c) {
+                        if (!i._child) {
                             s += '}\n';
                             break;
                         }
-                        i = i._c;
+                        i = i._child;
                     }
-                    if (i.name && i._d && i._d.semi) {
+                    if (i.name && i._nextSibling && i._nextSibling.semi) {
                         // empty define
                         var o = i.t.indexOf('_');
 
@@ -697,8 +697,8 @@ define(function (require, exports, module) {
                             y = i.t, k = '';
                         }
                         os += `${y} ${k};`;
-                        i = i._d;
-                    } else if (i.name && i._d && i._d.isAssign) {
+                        i = i._nextSibling;
+                    } else if (i.name && i._nextSibling && i._nextSibling.isAssign) {
                         // assign define
                         var o = i.t.indexOf('_');
 
@@ -713,46 +713,46 @@ define(function (require, exports, module) {
                         // find end ;
                         var j = i;
                         while (j && !j.semi) {
-                            j = j._d;
+                            j = j._nextSibling;
                         }
                         if (!j) throw new Error('assignment without terminating ; found');
-                        os += `${y} ${k} ${i._d.t} ${expand(i._d._d, j, lv, ns)};`;
+                        os += `${y} ${k} ${i._nextSibling.t} ${expand(i._nextSibling._nextSibling, j, lv, ns)};`;
                         i = j;
-                    } else if (i.name && i._d && i._d.parenL) {
+                    } else if (i.name && i._nextSibling && i._nextSibling.parenL) {
                         var o = i.t.indexOf('_');
                         var y;
                         if (o != 0 && gt.types[y = i.t.slice(0, o)]) {
                             var k = i.t.slice(o + 1);
                             lv[k] = y, k += ` = ${y}`;
-                            os += `${y} ${k}(${expand(i._d._c, 0, lv, ns).join(',')});\n`;
-                            i = i._d;
+                            os += `${y} ${k}(${expand(i._nextSibling._child, 0, lv, ns).join(',')});\n`;
+                            i = i._nextSibling;
                         } else if (y == 'return') {
                             var k = i.t.slice(o + 1);
                             if (rt && k != rt) throw new Error(`please use one return type in ${t}`);
                             rt = k;
-                            os += `return ${k}(${expand(i._d._c, 0, lv, ns).join(',')});\n`;
-                            i = i._d;
+                            os += `return ${k}(${expand(i._nextSibling._child, 0, lv, ns).join(',')});\n`;
+                            i = i._nextSibling;
                         } else {
-                            os += expand(i, i._d._d, lv, ns)[0];
-                            i = i._d;
+                            os += expand(i, i._nextSibling._nextSibling, lv, ns)[0];
+                            i = i._nextSibling;
                         }
-                    } else if (i.if && i._d.parenL) {
-                        os += `;\n${i.t}(${expand(i._d._c, 0, lv, ns).join(',')})`;
-                        i = i._d;
-                    } else if (i.for && i._d.parenL) {
+                    } else if (i.if && i._nextSibling.parenL) {
+                        os += `;\n${i.t}(${expand(i._nextSibling._child, 0, lv, ns).join(',')})`;
+                        i = i._nextSibling;
+                    } else if (i.for && i._nextSibling.parenL) {
                         // for loop
-                        const p1 = i._d._c;
+                        const p1 = i._nextSibling._child;
 
                         let p2;
                         let p3;
                         let p4;
                         p2 = p1;
                         while (p2 && !p2.semi) {
-                            p2 = p2._d;
+                            p2 = p2._nextSibling;
                         }
-                        p3 = p2._d;
+                        p3 = p2._nextSibling;
                         while (p3 && !p3.semi) {
-                            p3 = p3._d;
+                            p3 = p3._nextSibling;
                         }
                         // init decl from p1
                         var o = p1.t.indexOf('_');
@@ -761,15 +761,15 @@ define(function (require, exports, module) {
                         var y = p1.t.slice(0, o);
                         lv[k] = y;
                         p1.t = k;
-                        os += `for(${y} ${expand(p1, p2, lv, ns)};${expand(p2._d, p3, lv, ns)};${expand(p3._d, 0, lv, ns)})`;
-                        i = i._d._d;
+                        os += `for(${y} ${expand(p1, p2, lv, ns)};${expand(p2._nextSibling, p3, lv, ns)};${expand(p3._nextSibling, 0, lv, ns)})`;
+                        i = i._nextSibling._nextSibling;
                     } else {
                         os += `${i.t} `;
                     }
-                    while (i && !i._d && i != p) {
-                        i = i._p || i._b, os += ';\n}\n';
+                    while (i && !i._nextSibling && i != p) {
+                        i = i._parent || i._b, os += ';\n}\n';
                     }
-                    if (i) i = i._d;
+                    if (i) i = i._nextSibling;
                 }
                 if (!rt) throw new Error(`no returntype for ${t}`);
                 os = `${rt} ${os}`;
@@ -783,8 +783,8 @@ define(function (require, exports, module) {
                 let os = ''; // output string
                 while (i && i != x) {
                     // integer bypass
-                    if (i.t == '+' && i._d && i._d.num && (!i._u || i._u.t == '=')) {
-                        i.t = '', i._d._t = {};
+                    if (i.t == '+' && i._nextSibling && i._nextSibling.num && (!i._prevSibling || i._prevSibling.t == '=')) {
+                        i.t = '', i._nextSibling._type = {};
                     } else // auto float
                         if (i.num && !i.t.includes('.')) {
                             i.t += '.';
@@ -829,7 +829,7 @@ define(function (require, exports, module) {
                                                     n2 = {
                                                         np: `P${ns.np}`, // node parent
                                                         dp: ns.dp + 1, // depth
-                                                        n: ns.n._p || ns.n._b // n
+                                                        n: ns.n._parent || ns.n._b // n
                                                     };
                                                     tc[k] = 1;
                                                 } else {
@@ -898,18 +898,18 @@ define(function (require, exports, module) {
                     if (i.comma) {
                         ea.push(os), os = '';
                     } else if (i.parenL) {
-                        os += `(${expand(i._c, null, lv, ns).join(',')})`;
+                        os += `(${expand(i._child, null, lv, ns).join(',')})`;
                     } else {
                         os += i.t;
                     }
 
-                    i = i._d;
+                    i = i._nextSibling;
                 }
                 ea.push(os);
                 return ea;
             }
 
-            return expand(p._c, 0, lv, ns)[0];
+            return expand(p._child, 0, lv, ns)[0];
         }
     };
 
@@ -922,12 +922,12 @@ define(function (require, exports, module) {
         // function, args
         if (!f) return a[0];
 
-        var c = f._c;
+        var c = f._child;
         let id = f._i;
-        if (!c) f._c = c = f.toString();
+        if (!c) f._child = c = f.toString();
         if (!id) f._i = id = fnid_o[c] || (fnid_o[c] = fnid_c++);
 
-        let p = acorn_tools.parse(tryFixFunc(c), { noclose: 1, compact: 1, tokens: 1 }).tokens._c;
+        let p = acorn_tools.parse(tryFixFunc(c), { noclose: 1, compact: 1, tokens: 1 }).tokens._child;
         let i; // iterator
         let m = {}; // macro args
 
@@ -936,36 +936,36 @@ define(function (require, exports, module) {
                 // we have args, build up macro args
                 var c = 0; // arg count
                 while (!p.parenL) {
-                    p = p._d;
+                    p = p._nextSibling;
                 } // scan till we have ()
-                for (i = p._c; i; i = i._d) {
+                for (i = p._child; i; i = i._nextSibling) {
                     if (i.name) c++;
                 } // count args
                 c = a.length - c - 1; // smear (1,2)->(a,b,c) to (a=1,b=1,c=2)
-                for (i = p._c; i; i = i._d) {
+                for (i = p._child; i; i = i._nextSibling) {
                     if (i.name) m[i.t] = a[++c < 0 ? 0 : c];
                 }
             }
 
             while (p && !p.braceL) {
-                p = p._d;
+                p = p._nextSibling;
             } // skip to the function body
         } else {
-            p = p._p;
+            p = p._parent;
         }
 
         function subexpr(i, f) {
             // iter node, function
-            let c = f._c;
-            if (!c) f._c = c = f.toString().replace(/[;\s\r\n]*/g, '');
+            let c = f._child;
+            if (!c) f._child = c = f.toString().replace(/[;\s\r\n]*/g, '');
 
-            let e = f._e;
+            let e = f._lastChild;
             if (!e) {
-                f._e = e = c.includes('_fw_') ? 3 : c.includes('return_') ? 2 : c.includes('return') ? 4 : 1;
+                f._lastChild = e = c.includes('_fw_') ? 3 : c.includes('return_') ? 2 : c.includes('return') ? 4 : 1;
             }
             let a; // args
-            if (i._d && i._d.parenL) {
-                a = expand(i._d._c), i._d.t = i._d._t = '';
+            if (i._nextSibling && i._nextSibling.parenL) {
+                a = expand(i._nextSibling._child), i._nextSibling.t = i._nextSibling._type = '';
                 for (let j = 0; j < a.length; j++) {
                     a[j] = `(${a[j]})`;
                 }
@@ -1019,17 +1019,17 @@ define(function (require, exports, module) {
                 if (i.comma) {
                     a.push(s), s = '';
                 } else if (i.parenL) {
-                    s += `(${expand(i._c).join(',')})`;
+                    s += `(${expand(i._child).join(',')})`;
                 } else {
                     s += i.t;
                 }
-                i = i._d;
+                i = i._nextSibling;
             }
             a.push(s);
             return a;
         }
 
-        return expand(p._c)[0];
+        return expand(p._child)[0];
     }
 
     gl.eval = function (n, f, un, el) {
@@ -1042,7 +1042,7 @@ define(function (require, exports, module) {
             fnid_ev[f] = j = Function('n', 'p', '__u', '__e', '__b', '__x', rd.b);
         }
         // actual evaluation
-        return j(n, n._p || n._b, un, el, gt.builtin, gl.eval);
+        return j(n, n._parent || n._b, un, el, gt.builtin, gl.eval);
     };
 
     //|  render to texture

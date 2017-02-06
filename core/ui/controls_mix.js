@@ -272,12 +272,12 @@ define(function (require, exports) {
         b.r_ = function (n) {
             // node removed
             ty = n.y; // old ypos
-            let p = n._d; // down
+            let p = n._nextSibling; // down
             while (p) {
                 // run over DOM updating height
                 p.y = ty; //({ y1: ty })
                 ty += p.eval('h');
-                p = p._d;
+                p = p._nextSibling;
             }
             cs();
         };
@@ -327,7 +327,7 @@ define(function (require, exports) {
         b.sel = se;
 
         b.f_ = function () {
-            //if(!s) se(b._c)
+            //if(!s) se(b._child)
             if (s && s.f_) s.f_();
         };
 
@@ -346,9 +346,9 @@ define(function (require, exports) {
         };
 
         b.k = function () {
-            if (!s) se(b._c);
-            if (s && ui.key.i == 'up' && s._u) se(s._u);
-            if (s && ui.key.i == 'down' && s._d) se(s._d);
+            if (!s) se(b._child);
+            if (s && ui.key.i == 'up' && s._prevSibling) se(s._prevSibling);
+            if (s && ui.key.i == 'down' && s._nextSibling) se(s._nextSibling);
             if (s && ui.key.i == 'pageup') se(ui.count(s, -10));
             if (s && ui.key.i == 'pagedown') se(ui.count(s, 10));
             if (s && ui.key.i == 'home') se(ui.first(s));
@@ -366,7 +366,7 @@ define(function (require, exports) {
         let sy;
         c.p = function () {
             // grab to start drag
-            if (ui.bubble(c._p, 'p')) return 1; // give parent option to capture first
+            if (ui.bubble(c._parent, 'p')) return 1; // give parent option to capture first
             ui.cap = c;
             mx = ui.mx, my = ui.my;
             sx = b.x;
@@ -800,11 +800,11 @@ define(function (require, exports) {
                 ui.redraw();
             }
             let k = 0;
-            let p = b._c;
+            let p = b._child;
             while (p) {
                 p.x = Math.round((k - tp) * w);
                 k++;
-                p = p._d;
+                p = p._nextSibling;
             }
         });
 

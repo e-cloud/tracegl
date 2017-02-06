@@ -29,16 +29,16 @@ define(function (require) {
             inner: 't.codeBg',
             outer: 'alpha(t.codeBg,0)'
         });
-        border._p = background;
+        border._parent = background;
         // title area
         const title = ui.rect({ sel: 0, f: 'mix(t.codeHover,t.codeMark,n.sel)', y: 10, h: 30, x: 10, w: 'p.w - 20' });
-        title._p = background;
-        //title._p = bg
+        title._parent = background;
+        //title._parent = bg
         background.title = title;
 
         // code body
         const body = background.body = ui.rect({ f: 't.codeBg', x: 10, y: 40, h: 'p.h - (n.y+10)', w: 'p.w - 20' });
-        body._p = background;
+        body._parent = background;
 
         // scrollbars
         body._v_ = ct.vScrollHider({ h: 'p.h - 10' });
@@ -83,8 +83,8 @@ define(function (require) {
         title.s = null;
         body.s = null;
         // forward scrollbar scroll message
-        title._h_.s = body._h_.s = background._p.s;
-        title._v_.s = body._v_.s = background._p.s;
+        title._h_.s = body._h_.s = background._parent.s;
+        title._v_.s = body._v_.s = background._parent.s;
 
         //bg.titleBuf = body.sh.text.alloc(1024)
 
@@ -138,7 +138,7 @@ define(function (require) {
         };
 
         function setTitle(m) {
-            const v = background._p._p._p._p.hoverView;
+            const v = background._parent._parent._parent._parent.hoverView;
             const tdb = body.tdb;
 
             const l = tdb.lineDict[m.i];
@@ -418,7 +418,7 @@ define(function (require) {
         };
 
         body.o = function () {
-            const v = background._p._p._p._p.hoverView;
+            const v = background._parent._parent._parent._parent.hoverView;
             v.hide();
         };
 
@@ -434,14 +434,14 @@ define(function (require) {
                 // jump to parent function
                 if (l.jmp === 1) {
                     if (!background.next || background.next.l === -1) return;
-                    const sv = background._p._p._p._p.stackView;
+                    const sv = background._parent._parent._parent._parent.stackView;
                     sv.ly = -1;
                     sv.selectFirst(background.stacky + background.stackh);
                 } else if (l.jmp === 2) {
                     const m = body.tdb.find(background.msg.u);
-                    if (m) background._p._p._p._p.selectCall(m.y);
+                    if (m) background._parent._parent._parent._parent.selectCall(m.y);
                 } else {
-                    background._p._p._p._p.selectCall(l.jmp.y);
+                    background._parent._parent._parent._parent.selectCall(l.jmp.y);
                 }
             }
         };
@@ -461,7 +461,7 @@ define(function (require) {
             const tdb = body.tdb;
 
             // when we get a function call, or 'null' we show the hoverview
-            const v = background._p._p._p._p.hoverView;
+            const v = background._parent._parent._parent._parent.hoverView;
             if (!m) {
                 // no hover
                 v.hide();

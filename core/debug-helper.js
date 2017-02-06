@@ -36,13 +36,13 @@ define(function (require, exports, module) {
     }
 
     function gen(n, padsize = 30) {
-        return [`id:${ot(n)}`, `t:${rw(n.t)}`, `_p:${ot(n._p)}`, `_c:${ot(n._c)}`, `_e:${ot(n._e)}`, `_d:${ot(n._d)}`, `_u:${ot(n._u)}`].map(function (item) {
+        return [`id:${ot(n)}`, `t:${rw(n.t)}`, `_parent:${ot(n._parent)}`, `_child:${ot(n._child)}`, `_lastChild:${ot(n._lastChild)}`, `_nextSibling:${ot(n._nextSibling)}`, `_prevSibling:${ot(n._prevSibling)}`].map(function (item) {
             return item.padding(padsize);
         }).join(', ');
     }
 
     function raw(n) {
-        return color([`id:${ot(n)}`, `t:${rw(n.t)}`, `_p:${ot(n._p)}`, `_c:${ot(n._c)}`, `_e:${ot(n._e)}`, `_d:${ot(n._d)}`, `_u:${ot(n._u)}`]);
+        return color([`id:${ot(n)}`, `t:${rw(n.t)}`, `_parent:${ot(n._parent)}`, `_child:${ot(n._child)}`, `_lastChild:${ot(n._lastChild)}`, `_nextSibling:${ot(n._nextSibling)}`, `_prevSibling:${ot(n._prevSibling)}`]);
     }
 
     log.gen = gen;

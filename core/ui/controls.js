@@ -22,7 +22,7 @@ define(function (require, exports) {
         // parts
         const btn = ui.rect();
         const txt = ui.text();
-        txt._p = btn;
+        txt._parent = btn;
 
         // behaviorw
         cm.button(btn);
@@ -75,7 +75,7 @@ define(function (require, exports) {
 
         const b = ui.rect();
         const k = ui.rect();
-        k._p = b;
+        k._parent = b;
         b.e = k.e = exports.el;
 
         // behavior
@@ -156,7 +156,7 @@ define(function (require, exports) {
 
         const b = ui.rect();
         const k = ui.rect();
-        k._p = b;
+        k._parent = b;
 
         // behavior
         cm.scroll(b, k);
@@ -230,7 +230,7 @@ define(function (require, exports) {
         // parts
         const b = ui.rect();
         const k = ui.rect();
-        k._p = b;
+        k._parent = b;
         b.e = k.e = exports.el;
 
         // behavior
@@ -283,7 +283,7 @@ define(function (require, exports) {
         // parts
         const b = ui.rect();
         const k = ui.rect();
-        k._p = b;
+        k._parent = b;
 
         // behavior
         cm.scroll(b, k);
@@ -405,7 +405,7 @@ define(function (require, exports) {
         // parts
         const b = ui.rect();
         const k = ui.rect();
-        k._p = b;
+        k._parent = b;
 
         // behavior
         cm.slider(b, k, true);
@@ -453,7 +453,7 @@ define(function (require, exports) {
         // parts
         const b = ui.rect();
         const k = ui.rect();
-        k._p = b;
+        k._parent = b;
 
         // behavior
         cm.slider(b, k, false);
@@ -502,7 +502,7 @@ define(function (require, exports) {
         // parts
         const b = ui.rect();
         var t = ui.text();
-        t._p = b;
+        t._parent = b;
 
         // style
         const sb = 'mix(t.deftxt,t.selbg,n.i0)'; // selected base
@@ -603,8 +603,8 @@ define(function (require, exports) {
         const s = ui.rect(); // selection
         const m = ui.text(); // marked text
         let e; // empty text
-        t._p = c._p = s._p = b;
-        m._p = s;
+        t._parent = c._parent = s._parent = b;
+        m._parent = s;
         b.l = 1;
         c.l = 1;
         c._z = 10;
@@ -674,7 +674,7 @@ define(function (require, exports) {
         // empty text
         if (b.empty) {
             e = ui.text();
-            e._p = b;
+            e._parent = b;
             e.l = 1;
             e.x = 2;
             e.b = exports.f1s;
@@ -741,9 +741,9 @@ define(function (require, exports) {
         const c = ui.rect();
         const t = ui.text();
         const d = exports.dropShadow();
-        c._p = b;
-        d._p = b;
-        t._p = c;
+        c._parent = b;
+        d._parent = b;
+        t._parent = c;
 
         b.l = 1;
 

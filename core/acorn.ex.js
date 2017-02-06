@@ -12,7 +12,7 @@ define(function (require, exports, module) {
             (function (k) {
                 Object.defineProperty(proto, k.startsWith('_') ? k.slice(1) : k, {
                     get() {
-                        return this._t === TokenTypes[k];
+                        return this._type === TokenTypes[k];
                     }
                 });
             })(k);
@@ -29,37 +29,37 @@ define(function (require, exports, module) {
             let node = this;
             const parent = node;
             cb(node);
-            node = node._c;
+            node = node._child;
             while (node && node != parent) {
                 cb(node);
-                if (node._c) {
-                    node = node._c;
+                if (node._child) {
+                    node = node._child;
                 } else {
                     while (node != parent) {
-                        if (node._d) {
-                            node = node._d;
+                        if (node._nextSibling) {
+                            node = node._nextSibling;
                             break;
                         }
-                        node = node._p;
+                        node = node._parent;
                     }
                 }
             }
         }
 
         get isAssign() {
-            return this._t && this._t.isAssign;
+            return this._type && this._type.isAssign;
         }
 
         get isLoop() {
-            return this._t && this._t.isLoop;
+            return this._type && this._type.isLoop;
         }
 
         get prefix() {
-            return this._t && this._t.prefix;
+            return this._type && this._type.prefix;
         }
 
         get beforeExpr() {
-            return this._t && this._t.beforeExpr;
+            return this._type && this._type.beforeExpr;
         }
 
         get beforeNewline() {
@@ -76,16 +76,16 @@ define(function (require, exports, module) {
 
         get last() {
             let t = this;
-            while (t._d) {
-                t = t._d;
+            while (t._nextSibling) {
+                t = t._nextSibling;
             }
             return t;
         }
 
         get astParent() {
             let t = this;
-            while (t._d) {
-                t = t._d;
+            while (t._nextSibling) {
+                t = t._nextSibling;
             }
             return t;
         }
@@ -139,33 +139,33 @@ define(function (require, exports, module) {
             if (type == TokenTypes.eof) {
                 return;
             }
-            if (type == TokenTypes.regexp && parentStart._e && parentStart._e._t.binop == 10) {
+            if (type == TokenTypes.regexp && parentStart._lastChild && parentStart._lastChild._type.binop == 10) {
                 // verify this one
-                node = parentStart._e;
-            } else if (opts.compact && parentStart._e && (type == TokenTypes.name && parentStart._e._t == TokenTypes.dot || type == TokenTypes.dot && parentStart._e._t == TokenTypes.name)) {
-                node = parentStart._e;
-                node._t = type;
+                node = parentStart._lastChild;
+            } else if (opts.compact && parentStart._lastChild && (type == TokenTypes.name && parentStart._lastChild._type == TokenTypes.dot || type == TokenTypes.dot && parentStart._lastChild._type == TokenTypes.name)) {
+                node = parentStart._lastChild;
+                node._type = type;
                 node.t += input.slice(tokStart, tokEnd);
             } else {
-                // node._c = n._child
-                // node._d = n._nextSibling
-                // node._e = n._lastChild
-                // node._p = n._parentStart
-                // node._u = n._prevSibling
-                // node._t = n._type
+                // node._child = n._child
+                // node._nextSibling = n._nextSibling
+                // node._lastChild = n._lastChild
+                // node._parent = n._parentStart
+                // node._prevSibling = n._prevSibling
+                // node._type = n._type
                 // node.t = n.tokenStr
                 node = new Node();
-                node._p = parentStart;
-                node._t = type;
+                node._parent = parentStart;
+                node._type = type;
                 node.t = input.slice(tokStart, tokEnd);
                 // todo: if may be useless
                 if (parentStart) {
-                    if (!parentStart._c) {
-                        parentStart._e = parentStart._c = node; // t._c=
+                    if (!parentStart._child) {
+                        parentStart._lastChild = parentStart._child = node; // t._child=
                     } else {
-                        parentStart._e._d = node;
-                        node._u = parentStart._e;
-                        parentStart._e = node;
+                        parentStart._lastChild._nextSibling = node;
+                        node._prevSibling = parentStart._lastChild;
+                        parentStart._lastChild = node;
                     }
                 }
             }
@@ -181,15 +181,15 @@ define(function (require, exports, module) {
                 newParentStart = node;
             } else if (type == TokenTypes.braceR || type == TokenTypes.bracketR || type == TokenTypes.parenR) {
                 if (opts.noclose) {
-                    if (!parentStart._e._u) {
-                        delete parentStart._c;
-                        delete parentStart._e;
+                    if (!parentStart._lastChild._prevSibling) {
+                        delete parentStart._child;
+                        delete parentStart._lastChild;
                     } else {
-                        delete parentStart._e._u._d;
+                        delete parentStart._lastChild._prevSibling._nextSibling;
                     }
                 }
-                if (parentStart._p) {
-                    newParentStart = parentStart._p;
+                if (parentStart._parent) {
+                    newParentStart = parentStart._parent;
                 }
             }
             this.tokTree = newParentStart;
@@ -219,8 +219,8 @@ define(function (require, exports, module) {
          program.tokens.walk(function (n) {
              output.push(logger.gen(n, 25))
              src += n.t
-             if (n.w.indexOf('\n') !== -1 && !n._c) {
-                 if (!(n.t === '}' && n._p._d && n._p._d.t === '}')) {
+             if (n.w.indexOf('\n') !== -1 && !n._child) {
+                 if (!(n.t === '}' && n._parent._nextSibling && n._parent._nextSibling.t === '}')) {
                      src += ';'
                  }
              } else if (n.w.indexOf(' ') != -1) {

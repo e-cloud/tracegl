@@ -11,7 +11,7 @@ define(function (require, exports, module) {
         // \____________________________________________/
         function group(g) {
             const n = new ui.Node();
-            n._t = group;
+            n._type = group;
             n.$$ = function () {};
             n.l = 1;
             if (g) n.set(g);
@@ -25,7 +25,7 @@ define(function (require, exports, module) {
 
         function rect(g) {
             const n = new ui.Node();
-            n._t = rect;
+            n._type = rect;
             n.$$ = function () {
                 const sh = ui.gl.getShader(rect.sd, n);
                 // alloc buffers
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
         function text(g) {
 
             const n = new ui.Node();
-            n._t = text;
+            n._type = text;
             n.$$ = function () {
                 const ol = n._n; // text length
 
@@ -228,7 +228,7 @@ define(function (require, exports, module) {
         // \____________________________________________/
         function edge(g) {
             const n = new ui.Node();
-            n._t = edge;
+            n._type = edge;
 
             n.x_ = 'n.x + n.mx';
             n.y_ = 'n.y + n.my';

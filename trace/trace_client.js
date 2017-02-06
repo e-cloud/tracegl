@@ -163,12 +163,12 @@ define(function (require) {
                 // find available bubble for stack
                 if (b) b = b.next;
                 if (!b) {
-                    b = codeBubble({ x: 1, y, w: 'p.w', h: 300, _p: bubbleBg });
+                    b = codeBubble({ x: 1, y, w: 'p.w', h: 300, _parent: bubbleBg });
                     bubbles.add(b);
                     // sync selection between title and
                     (function (prev) {
                         b.title.p = function (n) {
-                            const b = n._p;
+                            const b = n._parent;
                             b.resetLine();
                             stackView.selectFirst(stackView.ly = b.stacky);
                             selectBubble(b);
@@ -307,7 +307,7 @@ define(function (require) {
                         }
 
                         nblocks--;
-                        n = n._d;
+                        n = n._nextSibling;
                     }
                     sdb.changed();
                     if (!n) clearInterval(searcher), searcher = 0;

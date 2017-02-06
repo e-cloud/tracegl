@@ -302,7 +302,7 @@ define(require => {
         const dict = {};
         let id = inputId;
 
-        const linkedList = log.list('_u', '_d');
+        const linkedList = log.list('_prevSibling', '_nextSibling');
 
         instrumentFn(node, file, true, 0);
 
@@ -323,7 +323,7 @@ define(require => {
                 s += str.slice(b, n.i);
                 s += n.v;
                 b = n.i;
-                n = n._d;
+                n = n._nextSibling;
             }
             s += str.slice(b);
             return s;
