@@ -811,7 +811,7 @@ define(function () {
     // |  quick stacktrace
     // \____________________________________________/
     function printStackTrace() {
-        console.log(new Error().stack);
+        console.log('stack', new Error().stack);
     }
 
     // |  node walker
@@ -904,7 +904,7 @@ define(function () {
 
                         currentPos = stringArr.length;
                         let c2 = currentPos;
-                        console.log(c1, c2);
+                        console.log('pos', c1, c2);
                         if (stringArr.slice(c1, c2 - c1).join('').length < 50) {
                             for (let c3 = c1; c3 < c2; c3++) {
                                 stringArr[c3] = stringArr[c3].replace ? stringArr[c3].replace(/[\r\n\t]|\s\s/g, '') : stringArr[c3];

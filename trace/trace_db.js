@@ -123,7 +123,7 @@ define(function (require, exports, module) {
                         var n3 = db.fileDict[l3.fid].longName;
                         // non return following
                         //	fn('missed return from', n3, l3.n,l3.y, 'got', m.i, n2, l.n, l.y)
-                        fn(m.i, l);
+                        fn('fn', m.i, l);
                     }
                     // if we are not a  return(m.f)
                     let d = last.d - m.d + 1;

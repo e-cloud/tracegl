@@ -35,7 +35,7 @@ define(function (require) {
 
     // theme reloading when file change
     define.reload = function (t) {
-        console.log(t);
+        console.log('reload', t);
         if (t.includes('themes.js')) {
             // reload themes
             require.reload('../core/themes', function (t) {

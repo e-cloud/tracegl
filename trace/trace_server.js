@@ -42,6 +42,7 @@ define(function (require) {
             if (process.send) {
                 process.send(m);
             } else {
+                console.log('_compile')
                 process.stderr.write(`\x1F${JSON.stringify(m)}\x17`);
             }
             return oldCompile.call(this, t.output, filename);
@@ -56,7 +57,6 @@ define(function (require) {
     }
 
     const fn = require('../core/fn');
-    const ssl = require('../core/io_ssl');
     const ioServer = require('../core/io_server');
 
     function out(...args) {
@@ -381,7 +381,7 @@ define(function (require) {
                 joined = true;
             } else if (m.t == 'open') {
                 finder(m.file, function (err, file) {
-                    if (err) return console.log(err);
+                    if (err) return console.log('error', err);
                     openEditor(file, m.line);
                 });
                 // next up is just eating off
@@ -555,6 +555,7 @@ define(function (require) {
 
         // stderr datapath
         const sp = streamParser(sender, function (d) {
+            console.log('datapath')
             process.stderr.write(d);
         });
         if (child.stderr) child.stderr.on('data', sp);

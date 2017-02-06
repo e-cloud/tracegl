@@ -109,6 +109,7 @@ define(require => {
                     };
                     //_$_.channel = {send : function(){}}
                     window.onerror = function (error, url, linenr) {
+                        console.log('onerror', error, url, linenr)
                     };
                 } else if (isWorker) {
                     _$_.channel = {
@@ -124,7 +125,7 @@ define(require => {
                                     process.stderr.write(`\x1F${JSON.stringify(m)}\x17`);
                                 }
                             } catch (e) {
-                                console.log(e, m);
+                                console.log('test', e, m);
                             }
                         }
                     };
@@ -296,7 +297,7 @@ define(require => {
         }
 
         if (options.dump) {
-            log(acorn_tools.dump(node));
+            log('dump', acorn_tools.dump(node));
         }
         // verify parse
         const dict = {};
