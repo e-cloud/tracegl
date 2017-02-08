@@ -15,7 +15,15 @@ define(function (require, exports, module) {
         for (const key in node) {
             if (node.hasOwnProperty(key)) {
 
-                if (key == 'parent' || key == 'tokens' || key == 'start' || key == 'end' || key == 'token' || key == 'loc') continue;
+                if (key == 'parent' ||
+                    key == 'tokens' ||
+                    key == 'start' ||
+                    key == 'end' ||
+                    key == 'token' ||
+                    key == 'loc'
+                ) {
+                    continue;
+                }
                 if (key == 'token') {
                     start += `\n${tok}token: ${node[key].token}`;
                     continue;
@@ -161,7 +169,15 @@ define(function (require, exports, module) {
 
     function stringifyExpression(expr) {
         if (!expr || !expr.type) return '';
-        return stringifyExpressionMap[expr.type](expr);
+        try {
+            return stringifyExpressionMap[expr.type](expr);
+        }
+        catch (e) {
+            if (e instanceof TypeError) {
+                e.message += `expr.type = ${expr.type}`
+            }
+            throw e
+        }
     }
 
     function stringifyBlock(b) {
@@ -258,10 +274,14 @@ define(function (require, exports, module) {
             return stringifyExpression(n.left) + n.operator + stringifyExpression(n.right);
         },
         UpdateExpression(n) {
-            return n.prefix ? n.operator + stringifyExpression(n.argument) : stringifyExpression(n.argument) + n.operator;
+            return n.prefix ?
+              n.operator + stringifyExpression(n.argument) :
+              stringifyExpression(n.argument) + n.operator;
         },
         UnaryExpression(n) {
-            return n.prefix ? n.operator + stringifyExpression(n.argument) : stringifyExpression(n.argument) + n.operator;
+            return n.prefix
+              ? n.operator + stringifyExpression(n.argument)
+              : stringifyExpression(n.argument) + n.operator;
         },
         CallExpression(n) {
             return `${stringifyExpression(n.callee)}(${stringifySeq(n.arguments)})`;
@@ -276,10 +296,12 @@ define(function (require, exports, module) {
             return `new ${stringifyExpression(n.callee)}(${stringifySeq(n.arguments)})`;
         },
         FunctionDeclaration(n) {
-            return `function${n.id ? ' ' + stringifyExpression(n.id) : ''}(${stringifySeq(n.params)})${stringifyExpression(n.body)}`;
+            return `function${n.id ? ' ' +
+                                     stringifyExpression(n.id) : ''}(${stringifySeq(n.params)})${stringifyExpression(n.body)}`;
         },
         FunctionExpression(n) {
-            return `function${n.id ? ' ' + stringifyExpression(n.id) : ''}(${stringifySeq(n.params)})${stringifyExpression(n.body)}`;
+            return `function${n.id ? ' ' +
+                                     stringifyExpression(n.id) : ''}(${stringifySeq(n.params)})${stringifyExpression(n.body)}`;
         },
         ObjectExpression(n) {
             let str = '{';
@@ -288,10 +310,13 @@ define(function (require, exports, module) {
                 if (i) {
                     str += ', ';
                 }
-                str += `${stringifyExpression(b.key)}:${stringifyExpression(b.value)}`;
+                str += `${stringifyExpression(b[i].key)}:${stringifyExpression(b[i].value)}`;
             }
             str += '}';
             return str;
+        },
+        ObjectPattern(n){
+            return stringifyExpressionMap.ObjectExpression(n)
         },
         MemberExpression(n) {
             if (n.computed) {
@@ -300,16 +325,19 @@ define(function (require, exports, module) {
             return `${stringifyExpression(n.object)}.${stringifyExpression(n.property)}`;
         },
         IfStatement(n) {
-            return `if(${stringifyExpression(n.test)})${stringifyExpression(n.consequent)}${strSeparator}${n.alternate ? 'else ' + stringifyExpression(n.alternate) + strSeparator : ''}`;
+            return `if(${stringifyExpression(n.test)})${stringifyExpression(n.consequent)}${strSeparator}${n.alternate
+              ? 'else ' + stringifyExpression(n.alternate) + strSeparator : ''}`;
         },
         ThrowStatement(n) {
             return `throw ${stringifyExpression(n.argument)}`;
         },
         TryStatement(n) {
-            return `try ${stringifyExpression(n.block)}${strSeparator}${stringifyBlock(n.handlers)}${strSeparator}${n.finalizer ? 'finally ' + stringifyBlock(n.finalizer) : ''}`;
+            return `try ${stringifyExpression(n.block)}${strSeparator}${stringifyBlock(n.handlers)}${strSeparator}${n.finalizer
+              ? 'finally ' + stringifyBlock(n.finalizer) : ''}`;
         },
         CatchClause(n) {
-            return `catch(${stringifyExpression(n.param)}${n.guard ? ' if ' + stringifyExpression(n.guard) : ')'}${stringifyExpression(n.body)}`;
+            return `catch(${stringifyExpression(n.param)}${n.guard
+              ? ' if ' + stringifyExpression(n.guard) : ')'}${stringifyExpression(n.body)}`;
         }
     };
 

@@ -19,10 +19,10 @@ define(function (require) {
     function nodeLoader() {
         const filter = makeFilter(process.argv[2].slice(2));
 
-        const m = require('module').Module.prototype;
-        const oldCompile = m._compile;
+        const modulePrototype = require('module').Module.prototype;
+        const oldCompile = modulePrototype._compile;
         let dataId = 1;
-        m._compile = function (content, filename) {
+        modulePrototype._compile = function (content, filename) {
 
             if (filter.active && filter(filename)) {
                 return oldCompile.call(this, content, filename);
@@ -36,6 +36,7 @@ define(function (require) {
                 process.send(m);
             } else {
                 console.log('_compile')
+                fs.writeFileSync(filename.replace('.js', '.out.js'), t.output, 'utf8')
                 process.stderr.write(`\x1F${JSON.stringify(m)}\x17`);
             }
             return oldCompile.call(this, t.output, filename);

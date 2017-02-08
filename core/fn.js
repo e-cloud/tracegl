@@ -115,7 +115,7 @@ define(function () {
             li.len = length = 0;
         };
 
-        //|  add an item to the list
+        // add an item to the list
         function add(item) {
             if (arguments.length > 1) {
                 for (let i = 0, j = arguments.length; i < j; i++) {
@@ -143,7 +143,7 @@ define(function () {
             return length;
         }
 
-        //|  add a sorted item scanning from the end
+        // add a sorted item scanning from the end
         li.sorted = function (item, propName) {
             if (leftId in item || rightId in item || beginNode == item) {
                 return length;
@@ -183,7 +183,7 @@ define(function () {
             return length;
         };
 
-        //|  remove item from the list
+        // remove item from the list
         function remove(item) {
             if (arguments.length > 1) {
                 for (let i = 0, j = arguments.length; i < j; i++) {
@@ -232,7 +232,7 @@ define(function () {
             return length;
         }
 
-        //|  run all items in the list
+        // run all items in the list
         li.run = function(...args) {
             let node = beginNode;
             let validResult;
@@ -245,7 +245,7 @@ define(function () {
             return validResult;
         };
 
-        //|  iterate over all items
+        // iterate over all items
         li.each = function (iterate) {
             let node = beginNode;
             let pos = 0;
@@ -263,7 +263,7 @@ define(function () {
             return validResult;
         };
 
-        //|  check if item is in the list
+        // check if item is in the list
         li.has = function (item) {
             return leftId in item || rightId in item || beginNode == item;
         };
@@ -383,24 +383,24 @@ define(function () {
         Stack.push = push;
         Stack.shift = shift;
         Stack.set = set;
-        //|  length of the stack, externals are readonly
+        // length of the stack, externals are readonly
         let begin = Stack.beg = 1;
         let end = Stack.end = 1;
         let length = Stack.len = 0;
 
-        //|  return item on bottom of stack
+        // return item on bottom of stack
         Stack.bottom = function () {
             if (begin == end) return null;
             return Stack[begin];
         };
 
-        //|  item on the top of the staci
+        // item on the top of the staci
         Stack.top = function () {
             if (begin == end) return null;
             return Stack[end];
         };
 
-        //|  push item to the top of the stack
+        // push item to the top of the stack
         function push(arg) {
             if (arguments.length > 1) {
                 let r;
@@ -415,7 +415,7 @@ define(function () {
             return (Stack.end = end) - 1;
         }
 
-        //|  pop item from the top of the stack
+        // pop item from the top of the stack
         Stack.pop = function () {
             const item = Stack[end - 1];
             if (begin != end) {
@@ -435,7 +435,7 @@ define(function () {
             return item;
         };
 
-        //|  insert item at the bottom of the stack
+        // insert item at the bottom of the stack
         function shift(arg) {
             if (arguments.length > 1) {
                 let r;
@@ -450,7 +450,7 @@ define(function () {
             return Stack.beg = begin;
         }
 
-        //|  remove item at the bottom of the stack
+        // remove item at the bottom of the stack
         Stack.unshift = function () {
             if (begin != end) {
                 delete Stack[begin];
@@ -463,7 +463,7 @@ define(function () {
             return Stack.beg;
         };
 
-        //|  set an item with a particular index
+        // set an item with a particular index
         function set(index, value) {
             if (arguments.length > 2) {
                 let r;
@@ -482,7 +482,7 @@ define(function () {
             return index;
         }
 
-        //|  remove item with particular index
+        // remove item with particular index
         Stack.rm = function (index) {
             if (!index in Stack) return;
 
@@ -507,7 +507,7 @@ define(function () {
             return index;
         };
 
-        //|  iterate over all items in the stack
+        // iterate over all items in the stack
         Stack.each = function (iterate) {
             let valid;
             let result;

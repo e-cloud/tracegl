@@ -12,13 +12,14 @@ define(require => {
     const dlog = require('../core/debug-helper');
     const Table = require('cli-table');
 
-    const Global_STR = '_$_';
+    const G_STR = '_$_';
 
     function tracehub() {
         //TRACE
         try {
             _$_;
-        } catch (error) {
+        }
+        catch (error) {
             _$_ = {};
             (function () {
                 const isNode = typeof process != 'undefined';
@@ -95,13 +96,15 @@ define(require => {
                                     }
                                 }
                             }
-                        } catch (e) {}
+                        }
+                        catch (e) {
+                        }
                         return obj;
                     }
                 }
 
                 const channel = //CHANNEL
-                0;
+                  0;
                 if (isBrowser) {
                     _$_.channel = channel('/io_X_X');
                     _$_.channel.data = function (msg) {
@@ -124,130 +127,136 @@ define(require => {
                                 } else {
                                     process.stderr.write(`\x1F${JSON.stringify(m)}\x17`);
                                 }
-                            } catch (e) {
+                            }
+                            catch (e) {
                                 console.log('test', e, m);
                             }
                         }
                     };
                 }
                 let depth = 0; // depth
-                let di = 0;
+                let depthId = 0;
                 let gc = 1;
 
-                let leftReturn = 0; // last return
+                let lastReturn = 0; // last return
 
                 // function call entry
-
                 if (typeof global !== 'undefined') {
-                    _$_.f = function (i, a, t, u) {
-                        if (leftReturn) {
-                            _$_.channel.send(leftReturn, 1);
-                            leftReturn = 0;
+                    _$_.enter = function (lineId, args, thisObj, upWhat) {
+                        if (lastReturn) {
+                            console.log('\nenter', lastReturn)
+                            _$_.channel.send(lastReturn, 1);
+                            lastReturn = 0;
                         }
                         // dump arguments
                         depth++;
-                        if (!di) {
-                            di = global.setTimeout(function () {
-                                di = depth = 0;
+                        if (!depthId) {
+                            depthId = global.setTimeout(function () {
+                                depthId = depth = 0;
                             }, 0);
                         }
-                        const r = {
-                            i,
+                        const msg = {
+                            i: lineId,
                             g: gc++,
                             d: depth,
-                            u,
+                            u: upWhat,
                             t: global.Date.now()
                         };
-                        if (a) {
-                            r.a = [];
-                            for (let j = 0; j < a.length; j++) {
-                                r.a[j] = dump(a[j], 0);
+                        if (args) {
+                            msg.a = [];
+                            for (let j = 0; j < args.length; j++) {
+                                msg.a[j] = dump(args[j], 0);
                             }
                         } else {
-                            r.a = null;
+                            msg.a = null;
                         }
-                        _$_.channel.send(r);
-                        return r.g;
+                        console.log('\nenter', msg)
+                        _$_.channel.send(msg);
+                        return msg.g;
                     };
                 } else {
-                    _$_.f = function (i, a, t, u) {
-                        if (leftReturn) {
-                            _$_.channel.send(leftReturn, 1);
-                            leftReturn = 0;
+                    _$_.enter = function (lineId, args, thisObj, upWhatttt) {
+                        if (lastReturn) {
+                            console.log('\nenter', lastReturn)
+                            _$_.channel.send(lastReturn, 1);
+                            lastReturn = 0;
                         }
                         // dump arguments
                         depth++;
-                        if (!di) {
-                            di = setTimeout(function () {
-                                di = depth = 0;
+                        if (!depthId) {
+                            depthId = setTimeout(function () {
+                                depthId = depth = 0;
                             }, 0);
                         }
-                        const r = {
-                            i,
+                        const msg = {
+                            i: lineId,
                             g: gc++,
                             d: depth,
-                            u,
+                            u: upWhatttt,
                             t: Date.now()
                         };
-                        if (a) {
-                            r.a = [];
-                            for (let j = 0; j < a.length; j++) {
-                                r.a[j] = dump(a[j], 0);
+                        if (args) {
+                            msg.a = [];
+                            for (let j = 0; j < args.length; j++) {
+                                msg.a[j] = dump(args[j], 0);
                             }
                         } else {
-                            r.a = null;
+                            msg.a = null;
                         }
-                        _$_.channel.send(r);
-                        return r.g;
+                        console.log('\nenter', msg)
+                        _$_.channel.send(msg);
+                        return msg.g;
                     };
                 }
 
                 // callsite annotation for last return
-                _$_.c = function (i, v) {
-                    if (!leftReturn) {
-                        return v;
+                _$_.callLine = function (lineId, returnVal) {
+                    if (!lastReturn) {
+                        return returnVal;
                     }
-                    leftReturn.c = i;
-                    _$_.channel.send(leftReturn);
-                    leftReturn = 0;
-                    return v;
+                    lastReturn.c = lineId;
+                    console.log('\ncallLine', lastReturn)
+                    _$_.channel.send(lastReturn);
+                    lastReturn = 0;
+                    return returnVal;
                 };
                 // function exit
-                _$_.e = function (i, r, v, x) {
-                    if (leftReturn) {
-                        _$_.channel.send(leftReturn, 1);
-                        leftReturn = 0;
+                _$_.exit = function (lineId, ret, value, x) {
+                    if (lastReturn) {
+                        console.log('\nexit', lastReturn)
+                        _$_.channel.send(lastReturn, 1);
+                        lastReturn = 0;
                     }
-                    for (const k in r) {
-                        const j = r[k];
-                        if (j !== null) {
-                            const t = typeof j;
-                            if (t == 'undefined' | t == 'function') {
-                                r[k] = `_$_${t}`;
+                    for (const k in ret) {
+                        const localVar = ret[k];
+                        if (localVar !== null) {
+                            const t = typeof localVar;
+                            if (t == 'undefined' || t == 'function') {
+                                ret[k] = `_$_${t}`;
                             } else if (t == 'object') {
-                                r[k] = dump(j, 0);
+                                ret[k] = dump(localVar, 0);
                             } else if (t == 'number') {
-                                if (j === Infinity) {
-                                    r[k] = '_$_Infinity';
+                                if (localVar === Infinity) {
+                                    ret[k] = '_$_Infinity';
                                 }
-                                if (j === NaN) {
-                                    r[k] = '_$_NaN';
+                                if (localVar === NaN) {
+                                    ret[k] = '_$_NaN';
                                 }
                             }
                         }
                     }
-                    r.g = gc++;
-                    r.i = i;
-                    r.d = depth;
+                    ret.g = gc++;
+                    ret.i = lineId;
+                    ret.d = depth;
                     if (arguments.length > 2) {
-                        r.v = dump(v, 0);
-                        r.x = x;
+                        ret.v = dump(value, 0);
+                        ret.x = x;
                     }
-                    leftReturn = r;
+                    lastReturn = ret;
                     if (depth > 0) {
                         depth--;
                     }
-                    return v;
+                    return value;
                 };
             })();
         }
@@ -260,7 +269,7 @@ define(require => {
         function strip(input) {
             /* var program = acorn_tools.parse(input)
              var table = new Table()
-              program.tokens.walk(function (n) {
+             program.tokens.walk(function (n) {
              table.push(dlog.raw(n))
              })
              console.log(table.toString())*/
@@ -282,11 +291,12 @@ define(require => {
         if (!head) {
             head = mkHead();
         }
-        src = src.replace(/^\#.*?\n/, '\n').replace(/\t/g, '   ');
+        src = src.replace(/^#.*?\n/, '\n').replace(/\t/g, '   ');
         let node;
         try {
             node = acorn.parse(src, { locations: 1 });
-        } catch (err) {
+        }
+        catch (err) {
             log(`Parse error instrumenting ${ file } ${ err }`);
             return {
                 input: src, //cutUp(cuts,src),
@@ -300,7 +310,7 @@ define(require => {
             log('dump', acorn_tools.dump(node));
         }
         // verify parse
-        const dict = {};
+        const dictionary = {};
         let id = inputId;
 
         const linkedList = log.list('_prevSibling', '_nextSibling');
@@ -312,7 +322,7 @@ define(require => {
             clean: cutUp(linkedList, src),
             output: head + cutUp(linkedList, src),
             id,
-            d: dict
+            d: dictionary
         };
 
         function cutUp(cuts, str) {
@@ -342,7 +352,12 @@ define(require => {
 
         function instrumentFn(node, name, isRoot, parentId) {
             // if the first thing in the body is
-            if (node.body && node.body.body && node.body.body[0] && node.body.body[0].type == 'ExpressionStatement' && node.body.body[0].expression.type == 'Literal' && node.body.body[0].expression.value == 'no tracegl') {
+            if (node.body
+                && node.body.body
+                && node.body.body[0]
+                && node.body.body[0].type == 'ExpressionStatement'
+                && node.body.body[0].expression.type == 'Literal'
+                && node.body.body[0].expression.value == 'no tracegl') {
                 return;
             }
 
@@ -362,7 +377,7 @@ define(require => {
                     };
                 }
 
-                dict[id++] = {
+                dictionary[id++] = {
                     x: node.body.loc.start.column,
                     y: node.body.loc.start.line,
                     ex: node.body.loc.end.column,
@@ -374,7 +389,7 @@ define(require => {
                 };
             } else {
                 fnHead = insert(node.start, '');
-                dict[id++] = {
+                dictionary[id++] = {
                     x: node.loc.start.column,
                     y: node.loc.start.line,
                     ex: node.loc.end.column,
@@ -393,19 +408,19 @@ define(require => {
                 let x;
                 let o;
                 if (body.type == 'BlockStatement') {
-                    x = `${ Global_STR }b.l${ id }++;`;
+                    x = `${ G_STR }b.l${ id }++;`;
                     o = 1;
                 } else if (body.type == 'ExpressionStatement') {
-                    x = `${ Global_STR }b.l${ id }++,`;
+                    x = `${ G_STR }b.l${ id }++,`;
                     o = 0;
                 } else if (body.type == 'EmptyStatement') {
-                    x = `${ Global_STR }b.l${ id }++`;
+                    x = `${ G_STR }b.l${ id }++`;
                     o = 0;
                 }
                 if (x) {
                     insert(body.start + o, x);
                     loopIds.push(id);
-                    dict[id++] = {
+                    dictionary[id++] = {
                         x: startPos.column,
                         y: startPos.line,
                         ex: endPos.column,
@@ -418,27 +433,27 @@ define(require => {
                 let hasLogic = 0;
                 // if we have logical expressions we only mark the if
                 acorn_tools.walkDown(node, {
-                    LogicalExpression(n, p) {
+                    LogicalExpression(node, p) {
                         // insert ( ) around logical left and right
                         hasLogic = 1;
-                        if (n.left.type != 'LogicalExpression') {
-                            insert(n.left.start, `(${ Global_STR }b.b${ id }=`);
-                            insert(n.left.end, ')');
-                            dict[id++] = {
-                                x: n.left.loc.start.column,
-                                y: n.left.loc.start.line,
-                                ex: n.left.loc.end.column,
-                                ey: n.left.loc.end.line
+                        if (node.left.type != 'LogicalExpression') {
+                            insert(node.left.start, `(${ G_STR }b.b${ id }=`);
+                            insert(node.left.end, ')');
+                            dictionary[id++] = {
+                                x: node.left.loc.start.column,
+                                y: node.left.loc.start.line,
+                                ex: node.left.loc.end.column,
+                                ey: node.left.loc.end.line
                             };
                         }
-                        if (n.right.type != 'LogicalExpression') {
-                            insert(n.right.start, `(${ Global_STR }b.b${ id }=`);
-                            insert(n.right.end, ')');
-                            dict[id++] = {
-                                x: n.right.loc.start.column,
-                                y: n.right.loc.start.line,
-                                ex: n.right.loc.end.column,
-                                ey: n.right.loc.end.line
+                        if (node.right.type != 'LogicalExpression') {
+                            insert(node.right.start, `(${ G_STR }b.b${ id }=`);
+                            insert(node.right.end, ')');
+                            dictionary[id++] = {
+                                x: node.right.loc.start.column,
+                                y: node.right.loc.start.line,
+                                ex: node.right.loc.end.column,
+                                ey: node.right.loc.end.line
                             };
                         }
                     },
@@ -463,78 +478,85 @@ define(require => {
                     //console.log(cc)
                     if (cc == '(') return false;
                 }
-                return parent.node.type == 'ExpressionStatement' && (parent.up.node.type == 'BlockStatement' || parent.up.node.type == 'Program' || parent.up.node.type == 'SwitchCase');
+                return parent.node.type ==
+                       'ExpressionStatement' &&
+                       (parent.up.node.type ==
+                        'BlockStatement' ||
+                        parent.up.node.type ==
+                        'Program' ||
+                        parent.up.node.type ==
+                        'SwitchCase');
             }
 
             acorn_tools.walkDown(isRoot ? node : node.body, {
-                FunctionExpression(n, p) {
+                FunctionExpression(node, parent) {
                     //return 1
                     let name = 'function()';
-                    acorn_tools.walkUp(p, {
-                        VariableDeclarator(n, p) {
-                            return name = acorn_tools.stringify(n.id);
+                    acorn_tools.walkUp(parent, {
+                        VariableDeclarator(node) {
+                            return name = acorn_tools.stringify(node.id);
                         },
-                        AssignmentExpression(n, p) {
-                            return name = acorn_tools.stringify(n.left);
+                        AssignmentExpression(node) {
+                            return name = acorn_tools.stringify(node.left);
                         },
-                        ObjectExpression(n, p) {
-                            return name = acorn_tools.stringify(p.key);
+                        ObjectExpression(node, parent) {
+                            return name = acorn_tools.stringify(parent.key);
                         },
-                        CallExpression(n, p) {
+                        CallExpression(node) {
                             let id = ''; // use deepest id as name
-                            acorn_tools.walkDown(n.callee, {
-                                Identifier(n) {
-                                    id = n.name;
+                            acorn_tools.walkDown(node.callee, {
+                                Identifier(node) {
+                                    id = node.name;
                                 }
                             });
                             if (id == 'bind') return;
-                            return name = `${ n.callee.type == 'FunctionExpression' ? '()' : id }->`;
+                            return name = `${ node.callee.type == 'FunctionExpression' ? '()' : id }->`;
                         }
                     });
-                    instrumentFn(n, name, false, funcId);
+                    instrumentFn(node, name, false, funcId);
                     return 1;
                 },
-                FunctionDeclaration(n, p) {
+                FunctionDeclaration(node) {
                     //return 1
-                    instrumentFn(n, acorn_tools.stringify(n.id), false, funcId);
+                    instrumentFn(node, acorn_tools.stringify(node.id), false, funcId);
                     return 1;
                 },
-                ForInStatement(n, p) {
-                    addLoop(n.body, n.loc.start, n.body.loc.start);
+                ForInStatement(node) {
+                    addLoop(node.body, node.loc.start, node.body.loc.start);
                 },
-                ForStatement(n, p) {
-                    addLoop(n.body, n.loc.start, n.body.loc.start);
+                ForStatement(node) {
+                    addLoop(node.body, node.loc.start, node.body.loc.start);
                 },
-                WhileStatement(n, p) {
-                    addLoop(n.body, n.loc.start, n.body.loc.start);
+                WhileStatement(node) {
+                    addLoop(node.body, node.loc.start, node.body.loc.start);
                 },
-                DoWhileStatement(n, p) {
-                    addLoop(n.body, n.loc.start, n.body.loc.start);
+                DoWhileStatement(node) {
+                    addLoop(node.body, node.loc.start, node.body.loc.start);
                 },
-                IfStatement(n, p) {
-                    const b = n.test;
-                    insert(b.start, `${ Global_STR }b.b${ id }=`);
-                    const m = dict[id++] = {
-                        x: n.loc.start.column,
-                        y: n.loc.start.line,
-                        ex: n.test.loc.end.column + 1,
-                        ey: n.test.loc.end.line
+                IfStatement(node) {
+                    const b = node.test;
+                    insert(b.start, `${ G_STR }b.b${ id }=`);
+                    const m = dictionary[id++] = {
+                        x: node.loc.start.column,
+                        y: node.loc.start.line,
+                        ex: node.test.loc.end.column + 1,
+                        ey: node.test.loc.end.line
                     };
                     // lets go and split apart all boolean expressions in our test
-                    if (logicalExpression(n.test)) {
+                    if (logicalExpression(node.test)) {
                         m.ex = m.x + 2;
                         m.ey = m.y;
                     }
-                    //addBlock(n.consequent)
-                    //addBlock(n.alternate)
+                    //addBlock(node.consequent)
+                    //addBlock(node.alternate)
                 },
-                ConditionalExpression(n, p) {
-                    const b = n.test;
-                    if (!logicalExpression(n.test)) {
-                        insert(b.start, `${ needSemi(p, b.start) ? ';' : '' }(${ Global_STR }b.b${ id }=`);
+                ConditionalExpression(node, parent) {
+                    const b = node.test;
+                    if (!logicalExpression(node.test)) {
+                        insert(b.start, `${ needSemi(parent, b.start) ? ';' : '' }(${ G_STR }b.b${ id }=`);
 
                         insert(b.end, ')');
-                        dict[id++] = {
+                        dictionary[id++] = {
                             x: b.loc.start.column,
                             y: b.loc.start.line,
                             ex: b.loc.end.column + 1,
@@ -542,45 +564,67 @@ define(require => {
                         };
                     }
                 },
-                SwitchCase(n, p) {
-                    const testNode = n.test;
+                SwitchCase(node) {
+                    const testNode = node.test;
                     if (testNode) {
-                        insert(n.colon, `${ Global_STR }b.b${ id }=1;`);
-                        dict[id++] = {
-                            x: n.loc.start.column,
-                            y: n.loc.start.line,
+                        insert(node.colon, `${ G_STR }b.b${ id }=1;`);
+                        dictionary[id++] = {
+                            x: node.loc.start.column,
+                            y: node.loc.start.line,
                             ex: testNode.loc.end.column,
                             ey: testNode.loc.end.line
                         };
                     }
                 },
-                VariableDeclarator(n, p) {
-                    if (n.init && n.init.type != 'Literal' && n.init.type != 'FunctionExpression' && n.init.type != 'ObjectExpression') {
-                        addAssign(n.id.loc, n.init.start);
+                VariableDeclarator(node) {
+                    if (node.init &&
+                        node.init.type !=
+                        'Literal' &&
+                        node.init.type !=
+                        'FunctionExpression' &&
+                        node.init.type !=
+                        'ObjectExpression') {
+                        addAssign(node.id.loc, node.init.start);
                     }
                 },
-                ObjectExpression(n, p) {
-                    for (let i = 0; i < n.properties.length; i++) {
-                        const k = n.properties[i].key;
-                        const v = n.properties[i].value;
-                        if (v && v.type != 'Literal' && v.type != 'FunctionExpression' && v.type != 'ObjectExpression') {
+                ObjectExpression(node) {
+                    for (let i = 0; i < node.properties.length; i++) {
+                        const k = node.properties[i].key;
+                        const v = node.properties[i].value;
+                        if (v &&
+                            v.type !=
+                            'Literal' &&
+                            v.type !=
+                            'FunctionExpression' &&
+                            v.type !=
+                            'ObjectExpression') {
                             addAssign(k.loc, v.start);
                         }
                     }
                 },
-                AssignmentExpression(n, p) {
-                    if ( /*n.operator == '='*/n.right.type != 'Literal' && n.right.type != 'FunctionExpression' && n.right.type != 'ObjectExpression') {
-                        addAssign(n.left.loc, n.right.start);
+                AssignmentExpression(node) {
+                    if (/*node.operator == '='*/node.right.type !=
+                                                'Literal' &&
+                                                node.right.type !=
+                                                'FunctionExpression' &&
+                                                node.right.type !=
+                                                'ObjectExpression') {
+                        addAssign(node.left.loc, node.right.start);
                     }
                 },
-                CallExpression(n, p) {
+                CallExpression(node, parent) {
                     // only if we are the first of a SequenceExpression
-                    if (p.node.type == 'SequenceExpression' && p.node.expressions[0] == n) p = p.up;
-                    insert(n.start, `${ needSemi(p, n.start) ? ';' : '' }(${ Global_STR }.c(${ id },`);
-                    insert(n.end - 1, '))');
+                    if (parent.node.type ==
+                        'SequenceExpression' &&
+                        parent.node.expressions[0] ==
+                        node) {
+                        parent = parent.up;
+                    }
+                    insert(node.start, `${ needSemi(parent, node.start) ? ';' : '' }(${ G_STR }.callLine(${ id },`);
+                    insert(node.end - 1, '))');
                     const a = [];
 
-                    for (const arg of n.arguments) {
+                    for (const arg of node.arguments) {
                         if (arg) {
                             a.push({
                                 x: arg.loc.start.column,
@@ -594,26 +638,31 @@ define(require => {
                     }
 
                     let ce = 0;
-                    if (n.callee.type == 'MemberExpression') {
-                        if (n.callee.property.name == 'call') ce = 1;
-                        if (n.callee.property.name == 'apply') ce = 2;
+                    if (node.callee.type == 'MemberExpression') {
+                        if (node.callee.property.name == 'call') ce = 1;
+                        if (node.callee.property.name == 'apply') ce = 2;
                     }
-                    dict[id++] = {
-                        x: n.callee.loc.start.column,
-                        y: n.callee.loc.start.line,
-                        ex: n.callee.loc.end.column,
-                        ey: n.callee.loc.end.line,
+                    dictionary[id++] = {
+                        x: node.callee.loc.start.column,
+                        y: node.callee.loc.start.line,
+                        ex: node.callee.loc.end.column,
+                        ey: node.callee.loc.end.line,
                         a,
                         ce
                     };
                 },
-                NewExpression(n, p) {
-                    if (p.node.type == 'SequenceExpression' && p.node.expressions[0] == n) p = p.up;
-                    insert(n.start, `${ needSemi(p, n.start) ? ';' : '' }(${ Global_STR }.c(${ id },`);
-                    insert(n.end, '))');
+                NewExpression(node, parent) {
+                    if (parent.node.type ==
+                        'SequenceExpression' &&
+                        parent.node.expressions[0] ==
+                        node) {
+                        parent = parent.up;
+                    }
+                    insert(node.start, `${ needSemi(parent, node.start) ? ';' : '' }(${ G_STR }.callLine(${ id },`);
+                    insert(node.end, '))');
                     const a = [];
 
-                    for (const arg of n.arguments) {
+                    for (const arg of node.arguments) {
                         if (arg) {
                             a.push({
                                 x: arg.loc.start.column,
@@ -626,50 +675,50 @@ define(require => {
                         }
                     }
 
-                    dict[id++] = {
+                    dictionary[id++] = {
                         isnew: 1,
-                        x: n.callee.loc.start.column,
-                        y: n.callee.loc.start.line,
-                        ex: n.callee.loc.end.column,
-                        ey: n.callee.loc.end.line,
+                        x: node.callee.loc.start.column,
+                        y: node.callee.loc.start.line,
+                        ex: node.callee.loc.end.column,
+                        ey: node.callee.loc.end.line,
                         a
                     };
                 },
-                ReturnStatement(n, p) {
-                    if (n.argument) {
+                ReturnStatement(node) {
+                    if (node.argument) {
                         //assignId.push(id)
-                        //cut(n.start+6, " "+gs+".b="+gs+"b,"+gs + "["+iid+"][" + (id-iid) + "]=")
-                        insert(n.argument.start, `(${ Global_STR }.e(${ id },${ Global_STR }b,(`);
-                        insert(n.argument.end, ')))');
+                        //cut(node.start+6, " "+gs+".b="+gs+"b,"+gs + "["+iid+"][" + (id-iid) + "]=")
+                        insert(node.argument.start, `(${ G_STR }.exit(${ id },${ G_STR }b,(`);
+                        insert(node.argument.end, ')))');
                     } else {
-                        insert(n.start + 6, ` ${ Global_STR }.e(${ id }, ${ Global_STR }b)`);
+                        insert(node.start + 6, ` ${ G_STR }.exit(${ id }, ${ G_STR }b)`);
                     }
-                    dict[id++] = {
-                        x: n.loc.start.column,
-                        y: n.loc.start.line,
+                    dictionary[id++] = {
+                        x: node.loc.start.column,
+                        y: node.loc.start.line,
                         ret: funcId,
                         r: 1
                     };
                     // return object injection
                 },
-                CatchClause(n, p) {
+                CatchClause(node) {
                     // catch clauses need to send out a depth-reset message
-                    //cut(n.body.start + 1, gs + '.x('+gs+'d,'+gs+'b.x'+id+'='+ac.stringify(n.param)+');')
-                    insert(n.body.start + 1, `${ Global_STR }b.x${ id }=${ acorn_tools.stringify(n.param) };`);
+                    // cut(node.body.start + 1, gs + '.x('+gs+'d,'+gs+'b.x'+id+'='+ac.stringify(node.param)+');')
+                    insert(node.body.start + 1, `${ G_STR }b.x${ id }=${ acorn_tools.stringify(node.param) };`);
 
                     // lets store the exception as logic value on the catch
-                    dict[id++] = {
-                        x: n.loc.start.column,
-                        y: n.loc.start.line,
-                        ex: n.loc.start.column + 5,
-                        ey: n.loc.start.line
+                    dictionary[id++] = {
+                        x: node.loc.start.column,
+                        y: node.loc.start.line,
+                        ex: node.loc.start.column + 5,
+                        ey: node.loc.start.line
                     };
                 }
             });
 
             function addAssign(mark, inj) {
-                insert(inj, `${ Global_STR }b.a${ id }=`);
-                dict[id++] = {
+                insert(inj, `${ G_STR }b.a${ id }=`);
+                dictionary[id++] = {
                     x: mark.start.column,
                     y: mark.start.line,
                     ex: mark.end.column,
@@ -678,9 +727,9 @@ define(require => {
             }
 
             // write function entry
-            let str = `var ${ Global_STR }b={};`;
+            let str = `var ${ G_STR }b={};`;
             if (loopIds.length) {
-                str = `var ${ Global_STR }b={`;
+                str = `var ${ G_STR }b={`;
                 for (var i = 0; i < loopIds.length; i++) {
                     if (i) str += ',';
                     str += `l${ loopIds[i] }:0`;
@@ -689,7 +738,7 @@ define(require => {
             }
 
             let tryStart = 'try{';
-            let tryEnd = `}catch(x){${ Global_STR }.e(${ id },${ Global_STR }b,x,1);throw x;}`;
+            let tryEnd = `}catch(x){${ G_STR }.exit(${ id },${ G_STR }b,x,1);throw x;}`;
 
             if (options.nocatch) {
                 tryStart = '';
@@ -697,18 +746,18 @@ define(require => {
             }
 
             if (isRoot) {
-                fnHead.v = `var ${ Global_STR }g${ funcId }=${ Global_STR }.f(${ funcId },null,0,0);${ str }${ tryStart }`;
-                insert(node.end, `;${ Global_STR }.e(${ id },${ Global_STR }b)${ tryEnd }`);
-                dict[id++] = {
+                fnHead.v = `var ${ G_STR }g${ funcId }=${ G_STR }.enter(${ funcId },null,0,0);${ str }${ tryStart }`;
+                insert(node.end, `;${ G_STR }.exit(${ id },${ G_STR }b)${ tryEnd }`);
+                dictionary[id++] = {
                     x: node.loc.end.column,
                     y: node.loc.end.line,
                     ret: funcId,
                     root: 1
                 };
             } else {
-                fnHead.v = `var ${ Global_STR }g${ funcId }=${ Global_STR }.f(${ funcId },arguments,this,${ Global_STR }g${ parentId });${ str }${ tryStart }`;
-                insert(node.body.end - 1, `;${ Global_STR }.e(${ id },${ Global_STR }b)${ tryEnd }`);
-                dict[id++] = {
+                fnHead.v = `var ${ G_STR }g${ funcId }=${ G_STR }.enter(${ funcId },arguments,this,${ G_STR }g${ parentId });${ str }${ tryStart }`;
+                insert(node.body.end - 1, `;${ G_STR }.exit(${ id },${ G_STR }b)${ tryEnd }`);
+                dictionary[id++] = {
                     x: node.body.loc.end.column,
                     y: node.body.loc.end.line,
                     ret: funcId

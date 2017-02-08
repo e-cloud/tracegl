@@ -112,6 +112,17 @@ define(function (require, exports, module) {
                     this.tokTree.whitespace = this.input.slice(0, this.start);
                 }
 
+                /*this.options.onToken = (token) => {
+                 if (this.start > this.lastTokEnd && !this.value) {
+                 token.tokTree = this.tokTree
+                 token.pos = this.pos
+                 token.input = this.input
+
+                 finishToken.call(token)
+                 this.tokTree = token.tokTree
+                 }
+                 }*/
+
                 const program = originFn.call(this);
                 program.tokens = this.tokTree;
                 return program;
@@ -142,7 +153,13 @@ define(function (require, exports, module) {
             if (type == TokenTypes.regexp && parentStart._lastChild && parentStart._lastChild._type.binop == 10) {
                 // verify this one
                 node = parentStart._lastChild;
-            } else if (opts.compact && parentStart._lastChild && (type == TokenTypes.name && parentStart._lastChild._type == TokenTypes.dot || type == TokenTypes.dot && parentStart._lastChild._type == TokenTypes.name)) {
+            } else if (opts.compact &&
+                       parentStart._lastChild &&
+                       (type == TokenTypes.name &&
+                        parentStart._lastChild._type == TokenTypes.dot ||
+                        type == TokenTypes.dot &&
+                        parentStart._lastChild._type == TokenTypes.name)
+            ) {
                 node = parentStart._lastChild;
                 node._type = type;
                 node.token += input.slice(tokStart, tokEnd);
@@ -211,25 +228,9 @@ define(function (require, exports, module) {
             acornOpts.plugins.traceToken.noclose = true;
         }
 
-        const program = acorn.parse(input, acornOpts);
+        acornOpts.locations = true
 
-        /* console.log('=================================================================\n=================================================================')
-         const output = []
-         let src = ''
-         program.tokens.walk(function (n) {
-             output.push(logger.gen(n, 25))
-             src += n.token
-             if (n.w.indexOf('\n') !== -1 && !n._child) {
-                 if (!(n.token === '}' && n._parent._nextSibling && n._parent._nextSibling.token === '}')) {
-                     src += ';'
-                 }
-             } else if (n.w.indexOf(' ') != -1) {
-                 src += ' '
-             }
-         })
-          console.log(output.join('\n'))
-         console.log('=================================================================')
-         console.log(src)*/
+        const program = acorn.parse(input, acornOpts);
 
         return program;
     };
